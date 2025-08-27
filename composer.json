@@ -6,9 +6,9 @@
     "require": {
         "php": ">=8.3",
         "dalpras/smart-template": "@dev",
-        "laminas/laminas-validator": "^2.53",
-        "laminas/laminas-filter": "^2.34",
-        "laminas/laminas-i18n": "^2.30"
+        "laminas/laminas-validator": "^2.64.4",
+        "laminas/laminas-filter": "^2.41.0",
+        "laminas/laminas-i18n": "^2.30.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^12.3.6"
