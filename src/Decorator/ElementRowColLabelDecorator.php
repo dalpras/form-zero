@@ -4,7 +4,7 @@ namespace DalPraS\FormZero\Decorator;
 
 use DalPraS\FormZero\Decorator\AbstractDecorator;
 
-class GroupRowColLabelDecorator extends AbstractDecorator
+class ElementRowColLabelDecorator extends AbstractDecorator
 {
     /**
      * Render element in Bootstrap row style
@@ -13,7 +13,9 @@ class GroupRowColLabelDecorator extends AbstractDecorator
     {
         /** @var \DalPraS\FormZero\Element $element */
         $element = $this->getElement();
-        $content = (new ElementLabelDecorator(['class' => 'col-form-label ' . ($this->getOption('class') ?? '') ]))->setElement($element)->render($content);
+        $content = (new ElementLabelDecorator([
+            'class' => 'col-form-label ' . ($this->getOption('class') ?? '')
+        ]))->setElement($element)->render($content);
         return $content;
     }
 }

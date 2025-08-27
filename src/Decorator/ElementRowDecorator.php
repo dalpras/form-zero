@@ -5,7 +5,7 @@ namespace DalPraS\FormZero\Decorator;
 use DalPraS\FormZero\Decorator\AbstractDecorator;
 use DalPraS\SmartTemplate\Collection\RenderCollection;
 
-class GroupRowDecorator extends AbstractDecorator
+class ElementRowDecorator extends AbstractDecorator
 {
     /**
      * Render element in Bootstrap row style

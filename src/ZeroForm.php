@@ -5,9 +5,9 @@ namespace DalPraS\FormZero;
 use DalPraS\FormZero\Decorator\ElementContentDecorator;
 use DalPraS\FormZero\Decorator\ElementsDecorator;
 use DalPraS\FormZero\Decorator\FormDecorator;
-use DalPraS\FormZero\Decorator\GroupRowColContentDecorator;
-use DalPraS\FormZero\Decorator\GroupRowColLabelDecorator;
-use DalPraS\FormZero\Decorator\GroupRowDecorator;
+use DalPraS\FormZero\Decorator\ElementRowColContentDecorator;
+use DalPraS\FormZero\Decorator\ElementRowColLabelDecorator;
+use DalPraS\FormZero\Decorator\ElementRowDecorator;
 use DalPraS\FormZero\Factory\FormFactoryInterface;
 use DalPraS\FormZero\Traits\FormElementTrait;
 use DalPraS\SmartTemplate\Plugins\HelpersInterface;
@@ -209,9 +209,9 @@ class ZeroForm extends ElementsOrdered implements ValidatorInterface
         if (empty($options['decorators'])) {
             $options['decorators'] = [
                 [ElementContentDecorator::class],
-                [GroupRowColContentDecorator::class, ['class' => 'col-12 col-sm-6']],
-                [GroupRowColLabelDecorator::class,   ['class' => 'col-12 col-sm-3 col-md-2']],
-                [GroupRowDecorator::class]
+                [ElementRowColContentDecorator::class, ['class' => 'col-12 col-sm-6']],
+                [ElementRowColLabelDecorator::class,   ['class' => 'col-12 col-sm-3 col-md-2']],
+                [ElementRowDecorator::class]
             ];
         }
 
