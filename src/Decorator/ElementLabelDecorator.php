@@ -16,7 +16,7 @@ class ElementLabelDecorator extends AbstractDecorator
             if ( $element->getLabel() !== '' ) {
                 $helpers =  $template->getHelpers();
                 return $render['form']['html']['label']([
-                        '{class}'    => $this->getOption('class') ?? '',
+                        '{class}'    => $this->getOption('class') ?? 'form-label',
                         '{for}'      => $element->getId(),
                         '{required}' => $element->isRequired() ? 'required' : '',
                         '{text}'     => $element->isTranslatorDisabled() ? $element->getLabel() : $helpers->translator()->trans($element->getLabel())

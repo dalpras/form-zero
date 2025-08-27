@@ -2,10 +2,11 @@
 
 namespace DalPraS\FormZero\Decorator;
 
+use Closure;
 use DalPraS\FormZero\Decorator\AbstractDecorator;
 use DalPraS\SmartTemplate\Collection\RenderCollection;
 
-class ElementRowDecorator extends AbstractDecorator
+class ElementWrapperDecorator extends AbstractDecorator
 {
     /**
      * Render element in Bootstrap row style
@@ -14,12 +15,12 @@ class ElementRowDecorator extends AbstractDecorator
     {
         $element = $this->getElement();
         $factory = $element->getFactory();
-        return $factory->getTemplate()->render($factory->getTemplateFile(), function(RenderCollection $render) use ($element, $content) {
-            return $render['form']['html']['row']([
-                '{attributes}' => [
-                    'data-row-for' => $element->getId()
-                ],
+        return $factory->getTemplate()->render($factory->getTemplateFile(), function(RenderCollection $render) use ($content, $element) {
+            $attributes = $this->getOption('attributes') ?? [];
+            $fn = ($attributes instanceof Closure) ? $attributes : fn() => $attributes;
+            return $render['form']['html']['content-wrapper']([
                 '{class}'      => $this->getOption('class') ?? '',
+                '{attributes}' => $fn($element),
                 '{content}'    => $content
             ]);
         });

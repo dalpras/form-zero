@@ -117,14 +117,8 @@ return [
         <label class="{class} {required}" for="{for}">{text}</label>
         HTML,
 
-    'row' => <<<HTML
-        <div class="row mb-3 {class}" {attributes}>
-            {content}
-        </div>
-        HTML,
-
-    'col-content' => <<<HTML
-        <div class="{class}">
+    'content-wrapper' => <<<HTML
+        <div class="{class}" {attributes}>
             {content}
         </div>
         HTML,

@@ -3,11 +3,10 @@
 namespace DalPraS\FormZero;
 
 use DalPraS\FormZero\Decorator\ElementContentDecorator;
+use DalPraS\FormZero\Decorator\ElementLabelDecorator;
 use DalPraS\FormZero\Decorator\ElementsDecorator;
+use DalPraS\FormZero\Decorator\ElementWrapperDecorator;
 use DalPraS\FormZero\Decorator\FormDecorator;
-use DalPraS\FormZero\Decorator\ElementRowColContentDecorator;
-use DalPraS\FormZero\Decorator\ElementRowColLabelDecorator;
-use DalPraS\FormZero\Decorator\ElementRowDecorator;
 use DalPraS\FormZero\Factory\FormFactoryInterface;
 use DalPraS\FormZero\Traits\FormElementTrait;
 use DalPraS\SmartTemplate\Plugins\HelpersInterface;
@@ -209,9 +208,9 @@ class ZeroForm extends ElementsOrdered implements ValidatorInterface
         if (empty($options['decorators'])) {
             $options['decorators'] = [
                 [ElementContentDecorator::class],
-                [ElementRowColContentDecorator::class, ['class' => 'col-12 col-sm-6']],
-                [ElementRowColLabelDecorator::class,   ['class' => 'col-12 col-sm-3 col-md-2']],
-                [ElementRowDecorator::class]
+                [ElementWrapperDecorator::class, ['class' => 'col-12 col-sm-6']],
+                [ElementLabelDecorator::class,   ['class' => 'col-form-label col-12 col-sm-3 col-md-2']],
+                [ElementWrapperDecorator::class, ['class' => 'row mb-3']]
             ];
         }
 
