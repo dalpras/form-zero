@@ -4,115 +4,152 @@ namespace DalPraS\FormZero\Element;
 
 use DalPraS\FormZero\Decorator\ElementContentDecorator;
 use DalPraS\FormZero\Element;
-use Laminas\Validator\Identical;
+use DalPraS\FormZero\Session\SessionAdapterInterface;
 
 /**
- * CSRF form protection
+ * CSRF form protection element (Symfony Session, no external Clock)
+ * - Supporta più form sulla stessa pagina usando getId() come scope
  */
-class HashElement extends Element
+final class HashElement extends Element
 {
-    /**
-     * Key used to store the form hash in the session.
-     *
-     * @var string
-     */
-    private const string SESSION_HASH_KEY = 'form-element-hash-key';
+    private const TOKEN_KEY_PREFIX = 'formzero.csrf.token.';
+    private const EXP_KEY_PREFIX   = 'formzero.csrf.expires_at.';
 
-    protected array $attribs = [];
+    /** TTL del token (secondi) */
+    private int $ttlSeconds;
 
-    /**
-     * Actual hash used.
-     */
+    /** Symfony session */
+    private SessionAdapterInterface $session;
+
+    /** Token corrente da renderizzare */
     private ?string $hash = null;
 
-    /**
-     * Creates session namespace for CSRF token, and adds validator for CSRF
-     * token.
-     */
+    public function __construct(SessionAdapterInterface $session, int $ttlSeconds = 1200)
+    {
+        parent::__construct();
+        $this->session    = $session;
+        $this->ttlSeconds = max(60, $ttlSeconds); // minimo 60s per sicurezza
+    }
+
     public function init(): void
     {
-        // Ensure PHP session is started
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+        if (!$this->session->isStarted()) {
+            $this->session->start();
         }
 
-        $this->hash = $this->initHash(true);
+        $this->hash = $this->ensureValidToken();
 
-        if ( !$this->getFactory()->getIgnoreCsrfToken() ) {
-            $this->initCsrfValidator($this->hash)->setAllowEmpty(false)->setRequired(true);
+        if (!$this->getFactory()->getIgnoreCsrfToken()) {
+            $this->setAllowEmpty(false)->setRequired(true);
         }
+
         $this->clearDecorators()->addDecorator(ElementContentDecorator::class);
     }
 
-    /**
-     * Initialize the hash in the session.
-     * If $useSessionHash is true and a session hash already exists, it will be used.
-     * Otherwise, a new hash will be generated.
-     * Returns the initialized hash.
-     */
-    private function initHash(bool $useSessionHash): string
-    {
-        if ($useSessionHash && isset($_SESSION[self::SESSION_HASH_KEY])) {
-            $rightHash = $_SESSION[self::SESSION_HASH_KEY];
-        } else {
-            $rightHash = $this->generateRightHash();
-            $_SESSION[self::SESSION_HASH_KEY] = $rightHash; // Store it in session
-        }
-        return $rightHash;
-    }
-
-    /**
-     * Generate a 32-character hexadecimal random string.
-     */
-    private function generateRightHash(): string
-    {
-        return bin2hex(random_bytes(16));
-    }
-
-    /**
-     * Initialize CSRF validator and attach it to the validator chain.
-     */
-    private function initCsrfValidator($rightHash): self
-    {
-        // se la sessione non è stata iniettata, non la considero nel validatore
-        $this->getValidatorChain()->attachByName(Identical::class, ['token' => $rightHash], true);
-        return $this;
-    }
-
-    /**
-     * Retrieve CSRF token
-     */
-    public function getHash(): string
-    {
-        return $this->hash;
-    }
-
-    /**
-     * Override getLabel() to always be empty
-     */
     public function getLabel(): string
     {
         return '';
     }
 
-    /**
-     * @see \DalPraS\FormZero\Element::isValid()
-     */
-    public function isValid($value, $context = null): bool
+    public function getHash(): string
     {
-        $isValid = parent::isValid($value, $context);
-        if (!$isValid) {
-            $this->hash = $this->initHash(false);
+        if ($this->hash === null) {
+            $this->hash = $this->ensureValidToken();
         }
-        return $isValid;
+        return $this->hash;
     }
 
-    /**
-     * Render CSRF token in form
-     */
+    public function isValid($value, $context = null): bool
+    {
+        if ($this->getFactory()->getIgnoreCsrfToken() !== true) {
+            $okCsrf = $this->validateIncomingToken((string)$value);
+
+            // Ruota comunque il token per ridurre rischio replay
+            $this->rotateToken();
+
+            if (!$okCsrf) {
+                return false;
+            }
+        }
+
+        return parent::isValid($value, $context);
+    }
+
     public function render(): string
     {
-        $this->setValue($this->hash);
+        $this->setValue($this->getHash());
         return parent::render();
+    }
+
+    // ============================
+    //          Helpers
+    // ============================
+
+    private function now(): int
+    {
+        return time();
+    }
+
+    private function generateToken(): string
+    {
+        $raw = random_bytes(32);
+        return rtrim(strtr(base64_encode($raw), '+/', '-_'), '='); // ~43 char
+    }
+
+    private function tokenKey(): string
+    {
+        return self::TOKEN_KEY_PREFIX . $this->sanitizeId($this->getId());
+    }
+
+    private function expKey(): string
+    {
+        return self::EXP_KEY_PREFIX . $this->sanitizeId($this->getId());
+    }
+
+    private function ensureValidToken(): string
+    {
+        $now    = $this->now();
+        $token  = $this->session->get($this->tokenKey());
+        $expiry = (int) $this->session->get($this->expKey(), 0);
+
+        if (!is_string($token) || $expiry < $now) {
+            $token = $this->generateToken();
+            $this->session->set($this->tokenKey(), $token);
+            $this->session->set($this->expKey(), $now + $this->ttlSeconds);
+        }
+
+        return $token;
+    }
+
+    private function rotateToken(): void
+    {
+        $now = $this->now();
+        $new = $this->generateToken();
+        $this->session->set($this->tokenKey(), $new);
+        $this->session->set($this->expKey(), $now + $this->ttlSeconds);
+        $this->hash = $new;
+    }
+
+    private function validateIncomingToken(string $incoming): bool
+    {
+        if ($incoming === '') {
+            return false;
+        }
+
+        $now    = $this->now();
+        $stored = $this->session->get($this->tokenKey());
+        $exp    = (int) $this->session->get($this->expKey(), 0);
+
+        if (!is_string($stored) || $exp < $now) {
+            return false; // assente o scaduto
+        }
+
+        return hash_equals($stored, $incoming);
+    }
+
+    private function sanitizeId(string $id): string
+    {
+        // Solo caratteri sicuri per la chiave di sessione
+        return preg_replace('/[^a-z0-9_.:-]/i', '_', $id) ?? 'default';
     }
 }
