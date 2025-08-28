@@ -254,13 +254,8 @@ class ZeroForm extends ElementsOrdered implements ValidatorInterface
 
     /**
      * Replace an existing element (by name) with a new one.
-     *
-     * @param  string   $type    Element class/type
-     * @param  string   $name    Element name
-     * @param  array    $options Element options
-     * @throws InvalidArgumentException if a subForm with the same name exists
      */
-    public function replaceElement(string $type, string $name, array $options = []): ElementInterface
+    public function replaceElement(ElementInterface|string $element, string $name, array $options = []): ElementInterface
     {
         // If a subForm already exists with this name, throw exception or handle as you wish
         if (isset($this->subForms[$name])) {
@@ -272,7 +267,7 @@ class ZeroForm extends ElementsOrdered implements ValidatorInterface
         // Remove the existing element if present
         $this->removeElement($name);
 
-        $element = $this->factory->createElement($type, $name, $options);
+        $element = $this->factory->createElement($element, $name, $options);
         $this->addElement($element, $order);
         return $element;
     }
