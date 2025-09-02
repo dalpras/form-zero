@@ -14,6 +14,7 @@ final class HashElement extends Element
 {
     private const TOKEN_KEY_PREFIX = 'formzero.csrf.token.';
     private const EXP_KEY_PREFIX   = 'formzero.csrf.expires_at.';
+    private const ROT_KEY_PREFIX   = 'formzero.csrf.rotated.'; // new
 
     /** TTL del token (secondi) */
     private int $ttlSeconds;
@@ -24,11 +25,21 @@ final class HashElement extends Element
     /** Token corrente da renderizzare */
     private ?string $hash = null;
 
+    /** Se true, ruota al massimo una volta per sessione utente (per scope id) */
+    private bool $rotateOncePerSession = false; // new
+
     public function __construct(SessionAdapterInterface $session, int $ttlSeconds = 1200)
     {
         parent::__construct();
         $this->session    = $session;
         $this->ttlSeconds = max(60, $ttlSeconds); // minimo 60s per sicurezza
+    }
+
+    /** Abilita/disabilita la rotazione una sola volta per sessione (per form id) */
+    public function setRotateOncePerSession(bool $on): self
+    {
+        $this->rotateOncePerSession = $on;
+        return $this;
     }
 
     public function init(): void
@@ -64,7 +75,7 @@ final class HashElement extends Element
         if ($this->getFactory()->getIgnoreCsrfToken() !== true) {
             $okCsrf = $this->validateIncomingToken((string)$value);
 
-            // Ruota comunque il token per ridurre rischio replay
+            // Ruota il token: sempre (comportamento attuale) oppure al massimo una volta per sessione
             $this->rotateToken();
 
             if (!$okCsrf) {
@@ -106,6 +117,11 @@ final class HashElement extends Element
         return self::EXP_KEY_PREFIX . $this->sanitizeId($this->getId());
     }
 
+    private function rotKey(): string // new
+    {
+        return self::ROT_KEY_PREFIX . $this->sanitizeId($this->getId());
+    }
+
     private function ensureValidToken(): string
     {
         $now    = $this->now();
@@ -116,12 +132,32 @@ final class HashElement extends Element
             $token = $this->generateToken();
             $this->session->set($this->tokenKey(), $token);
             $this->session->set($this->expKey(), $now + $this->ttlSeconds);
+            // resetta il flag di rotazione quando nasce un nuovo token
+            $this->session->set($this->rotKey(), false); // new
         }
 
         return $token;
     }
 
     private function rotateToken(): void
+    {
+        // Se non limitato, mantieni il comportamento attuale
+        if (!$this->rotateOncePerSession) {
+            $this->doRotate();
+            return;
+        }
+
+        // Con flag attivo, ruota solo se non ancora ruotato in questa sessione (per scope id)
+        $alreadyRotated = (bool) $this->session->get($this->rotKey(), false);
+        if ($alreadyRotated) {
+            return; // non ruotare più in questa sessione utente per questo form id
+        }
+
+        $this->doRotate();
+        $this->session->set($this->rotKey(), true);
+    }
+
+    private function doRotate(): void // factored
     {
         $now = $this->now();
         $new = $this->generateToken();
