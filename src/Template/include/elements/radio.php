@@ -32,7 +32,7 @@ return function($template, $element, string $name) {
                     => ''
             },
             '{value}'   => $template->getHelpers()->escaper()->escapeHtmlAttr((string) $value),
-            '{text}'    => $template->getHelpers()->escaper()->escapeHtml($text),
+            '{text}'    => $text, // $template->getHelpers()->escaper()->escapeHtml($text),
             '{checked}' => in_array((string) $value, (array) $element->getValue()) ? 'checked' : '',
             '{class}'   => $element->isInline() ? 'form-check-inline' : '',
         ]);
