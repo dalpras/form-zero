@@ -53,7 +53,7 @@ class ElementBaseDecorator extends AbstractDecorator
                     default
                         => 'Invalid element type'
                 };
-                return $html;
+                return $content . $html;
             } catch (Throwable $th) {
                 return $content . $th->getMessage() . $th->getTraceAsString();
             }
