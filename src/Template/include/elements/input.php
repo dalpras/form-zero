@@ -4,12 +4,17 @@ use DalPraS\FormZero\Element\EmailElement;
 use DalPraS\FormZero\Element\PasswordElement;
 use DalPraS\FormZero\Element\SearchElement;
 use DalPraS\FormZero\Element\TextElement;
+use DalPraS\SmartTemplate\TemplateEngine;
 
-return function($template, $element, string $name) {
+return function(TemplateEngine $template, $element, string $name) {
     /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
     /** @var TextElement|EmailElement|SearchElement|PasswordElement $element */    
     $render = $this->renders[$name];
     $attribs = $element->getAttribs();
+
+    /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
+    $helpers = $template->getHelpers();       
+
     $html = $render['form']['html']['input']([
         '{attributes}' => array_replace($attribs, [
             'class' => implode(' ',  [
@@ -32,7 +37,7 @@ return function($template, $element, string $name) {
             default 
                 => 'text'
         },
-        '{value}' => $template->getHelpers()->escaper()->escapeHtmlAttr((string) $element->getValue()),
+        '{value}' => $helpers->escaper()->escapeHtmlAttr((string) $element->getValue()),
     ]); 
     return $html;
 };

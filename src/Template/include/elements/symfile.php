@@ -1,11 +1,16 @@
 <?php
 /* symfile.php */
 
-return function($template, $element, string $name) {
+use DalPraS\SmartTemplate\TemplateEngine;
+
+return function(TemplateEngine $template, $element, string $name) {
     /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
     /** @var \DalPraS\FormZero\Element\SymfileElement|\DalPraS\FormZero\Element\SymfileMultiElement $element */
     $render = $this->renders[$name];
     $attribs = $element->getAttribs();
+
+    /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
+    $helpers = $template->getHelpers();       
 
     $html = $render['form']['html']['input']([
         '{attributes}' => array_replace($attribs, [
@@ -18,7 +23,7 @@ return function($template, $element, string $name) {
             'name'  => $attribs['name'] ?? $element->getFullyQualifiedName(),
         ]),
         '{type}' => 'file',
-        '{value}' => $template->getHelpers()->escaper()->escapeHtmlAttr((string) $element->getValue()),
+        '{value}' => $helpers->escaper()->escapeHtmlAttr((string) $element->getValue()),
     ]);
     return $html;
 };

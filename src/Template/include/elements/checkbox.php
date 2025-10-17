@@ -1,8 +1,14 @@
 <?php
 /* checkbox.php */
-return function($template, $element, string $name) {
+
+use DalPraS\SmartTemplate\TemplateEngine;
+
+return function(TemplateEngine $template, $element, string $name) {
     $render = $this->renders[$name];
     $attribs = $element->getAttribs();
+
+    /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
+    $helpers = $template->getHelpers();    
 
     // Field hidden with the Unchecked value
     $html = $render['form']['html']['input']([
@@ -11,7 +17,7 @@ return function($template, $element, string $name) {
             'name' => $attribs['name'] ?? $element->getFullyQualifiedName()
         ]),
         '{type}'       => 'hidden',
-        '{value}'      => $template->getHelpers()->escaper()->escapeHtmlAttr((string) $element->getUncheckedValue()),
+        '{value}'      => $helpers->escaper()->escapeHtmlAttr((string) $element->getUncheckedValue()),
     ]);
     unset($attribs['id']); // only one element can have a certain ID
 
@@ -29,7 +35,7 @@ return function($template, $element, string $name) {
             'name'  => $attribs['name'] ?? $element->getFullyQualifiedName(),
         ]),
         '{type}'    => 'checkbox',
-        '{value}'   => $template->getHelpers()->escaper()->escapeHtmlAttr($checkedValue),
+        '{value}'   => $helpers->escaper()->escapeHtmlAttr($checkedValue),
         '{text}'    => '',
         '{checked}' => $isChecked ? 'checked' : '',
         '{class}' => 'form-check-inline',

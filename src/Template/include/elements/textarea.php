@@ -1,10 +1,17 @@
 <?php
 /* textarea.php */
-return function($template, $element, string $name) {
+
+use DalPraS\SmartTemplate\TemplateEngine;
+
+return function(TemplateEngine $template, $element, string $name) {
     /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
     /** @var \DalPraS\FormZero\Element\TextareaElement $element */        
     $render = $this->renders[$name];
     $attribs = $element->getAttribs();
+
+    /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
+    $helpers = $template->getHelpers();       
+
     return 
         $render['form']['html']['textarea']([
             '{attributes}' => array_replace($attribs, [
@@ -16,7 +23,7 @@ return function($template, $element, string $name) {
                 'id'    => $attribs['id'] ?? $attribs['name'] ?? $element->getFullyQualifiedName(),
                 'name'  => $attribs['name'] ?? $element->getFullyQualifiedName(),
             ]),
-            '{value}'   => $template->getHelpers()->escaper()->escapeHtmlAttr((string) $element->getValue()),
+            '{value}'   => $helpers->escaper()->escapeHtmlAttr((string) $element->getValue()),
         ])
     ;
 };

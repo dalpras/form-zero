@@ -1,6 +1,9 @@
 <?php
 /* submit.php */
-return function($template, $element, string $name) {
+
+use DalPraS\SmartTemplate\TemplateEngine;
+
+return function(TemplateEngine $template, $element, string $name) {
     /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
     /** @var \DalPraS\FormZero\Element\SubmitElement $element */          
     $render = $this->renders[$name];
@@ -18,7 +21,7 @@ return function($template, $element, string $name) {
     
     $html = $render['form']['html']['button']([
         '{attributes}' => $attributes,
-        '{text}' => $element->getLabel()
+        '{text}' => $element->getText()
     ]);
     return $html;
 };

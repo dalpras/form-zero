@@ -1,5 +1,12 @@
 <?php
 /* mandatory.php */
-return function () {
-    return '<p>' . $this->getHelpers()->trans("(*) Fields marked with an asterisk are mandatory") . '</p>';
+
+use DalPraS\SmartTemplate\Collection\RenderCollection;
+use DalPraS\SmartTemplate\TemplateEngine;
+
+return function(RenderCollection $render, TemplateEngine $template) {
+    /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
+    $helpers = $template->getHelpers();    
+
+    return '<p>' . $helpers->translator()->translate("(*) Fields marked with an asterisk are mandatory") . '</p>';
 };

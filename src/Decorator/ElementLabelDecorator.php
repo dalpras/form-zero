@@ -14,12 +14,13 @@ class ElementLabelDecorator extends AbstractDecorator
         $factory = $element->getFactory();
         return $factory->getTemplate()->render($factory->getTemplateFile(), function(RenderCollection $render, TemplateEngine $template) use ($content, $element) {
             if ( $element->getLabel() !== '' ) {
+                /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
                 $helpers =  $template->getHelpers();
                 return $render['form']['html']['label']([
                         '{class}'    => $this->getOption('class') ?? 'form-label',
-                        '{for}'      => $element->getId(),
+                        '{for}'      => $this->getOption('for') ?? $element->getId(),
                         '{required}' => $element->isRequired() ? 'required' : '',
-                        '{text}'     => $element->isTranslatorDisabled() ? $element->getLabel() : $helpers->translator()->trans($element->getLabel())
+                        '{text}'     => $element->isTranslatorDisabled() ? $element->getLabel() : $helpers->translator()->translate($element->getLabel())
                     ]) . $content;
             }
             return $content;

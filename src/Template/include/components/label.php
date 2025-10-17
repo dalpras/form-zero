@@ -1,13 +1,20 @@
 <?php
 /* label.php */
-return function($template, $element, string $name) {
+
+use DalPraS\SmartTemplate\TemplateEngine;
+
+return function(TemplateEngine $template, $element, string $name) {
     /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
     /** @var \DalPraS\FormZero\Element $element */    
     $render = $this->renders[$name];
+
+    /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
+    $helpers = $template->getHelpers();    
+
     return $render['form']['html']['label']([
         '{class}'    => 'col-form-label ' . ($options['{label-class}'] ?? ''),
         '{for}'      => $element->getId(),
         '{required}' => $element->isRequired() ? 'required' : '',
-        '{text}'     => $element->isTranslatorDisabled() ? $element->getLabel() : $this->getHelpers()->translator()->trans($element->getLabel())
+        '{text}'     => $element->isTranslatorDisabled() ? $element->getLabel() : $helpers->translator()->translate($element->getLabel())
     ]);
 };

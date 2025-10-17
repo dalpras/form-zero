@@ -9,6 +9,7 @@ use DalPraS\FormZero\ElementInterface;
 use DalPraS\FormZero\Exception\HydratorIgnoreFieldException;
 use DalPraS\FormZero\Exception\HydratorInvalidFieldException;
 use Throwable;
+use TypeError;
 
 class Hydrator
 {
@@ -40,41 +41,70 @@ class Hydrator
     }
 
     /**
-     * Idrata l'oggetto in base al valore passato dalla funzione di idratazione
-     * che passa nome e valore dell'elemento della form.
-     * 
-     * @var object $entity Oggetto da modificare
-     * @var \DalPraS\FormZero\ZeroForm $form
-     * @var Closure $hydrate funtion($field, $value) => void
+     * Idrata un oggetto a partire dai valori di una ZeroForm.
+     *
+     * @param object  $entity   Oggetto da modificare (passato per riferimento)
+     * @param ZeroForm $form
+     * @param callable $hydrate function(string $field, mixed $value): mixed|Closure
+     *                          Se ritorna una Closure, verrà chiamata come
+     *                          function (object $entity, mixed $value, ElementInterface $element, ZeroForm $form): void
      */
-    public static function hydrateObject(object &$entity, ZeroForm $form, Closure $hydrate): void
-    {
-        /** @var \DalPraS\FormZero\Element $element */
+    public static function hydrateObject(
+        object &$entity,
+        ZeroForm $form,
+        callable $hydrate
+    ): void {
+        /** @var mixed $element */
         foreach ($form->getElementsAndSubFormsOrdered() as $element) {
+            // Considera solo elementi idratabili
             if ($element instanceof ElementInterface && $element->getIgnore()) {
                 continue;
             }
+
             $field = $element->getName();
             $value = ($element instanceof ElementInterface) ? $element->getValue() : null;
+
             try {
                 $setterValue = $hydrate($field, $value);
+
                 if ($setterValue instanceof Closure) {
+                    // Custom setter supplied by the hydrator
                     $setterValue($entity, $value, $element, $form);
-                } else {
-                    $setter = 'set' . ucfirst($field);
-                    if (method_exists($entity, $setter) === false) {
-                        throw new HydratorInvalidFieldException("Method {$setter} not found in object");
-                    }
-                    $entity->$setter($setterValue);
+                    continue;
                 }
-            } catch (HydratorInvalidFieldException $th) {
+
+                $setter = 'set' . self::toPascalCase((string)$field);
+
+                if (!method_exists($entity, $setter)) {
+                    throw new HydratorInvalidFieldException(
+                        sprintf('Setter %s() non trovato per il campo "%s".', $setter, (string)$field)
+                    );
+                }
+
+                $entity->$setter($setterValue);
+                
+            } catch (HydratorIgnoreFieldException $th) {
+                // IgnoreField: non fare nulla
+
+            } catch (HydratorInvalidFieldException|TypeError $th) {
                 $element->addError($th->getMessage());
                 $form->markAsError();
-            } catch (HydratorIgnoreFieldException $th) {
-                // ignora il valore
+
             } catch (Throwable $th) {
+                // Altre eccezioni applicative: propagale
                 throw $th;
             }
         }
     }
+
+    /**
+     * Converte "first_name" o "first-name" o "first name" in "FirstName".
+     */
+    private static function toPascalCase(string $name): string
+    {
+        $name = str_replace(['-', '_'], ' ', $name);
+        $name = ucwords($name);
+        return str_replace(' ', '', $name);
+    }
+
 }

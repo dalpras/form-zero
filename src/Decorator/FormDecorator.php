@@ -4,6 +4,7 @@ namespace DalPraS\FormZero\Decorator;
 
 use DalPraS\FormZero\Decorator\AbstractDecorator;
 use DalPraS\SmartTemplate\Collection\RenderCollection;
+use DalPraS\SmartTemplate\TemplateEngine;
 
 /**
  * Render a Form.
@@ -35,10 +36,10 @@ class FormDecorator extends AbstractDecorator
 
             return $render['form']['html']['form']([
                 '{attributes}' => $attribs,
-                '{elements}'   => function(RenderCollection $render) use ($content) {
+                '{elements}'   => function(RenderCollection $render, TemplateEngine $template) use ($content) {
                     $html = $content;
                     if ( ($this->getOption('hideMandatory') ?? false) === false) {
-                        $html .= $render['form']['components']['mandatory']();
+                        $html .= $render['form']['components']['mandatory']($render, $template);
                     }
                     return $html;
                 }
