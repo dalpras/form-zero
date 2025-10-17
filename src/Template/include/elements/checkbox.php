@@ -8,7 +8,7 @@ return function(TemplateEngine $template, $element, string $name) {
     $attribs = $element->getAttribs();
 
     /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
-    $helpers = $template->getHelpers();    
+    $helpers = $template->getHelpers();
 
     // Field hidden with the Unchecked value
     $html = $render['form']['html']['input']([
@@ -23,7 +23,7 @@ return function(TemplateEngine $template, $element, string $name) {
 
     $checkedValue = $element->getCheckedValue();
     $isChecked = $element->isChecked() || ((string) $element->getValue() === $checkedValue);
-    
+
     // checkbox
     $html .= $render['form']['html']['form-element-checkbox']([
         '{attributes}' => array_replace($attribs, [

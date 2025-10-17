@@ -5,12 +5,12 @@ use DalPraS\SmartTemplate\TemplateEngine;
 
 return function(TemplateEngine $template, $element, string $name) {
     /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
-    /** @var \DalPraS\FormZero\Element\DatePickerElement $element */        
+    /** @var \DalPraS\FormZero\Element\DatePickerElement $element */
     $render = $this->renders[$name];
     $attribs = $element->getAttribs();
 
     /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
-    $helpers = $template->getHelpers();    
+    $helpers = $template->getHelpers();
 
     $html = $render['form']['html']['datepicker']([
         '{attributes}' => array_replace($attribs, [

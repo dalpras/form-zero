@@ -8,12 +8,12 @@ use DalPraS\SmartTemplate\TemplateEngine;
 
 return function(TemplateEngine $template, $element, string $name) {
     /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
-    /** @var TextElement|EmailElement|SearchElement|PasswordElement $element */    
+    /** @var TextElement|EmailElement|SearchElement|PasswordElement $element */
     $render = $this->renders[$name];
     $attribs = $element->getAttribs();
 
     /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
-    $helpers = $template->getHelpers();       
+    $helpers = $template->getHelpers();
 
     $html = $render['form']['html']['input']([
         '{attributes}' => array_replace($attribs, [
@@ -34,10 +34,10 @@ return function(TemplateEngine $template, $element, string $name) {
                 => 'search',
             PasswordElement::class
                 => 'password',
-            default 
+            default
                 => 'text'
         },
         '{value}' => $helpers->escaper()->escapeHtmlAttr((string) $element->getValue()),
-    ]); 
+    ]);
     return $html;
 };

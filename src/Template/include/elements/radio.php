@@ -7,10 +7,10 @@ use DalPraS\SmartTemplate\TemplateEngine;
 
 return function(TemplateEngine $template, $element, string $name) {
     /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
-    /** @var \DalPraS\FormZero\Element\RadioElement|\DalPraS\FormZero\Element\RadioPopupElement|\DalPraS\FormZero\Element\CheckboxMultiElement $element */       
+    /** @var \DalPraS\FormZero\Element\RadioElement|\DalPraS\FormZero\Element\RadioPopupElement|\DalPraS\FormZero\Element\CheckboxMultiElement $element */
 
     /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
-    $helpers = $template->getHelpers();    
+    $helpers = $template->getHelpers();
 
     $render = $this->renders[$name];
     $attribs = $element->getAttribs();
@@ -27,12 +27,12 @@ return function(TemplateEngine $template, $element, string $name) {
                 'name'  => $attribs['name'] ?? $element->getFullyQualifiedName()
             ]),
             '{type}'       => match (get_class($element)) {
-                CheckboxMultiElement::class 
+                CheckboxMultiElement::class
                     => 'checkbox',
                 RadioElement::class,
                 RadioPopupElement::class,
                     => 'radio',
-                default 
+                default
                     => ''
             },
             '{value}'   => $helpers->escaper()->escapeHtmlAttr((string) $value),

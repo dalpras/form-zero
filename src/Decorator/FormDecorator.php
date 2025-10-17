@@ -23,14 +23,14 @@ class FormDecorator extends AbstractDecorator
      *
      * Replaces $content entirely from currently set element.
      */
-    public function render(string $content = ''): string 
+    public function render(string $content = ''): string
     {
         $element = $this->getElement();
         $factory = $element->getFactory();
         return $factory->getTemplate()->render($factory->getTemplateFile(), function(RenderCollection $render) use ($element, $content) {
             $attribs       = $element->getAttribs();
             $attribs['id'] = $element->getId();
-            
+
             $attribs['name'] ??= $element->getFullyQualifiedName();
             $attribs['id']   ??= $attribs['name'];
 

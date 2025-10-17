@@ -8,7 +8,7 @@ use DalPraS\FormZero\MultiElementInterface;
 use DalPraS\FormZero\ZeroForm;
 use Exception;
 
-abstract class AbstractDecorator 
+abstract class AbstractDecorator
 {
     protected ElementInterface|ZeroForm $element;
 
@@ -22,7 +22,7 @@ abstract class AbstractDecorator
      */
     protected string $separator = PHP_EOL;
 
-    public function __construct(array $options = []) 
+    public function __construct(array $options = [])
     {
         if ( !empty($options) ) {
             $this->setOptions($options);
@@ -55,7 +55,7 @@ abstract class AbstractDecorator
         return $this->options;
     }
 
-    public function removeOption(string $key): bool 
+    public function removeOption(string $key): bool
     {
         if (null !== $this->getOption($key)) {
             unset($this->options[$key]);

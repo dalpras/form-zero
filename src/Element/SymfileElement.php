@@ -3,7 +3,6 @@
 namespace DalPraS\FormZero\Element;
 
 use DalPraS\FormZero\Element;
-use Exception;
 use InvalidArgumentException;
 use Laminas\Diactoros\UploadedFile;
 use Laminas\Validator\File\UploadFile;
@@ -100,12 +99,12 @@ class SymfileElement extends Element
     public function isUploaded(): bool
     {
         $uploadedFiles = $this->getUploadedFiles();
-        
+
         // If getUploadedFiles() returns null, there's no file in the request.
         if (null === $uploadedFiles) {
             return false;
         }
-        
+
         if ($this->isArray() && is_array($uploadedFiles)) {
             foreach ($uploadedFiles as $uploadFile) {
                 if ($uploadFile->getError() !== UPLOAD_ERR_OK) {
@@ -115,10 +114,10 @@ class SymfileElement extends Element
         } elseif ($uploadedFiles instanceof UploadedFile && $uploadedFiles->getError() !== UPLOAD_ERR_OK) {
             return false;
         }
-    
+
         return true;
     }
-    
+
 
     /**
      * Receive UploadedFile or array of UploadedFile
@@ -144,7 +143,7 @@ class SymfileElement extends Element
 
     /**
      * I do not value the verification, but on the fact that the file is
-     * has been loaded or not.     
+     * has been loaded or not.
      */
     protected function isEmpty($value): bool
     {

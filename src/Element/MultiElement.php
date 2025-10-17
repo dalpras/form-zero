@@ -17,7 +17,7 @@ class MultiElement extends Element implements MultiElementInterface
      * Opzioni in linea
      */
     private bool $inline = false;
-    
+
     /**
      * Separator to use between options; defaults to '<br />'.
      */
@@ -97,7 +97,7 @@ class MultiElement extends Element implements MultiElementInterface
     /**
      * Retrieve options
      */
-    public function getMultiOptions(): array 
+    public function getMultiOptions(): array
     {
         return $this->options;
     }
@@ -105,7 +105,7 @@ class MultiElement extends Element implements MultiElementInterface
     /**
      * Remove a single multi option
      */
-    public function removeMultiOption(string $option): bool 
+    public function removeMultiOption(string $option): bool
     {
         if (isset($this->options[$option])) {
             unset($this->options[$option]);

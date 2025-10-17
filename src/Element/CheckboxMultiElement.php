@@ -5,7 +5,7 @@ namespace DalPraS\FormZero\Element;
 class CheckboxMultiElement extends MultiElement
 {
     protected array $attribs = [];
-    
+
     /**
      * Multiselect is an array of values by default
      */

@@ -20,7 +20,7 @@ class ElementContentDecorator extends AbstractDecorator
             ->setElement($element)
             ->render($content)
         ;
-        
+
         $content = (new ElementFeedbackDecorator())
             ->setElement($element)
             ->render($content)

@@ -10,7 +10,7 @@ return function(TemplateEngine $template, $element, string $name) {
     $attribs = $element->getAttribs();
 
     /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
-    $helpers = $template->getHelpers();       
+    $helpers = $template->getHelpers();
 
     $html = $render['form']['html']['input']([
         '{attributes}' => array_replace($attribs, [

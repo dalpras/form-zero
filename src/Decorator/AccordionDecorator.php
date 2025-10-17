@@ -5,12 +5,12 @@ namespace DalPraS\FormZero\Decorator;
 use DalPraS\FormZero\Decorator\AbstractDecorator;
 use DalPraS\SmartTemplate\Collection\RenderCollection;
 
-class AccordionDecorator extends AbstractDecorator 
+class AccordionDecorator extends AbstractDecorator
 {
     /**
      * Create an accordion for using in form.
      */
-    public function render(string $content = ''): string 
+    public function render(string $content = ''): string
     {
         $element = $this->getElement();
         $factory = $element->getFactory();

@@ -5,7 +5,7 @@ namespace DalPraS\FormZero\Decorator;
 use DalPraS\FormZero\Decorator\AbstractDecorator;
 use DalPraS\SmartTemplate\Collection\RenderCollection;
 
-class AccordionCardDecorator extends AbstractDecorator 
+class AccordionCardDecorator extends AbstractDecorator
 {
     /**
      * Create an accordion for using in form.
@@ -19,7 +19,7 @@ class AccordionCardDecorator extends AbstractDecorator
 
             return $render['form']['html']['accordion-item']([
                 '{id}'  => $this->getOption('id'),
-                
+
                 '{attributes}' => $this->getOption('draggable') ? [
                     'data-dragger'   => "item",
                     'data-object-id' => $options['{objectId}'] ?? ''
@@ -36,11 +36,11 @@ class AccordionCardDecorator extends AbstractDecorator
                         '{id}'    => $this->getOption('id'),
                         '{text}'  => $options['{text}'] ?? ''
                     ]),
-                    '{mover}'   => $this->getOption('draggable') 
-                        ? $render['form']['html']['item-mover']() 
+                    '{mover}'   => $this->getOption('draggable')
+                        ? $render['form']['html']['item-mover']()
                         : '',
-                    '{buttons}' => ($options['{buttons}'] ?? '') !== '' 
-                        ? $render['form']['html']['item-buttons'](['{buttons}' => $options['{buttons}']]) 
+                    '{buttons}' => ($options['{buttons}'] ?? '') !== ''
+                        ? $render['form']['html']['item-buttons'](['{buttons}' => $options['{buttons}']])
                         : '',
                 ])
             ]);

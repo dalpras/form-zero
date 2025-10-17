@@ -9,12 +9,12 @@ class SelectMultiElement extends MultiElement
     protected array $attribs = [
         'multiple' => true
     ];
-    
+
     /**
      * Multiselect is an array of values by default
      */
     public function isArray(): bool
     {
         return true;
-    }    
+    }
 }

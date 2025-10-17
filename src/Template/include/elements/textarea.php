@@ -5,14 +5,14 @@ use DalPraS\SmartTemplate\TemplateEngine;
 
 return function(TemplateEngine $template, $element, string $name) {
     /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
-    /** @var \DalPraS\FormZero\Element\TextareaElement $element */        
+    /** @var \DalPraS\FormZero\Element\TextareaElement $element */
     $render = $this->renders[$name];
     $attribs = $element->getAttribs();
 
     /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
-    $helpers = $template->getHelpers();       
+    $helpers = $template->getHelpers();
 
-    return 
+    return
         $render['form']['html']['textarea']([
             '{attributes}' => array_replace($attribs, [
                 'class' => implode(' ',  [
