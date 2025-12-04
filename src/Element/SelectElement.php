@@ -2,12 +2,18 @@
 
 namespace DalPraS\FormZero\Element;
 
-use DalPraS\FormZero\Element\MultiElement;
+use DalPraS\FormZero\Element;
+use DalPraS\FormZero\Element\Intefaces\MultiChoicesInterface;
+use DalPraS\FormZero\Element\Traits\MultiChoicesTrait;
 
-/**
- * Text form element
- */
-class SelectElement extends MultiElement
+final class SelectElement extends Element implements MultiChoicesInterface
 {
-    protected array $attribs = [];
+    use MultiChoicesTrait;
+
+    public function isValid($value, $context = null): bool
+    {
+        $this->appendChoicesToConstraints(); // same logic as MultiElement
+        return parent::isValid($value, $context);
+    }
+
 }

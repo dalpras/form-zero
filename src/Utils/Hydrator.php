@@ -8,6 +8,7 @@ use DalPraS\FormZero\Element;
 use DalPraS\FormZero\ElementInterface;
 use DalPraS\FormZero\Exception\HydratorIgnoreFieldException;
 use DalPraS\FormZero\Exception\HydratorInvalidFieldException;
+use DalPraS\FormZero\SubZeroForm;
 use Throwable;
 use TypeError;
 
@@ -30,7 +31,15 @@ class Hydrator
             $field = $element->getName();
             try {
                 $value = $hydrate($field);
-                $data[$field] = ($value instanceof Closure) ? $value($field, $element) : $value;
+                $result = match (true) {
+                    is_array($value) 
+                        => $value,
+                    $value instanceof Closure 
+                        => $value($field, $element),
+                    default
+                        => $value
+                };
+                $data[$field] = $result;
             } catch (HydratorIgnoreFieldException $th) {
                 // ignora il valore
             } catch (Throwable $th) {
@@ -62,7 +71,16 @@ class Hydrator
             }
 
             $field = $element->getName();
-            $value = ($element instanceof ElementInterface) ? $element->getValue() : null;
+            // $value = ($element instanceof ElementInterface) ? $element->getValue() : null;
+
+            $value = match (true) {
+                $element instanceof ElementInterface 
+                    => $element->getValue(),
+                $element instanceof SubZeroForm 
+                    => $element->getValues(),
+                default 
+                    => null
+            };
 
             try {
                 $setterValue = $hydrate($field, $value);
@@ -73,7 +91,7 @@ class Hydrator
                     continue;
                 }
 
-                $setter = 'set' . self::toPascalCase((string)$field);
+                $setter = 'set' . self::toPascalCase((string) $field);
 
                 if (!method_exists($entity, $setter)) {
                     throw new HydratorInvalidFieldException(
@@ -100,7 +118,7 @@ class Hydrator
     /**
      * Converte "first_name" o "first-name" o "first name" in "FirstName".
      */
-    private static function toPascalCase(string $name): string
+    public static function toPascalCase(string $name): string
     {
         $name = str_replace(['-', '_'], ' ', $name);
         $name = ucwords($name);

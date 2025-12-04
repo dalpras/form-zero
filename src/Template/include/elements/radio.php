@@ -16,8 +16,8 @@ return function(TemplateEngine $template, $element, string $name) {
     $attribs = $element->getAttribs();
     // Compongo le multiopzioni
     $html = '';
-    foreach ((array) $element->getMultiOptions() as $value => $text) {
-        $text = $element->isTranslatorDisabled() ? $text : $helpers->translator()->translate($text);
+    foreach ((array) $element->getMultiChoices() as $value => $text) {
+        $text = $element->isTranslatorDisabled() ? $text : $helpers->translator()->trans($text);
         $html .= $render['form']['html']['form-element-checkbox']([
             '{attributes}' => array_replace($attribs, [
                 'class' => implode(' ',  [

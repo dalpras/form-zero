@@ -2,7 +2,11 @@
 
 namespace DalPraS\FormZero\Element;
 
+use DalPraS\FormZero\Element\Intefaces\MultiChoicesInterface;
+use DalPraS\FormZero\Element\Intefaces\UploadFileInterface;
 use DalPraS\FormZero\Element\SymfileElement;
+use DalPraS\FormZero\Element\Traits\MultiChoicesTrait;
+use DalPraS\FormZero\Element\Traits\UploadFileTrait;
 
 /**
  * Il processo per l'upload dei files è il seguente:
@@ -13,17 +17,25 @@ use DalPraS\FormZero\Element\SymfileElement;
  *
  * Dato che Laminas può utilizzare direttamente $_FILES, lo uso direttamente.
  */
-class SymfileMultiElement extends SymfileElement
+final class SymfileMultiElement extends SymfileElement implements MultiChoicesInterface, UploadFileInterface
 {
+    use MultiChoicesTrait;
+    use UploadFileTrait;
+
     protected array $attribs = [
         'multiple' => true
     ];
 
-    /**
-     * Does the element represent an array?
-     */
-    public function isArray(): bool
+    public function __construct()
     {
-        return true;
-    }    
+        // This says: "this element may have multiple values"
+        $this->setIsArray(true);
+    }
+
+    public function isValid($value, $context = null): bool
+    {
+        $this->appendChoicesToConstraints();
+        return parent::isValid($value, $context);
+    }
+
 }

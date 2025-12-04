@@ -6,6 +6,9 @@ use DalPraS\FormZero\ElementInterface;
 use DalPraS\FormZero\ZeroForm;
 use DalPraS\SmartTemplate\TemplateEngine;
 use Psr\Http\Message\ServerRequestInterface;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Translation\Translator;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 interface FormFactoryInterface
 {
@@ -23,4 +26,9 @@ interface FormFactoryInterface
 
     public function getPsrRequest(): ServerRequestInterface;
 
+    public function getHttpRequest(): Request;
+
+    public function getValidator(): ValidatorInterface;
+
+    public function getTranslator(): ?Translator;
 }

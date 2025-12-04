@@ -3,37 +3,22 @@
 namespace DalPraS\FormZero\Element;
 
 use DalPraS\FormZero\Element\MultiElement;
-use Laminas\Validator\InArray;
+use Symfony\Component\Validator\Constraints as Assert;
 
-/**
- * Text form element
- */
-class RadioImageElement extends MultiElement
+final class RadioImageElement extends MultiElement
 {
-    protected array $attribs = [];
-
-    /**
-     * Is the value provided valid?
-     *
-     * Autoregisters InArray validator if necessary.
-     *
-     * @param string $value
-     * @param mixed $context
-     * @return bool
-     */
     public function isValid($value, $context = null): bool
     {
-        if ( empty($this->getValidator(InArray::class)) ) {
-            $multiOptions = $this->getMultiOptions();
-            $options      = [];
+        $multiChoices = $this->getMultiChoices();
+        $choices      = array_keys($multiChoices);
 
-            foreach ($multiOptions as $opt_value => $opt_label) {
-                $options[] = $opt_value;
-            }
-
-            $this->getValidatorChain()->attachByName(InArray::class, ['haystack' => $options], true);
+        if (!empty($choices)) {
+            $this->addConstraint(new Assert\Choice([
+                'choices'  => $choices,
+                // 'multiple' => $this->isArray(),
+            ]));
         }
+
         return parent::isValid($value, $context);
     }
-
 }

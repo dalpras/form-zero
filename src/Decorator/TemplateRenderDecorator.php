@@ -11,6 +11,8 @@ use Throwable;
 /**
  * Wrap the content using a specific callback function.
  *
+ * @deprecated use instead CallbackDecorator
+ * 
  * Example:
  * (new TemplateRenderDecorator(['callback' => fn(string $content, RenderCollection $render, TemplateEngine $template, Element|SubZeroForm $element, string $name) => $content . 'postfix']))->render()
  *
@@ -19,6 +21,7 @@ class TemplateRenderDecorator extends AbstractDecorator
 {
     /**
      * Render content through a callback.
+     * @deprecated use instead CallbackDecorator
      */
     public function render(string $content = ''): string
     {

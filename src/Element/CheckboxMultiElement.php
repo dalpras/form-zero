@@ -2,15 +2,11 @@
 
 namespace DalPraS\FormZero\Element;
 
-class CheckboxMultiElement extends MultiElement
-{
-    protected array $attribs = [];
+use DalPraS\FormZero\Element\Intefaces\ChoicesAlignmentInterface;
+use DalPraS\FormZero\Element\Traits\ChoicesAlignmentTrait;
 
-    /**
-     * Multiselect is an array of values by default
-     */
-    public function isArray(): bool
-    {
-        return true;
-    }
+final class CheckboxMultiElement extends MultiElement implements ChoicesAlignmentInterface
+{
+    use ChoicesAlignmentTrait;
+
 }

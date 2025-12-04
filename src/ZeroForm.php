@@ -2,21 +2,27 @@
 
 namespace DalPraS\FormZero;
 
-use DalPraS\FormZero\Decorator\ElementContentDecorator;
-use DalPraS\FormZero\Decorator\ElementLabelDecorator;
-use DalPraS\FormZero\Decorator\ElementsDecorator;
-use DalPraS\FormZero\Decorator\ElementWrapperDecorator;
-use DalPraS\FormZero\Decorator\FormDecorator;
-use DalPraS\FormZero\Factory\FormFactoryInterface;
-use DalPraS\FormZero\Traits\FormElementTrait;
-use DalPraS\SmartTemplate\Plugins\HelpersInterface;
-use InvalidArgumentException;
-use Laminas\Validator\ValidatorInterface;
 use LogicException;
+use InvalidArgumentException;
+use DalPraS\FormZero\Decorator\FormDecorator;
+use DalPraS\FormZero\Traits\FormElementTrait;
+use DalPraS\FormZero\Decorator\ElementsDecorator;
+use DalPraS\FormZero\Factory\FormFactoryInterface;
+use DalPraS\SmartTemplate\Plugins\HelpersInterface;
+use DalPraS\FormZero\Decorator\ElementLabelDecorator;
+use DalPraS\FormZero\Decorator\ElementContentDecorator;
+use DalPraS\FormZero\Decorator\ElementWrapperDecorator;
+use DalPraS\FormZero\Element\Intefaces\MultiChoicesInterface;
+use DalPraS\FormZero\Traits\AttributesTrait;
+use DalPraS\FormZero\Traits\ErrorsTrait;
+use DalPraS\FormZero\Traits\RenderTrait;
 
-class ZeroForm extends ElementsOrdered implements ValidatorInterface
+class ZeroForm extends ElementsOrdered
 {
     use FormElementTrait;
+    use AttributesTrait;
+    use ErrorsTrait;
+    use RenderTrait;
 
     private string $description = '';
 
@@ -30,17 +36,17 @@ class ZeroForm extends ElementsOrdered implements ValidatorInterface
 
     private array $subForms = [];
 
-    private bool $isRendered = false;
-
     protected bool $isArray = false;
 
     protected bool $errorsExist = false;
 
     protected HelpersInterface $helpers;
 
-    public function __construct(
-        protected FormFactoryInterface $factory
-    ) {
+    protected FormFactoryInterface $factory;
+
+    public function __construct(FormFactoryInterface $factory) 
+    {
+        $this->factory = $factory;
         $this->helpers = $this->factory->getTemplate()->getHelpers();
     }
 
@@ -189,7 +195,7 @@ class ZeroForm extends ElementsOrdered implements ValidatorInterface
         return null;
     }
 
-    public function getMultiElement(string $name): MultiElementInterface|null
+    public function getMultiElement(string $name): MultiChoicesInterface|null
     {
         return $this->getElement($name);
     }
@@ -317,7 +323,7 @@ class ZeroForm extends ElementsOrdered implements ValidatorInterface
             if (($belongsTo = $element->getBelongsTo()) !== $eBelongTo) {
                 $check = $this->dissolveArrayValue($defaults, $belongsTo);
             }
-            if (array_key_exists($name, (array)$check)) {
+            if (array_key_exists($name, (array) $check)) {
                 $this->setDefault($name, $check[$name]);
                 $defaults = $this->dissolveArrayUnsetKey($defaults, $belongsTo, $name);
             }
@@ -338,7 +344,6 @@ class ZeroForm extends ElementsOrdered implements ValidatorInterface
      */
     public function setDefault(string $name, $value): self
     {
-        $name = (string) $name;
         if ($element = $this->getElement($name)) {
             $element->setValue($value);
         } else {
@@ -586,7 +591,7 @@ class ZeroForm extends ElementsOrdered implements ValidatorInterface
     /**
      * Add a form group/subform
      */
-    public function addSubForm(SubZeroForm $subForm, $name, int $order = null): self
+    public function addSubForm(SubZeroForm $subForm, $name, ?int $order = null): self
     {
         $oldName = $subForm->getName();
 
@@ -646,25 +651,6 @@ class ZeroForm extends ElementsOrdered implements ValidatorInterface
         }
         $this->subForms = [];
         return $this;
-    }
-
-
-    /**
-     * When render this method, is used to set $isRendered member to prevent repeatedly
-     * merging belongsTo setting
-     */
-    public function setIsRendered(): self
-    {
-        $this->isRendered = true;
-        return $this;
-    }
-
-    /**
-     * Get the value of $isRendered member
-     */
-    public function getIsRendered(): bool
-    {
-        return $this->isRendered;
     }
 
     // Processing
@@ -1025,17 +1011,17 @@ class ZeroForm extends ElementsOrdered implements ValidatorInterface
     /**
      * Renders the form.
      */
-    public function render(): string
-    {
-        $content = '';
-        /** @var \DalPraS\FormZero\Decorator\AbstractDecorator $decorator */
-        foreach ($this->getDecorators() as $decorator) {
-            $decorator->setElement($this);
-            $content = $decorator->render($content);
-        }
-        $this->setIsRendered();
-        return $content;
-    }
+    // public function render(): string
+    // {
+    //     $content = '';
+    //     /** @var \DalPraS\FormZero\Decorator\AbstractDecorator $decorator */
+    //     foreach ($this->getDecorators() as $decorator) {
+    //         $decorator->setElement($this);
+    //         $content = $decorator->render($content);
+    //     }
+    //     $this->setIsRendered();
+    //     return $content;
+    // }
 
     public function getFactory(): FormFactoryInterface
     {

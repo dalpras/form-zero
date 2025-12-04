@@ -4,7 +4,7 @@ namespace DalPraS\FormZero\Element;
 
 use DalPraS\FormZero\Element;
 
-class EmailElement extends Element
+final class EmailElement extends Element
 {
-    protected array $attribs = [];
+    
 }

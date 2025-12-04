@@ -13,7 +13,7 @@ return function(TemplateEngine $template, $element, string $name) {
     if (strlen(trim($description)) > 0) {
         $render = $this->renders[$name];
         return $render['form']['html']['description']([
-            '{text}' => $element->isTranslatorDisabled() ? $description: $helpers->translator()->translate($description)
+            '{text}' => $element->isTranslatorDisabled() ? $description: $helpers->translator()->trans($description)
         ]);
     }
     return '';

@@ -20,7 +20,7 @@ class ElementLabelDecorator extends AbstractDecorator
                         '{class}'    => $this->getOption('class') ?? 'form-label',
                         '{for}'      => $this->getOption('for') ?? $element->getId(),
                         '{required}' => $element->isRequired() ? 'required' : '',
-                        '{text}'     => $element->isTranslatorDisabled() ? $element->getLabel() : $helpers->translator()->translate($element->getLabel())
+                        '{text}'     => $element->isTranslatorDisabled() ? $element->getLabel() : $helpers->translator()->trans($element->getLabel())
                     ]) . $content;
             }
             return $content;

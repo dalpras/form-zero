@@ -3,14 +3,13 @@
 namespace DalPraS\FormZero\Element;
 
 use DalPraS\FormZero\Element;
-use Laminas\Validator\Identical;
+use Symfony\Component\Validator\Constraints as Assert;
 
-class SubmitElement extends Element
+final class SubmitElement extends Element
 {
     public array $options = [
-        'text'   => ''
+        'text' => '',
     ];
-
 
     public function setText(string $text): self
     {
@@ -25,10 +24,19 @@ class SubmitElement extends Element
 
     /**
      * Is the value provided the same?
+     *
+     * Here we mimic the old Identical validator by adding
+     * a Symfony IdenticalTo constraint at runtime.
      */
     public function isValid($value, $context = null): bool
     {
-        $this->getValidatorChain()->attachByName(Identical::class, ['token' => $value], true);
+        if ($value !== null && $this->getIgnore() === false) {
+            // Append a Symfony constraint equivalent to Laminas\Identical
+            $this->addConstraint(new Assert\IdenticalTo([
+                'value'   => $value,                        // same idea as 'token' in Laminas
+                'message' => 'Valore non valido.',          // customize / translate as needed
+            ]));
+        }
         return parent::isValid($value, $context);
     }
 }

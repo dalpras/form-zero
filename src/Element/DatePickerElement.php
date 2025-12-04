@@ -4,7 +4,7 @@ namespace DalPraS\FormZero\Element;
 
 use DalPraS\FormZero\Element;
 
-class DatePickerElement extends Element
+final class DatePickerElement extends Element
 {
-    protected array $attribs = [];
+    
 }

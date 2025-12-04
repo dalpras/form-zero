@@ -19,7 +19,7 @@ return function(TemplateEngine $template, $element, string $name) {
                 $iterator = new \RecursiveArrayIterator($element->getMessages());
                 $recursiveIterator = new \RecursiveIteratorIterator($iterator, \RecursiveIteratorIterator::LEAVES_ONLY);
                 foreach ($recursiveIterator as $message) {
-                    $feedbacks[] = $element->isTranslatorDisabled() ? $message : $helpers->translator()->translate($message);
+                    $feedbacks[] = $element->isTranslatorDisabled() ? $message : $helpers->translator()->trans($message);
                 }
                 return $helpers->escaper()->escapeHtml(implode('. ', $feedbacks));
             }

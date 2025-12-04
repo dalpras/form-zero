@@ -31,8 +31,8 @@ return function(TemplateEngine $template, $element, string $name) {
             // options; also ensure it's a string for comparison purposes.
             $values = array_map(fn($value) => strval($value), (array) $element->getValue());
             $carry = '';
-            foreach ($element->getMultiOptions() as $value => $text) {
-                $text = $element->isTranslatorDisabled() ? $text : $helpers->translator()->translate($text);
+            foreach ($element->getMultiChoices() as $value => $text) {
+                $text = $element->isTranslatorDisabled() ? $text : $helpers->translator()->trans($text);
                 $carry .= $render['form']['html']['option']([
                     '{value}'    => $helpers->escaper()->escapeHtmlAttr($value),
                     '{text}'     => $helpers->escaper()->escapeHtml($text),

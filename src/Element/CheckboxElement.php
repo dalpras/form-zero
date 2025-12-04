@@ -3,11 +3,13 @@
 namespace DalPraS\FormZero\Element;
 
 use DalPraS\FormZero\Element;
+use DalPraS\FormZero\Element\Intefaces\ChoicesAlignmentInterface;
+use DalPraS\FormZero\Element\Traits\ChoicesAlignmentTrait;
 
-class CheckboxElement extends Element
+final class CheckboxElement extends Element implements ChoicesAlignmentInterface
 {
-    protected array $attribs = [];
-
+    use ChoicesAlignmentTrait;
+    
     /**
      * Options that will be passed to the view helper
      */

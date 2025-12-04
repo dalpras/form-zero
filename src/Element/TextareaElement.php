@@ -4,7 +4,7 @@ namespace DalPraS\FormZero\Element;
 
 use DalPraS\FormZero\Element;
 
-class TextareaElement extends Element
+final class TextareaElement extends Element
 {
-    protected array $attribs = [];
+    
 }

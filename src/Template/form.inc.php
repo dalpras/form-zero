@@ -37,22 +37,29 @@ return [
         DatePickerElement::class
             => require(__DIR__ . '/include/elements/date-picker.php'),
 
-        HiddenElement::class, HashElement::class,
+        HiddenElement::class, 
+        HashElement::class,
             => require(__DIR__ . '/include/elements/hidden.php'),
 
-        RadioElement::class, CheckboxMultiElement::class
+        RadioElement::class, 
+        CheckboxMultiElement::class
             => require(__DIR__ . '/include/elements/radio.php'),
 
-        SelectElement::class, SelectMultiElement::class
+        SelectElement::class, 
+        SelectMultiElement::class
             => require(__DIR__ . '/include/elements/select.php'),
 
         SubmitElement::class
             => require(__DIR__ . '/include/elements/submit.php'),
 
-        TextElement::class, EmailElement::class, SearchElement::class, PasswordElement::class
+        TextElement::class, 
+        EmailElement::class, 
+        SearchElement::class, 
+        PasswordElement::class
             => require(__DIR__ . '/include/elements/input.php'),
         
-        SymfileElement::class, SymfileMultiElement::class
+        SymfileElement::class, 
+        SymfileMultiElement::class
             => require(__DIR__ . '/include/elements/symfile.php'),
         
         TextareaElement::class

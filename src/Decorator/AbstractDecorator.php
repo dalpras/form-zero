@@ -4,7 +4,7 @@ namespace DalPraS\FormZero\Decorator;
 
 use DalPraS\FormZero\ElementInterface;
 use DalPraS\FormZero\Exception\InvalidElementException;
-use DalPraS\FormZero\MultiElementInterface;
+use DalPraS\FormZero\Element\Intefaces\MultiChoicesInterface;
 use DalPraS\FormZero\ZeroForm;
 use Exception;
 
@@ -84,7 +84,7 @@ abstract class AbstractDecorator
         throw new InvalidElementException('Invalid element type passed to decorator');
     }
 
-    public function getElement(): ElementInterface|MultiElementInterface|ZeroForm
+    public function getElement(): ElementInterface|MultiChoicesInterface|ZeroForm
     {
         return $this->element;
     }

@@ -55,9 +55,8 @@ final class HashElement extends Element
      * @param SessionAdapterInterface $session  Session handler to persist token/metadata.
      * @param int $ttlSeconds                  Desired TTL; clamped to a minimum of 60s.
      */
-    public function __construct(SessionAdapterInterface $session, int $ttlSeconds = 1200)
+    public function __construct(SessionAdapterInterface $session, int $ttlSeconds = 3600)
     {
-        parent::__construct();
         $this->session    = $session;
         $this->ttlSeconds = max(60, $ttlSeconds); // enforce a safe minimum TTL
     }

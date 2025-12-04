@@ -15,6 +15,6 @@ return function(TemplateEngine $template, $element, string $name) {
         '{class}'    => 'col-form-label ' . ($options['{label-class}'] ?? ''),
         '{for}'      => $element->getId(),
         '{required}' => $element->isRequired() ? 'required' : '',
-        '{text}'     => $element->isTranslatorDisabled() ? $element->getLabel() : $helpers->translator()->translate($element->getLabel())
+        '{text}'     => $element->isTranslatorDisabled() ? $element->getLabel() : $helpers->translator()->trans($element->getLabel())
     ]);
 };

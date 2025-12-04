@@ -4,10 +4,7 @@ namespace DalPraS\FormZero\Element;
 
 use DalPraS\FormZero\Element\MultiElement;
 
-/**
- * Text form element
- */
-class RadioPopupElement extends MultiElement
+final class RadioPopupElement extends MultiElement
 {
-    protected array $attribs = [];
+    
 }

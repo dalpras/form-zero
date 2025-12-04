@@ -2,10 +2,10 @@
 
 namespace DalPraS\FormZero;
 
+use Iterator;
 use Countable;
 use DalPraS\FormZero\Element;
 use DalPraS\FormZero\ZeroForm;
-use Iterator;
 
 abstract class ElementsOrdered implements Iterator, Countable
 {

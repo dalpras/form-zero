@@ -4,10 +4,7 @@ namespace DalPraS\FormZero\Element;
 
 use DalPraS\FormZero\Element;
 
-/**
- * Search form element
- */
-class SearchElement extends Element
+final class SearchElement extends Element
 {
-    protected array $attribs = [];
+    
 }

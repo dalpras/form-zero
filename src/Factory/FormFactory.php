@@ -9,6 +9,15 @@ use DalPraS\FormZero\Factory\FormFactoryInterface;
 use DalPraS\FormZero\ZeroForm;
 use DalPraS\SmartTemplate\TemplateEngine;
 use Psr\Http\Message\ServerRequestInterface;
+use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
+use Laminas\Diactoros\ResponseFactory;
+use Laminas\Diactoros\ServerRequestFactory;
+use Laminas\Diactoros\StreamFactory;
+use Laminas\Diactoros\UploadedFileFactory;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Translation\Translator;
+use Symfony\Component\Validator\Validation;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class FormFactory implements FormFactoryInterface
 {
@@ -19,9 +28,42 @@ class FormFactory implements FormFactoryInterface
     public function __construct(
         private ?string $templateFile = null,
         private ?TemplateEngine $template = null,
-        private ?ServerRequestInterface $serverRequest = null
+        private ?Request $request = null,
+        private ?Translator $translator = null
     ) {
         $this->templateFile ??= self::$defaultTemplateFile;
+    }
+
+    public function getPsrRequest(): ServerRequestInterface
+    {
+        $psrHttpFactory = new PsrHttpFactory(
+            new ServerRequestFactory(),
+            new StreamFactory(),
+            new UploadedFileFactory(),
+            new ResponseFactory()
+        );
+        return $psrHttpFactory->createRequest($this->request);
+    }
+
+    public function getHttpRequest(): Request
+    {
+        return $this->request;
+    }
+
+    public function getValidator(): ValidatorInterface
+    {
+        $vb = Validation::createValidatorBuilder();
+        if ($this->translator !== null) {
+            $vb ->setTranslationDomain('validators')
+                ->setTranslator($this->translator)
+            ;
+        }
+        return $vb->getValidator();
+    }
+
+    public function getTranslator(): ?Translator 
+    {
+        return $this->translator;    
     }
 
     /**
@@ -128,13 +170,6 @@ class FormFactory implements FormFactoryInterface
         return $this->templateFile;
     }    
 
-    public function getPsrRequest(): ServerRequestInterface
-    {
-        if ($this->serverRequest === null) {
-            throw new FormFactoryException("PsrRequest not found");
-        }
-        return $this->serverRequest;
-    }
 
     public function setIgnoreCsrfToken(bool $ignoreCsrfToken = true): self
     {
