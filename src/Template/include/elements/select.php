@@ -31,10 +31,13 @@ return function(TemplateEngine $template, $element, string $name) {
             // options; also ensure it's a string for comparison purposes.
             $values = array_map(fn($value) => strval($value), (array) $element->getValue());
             $carry = '';
-            foreach ($element->getMultiChoices() as $value => $text) {
-                $text = $element->isTranslatorDisabled() ? $text : $helpers->translator()->trans($text);
+            foreach ($element->getMultiChoices() as $label => $value) {
+                $text = $element->isTranslatorDisabled()
+                    ? $label
+                    : $helpers->translator()->trans($label);
+
                 $carry .= $render['form']['html']['option']([
-                    '{value}'    => $helpers->escaper()->escapeHtmlAttr($value),
+                    '{value}'    => $helpers->escaper()->escapeHtmlAttr((string) $value),
                     '{text}'     => $helpers->escaper()->escapeHtml($text),
                     '{selected}' => in_array((string) $value, $values) ? ' selected' : '',
                 ]);

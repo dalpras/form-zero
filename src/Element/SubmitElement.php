@@ -31,10 +31,9 @@ final class SubmitElement extends Element
     public function isValid($value, $context = null): bool
     {
         if ($value !== null && $this->getIgnore() === false) {
-            // Append a Symfony constraint equivalent to Laminas\Identical
             $this->addConstraint(new Assert\IdenticalTo([
-                'value'   => $value,                        // same idea as 'token' in Laminas
-                'message' => 'Valore non valido.',          // customize / translate as needed
+                'value'   => $value,
+                'message' => 'Valore non valido.',
             ]));
         }
         return parent::isValid($value, $context);

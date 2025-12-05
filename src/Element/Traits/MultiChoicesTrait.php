@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace DalPraS\FormZero\Element\Traits;
 
-use DalPraS\FormZero\Element;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -21,38 +20,51 @@ trait MultiChoicesTrait
     private array $translated = [];
 
     abstract public function addConstraint(Constraint $constraint): void;
+    abstract public function isRequired(): bool;
 
     protected function appendChoicesToConstraints(): void
     {
         $multiChoices = $this->getMultiChoices();
         $choices      = [];
 
-        foreach ($multiChoices as $optValue => $optLabel) {
-            if (is_array($optLabel)) {
-                $choices = array_merge($choices, array_keys($optLabel));
+        foreach ($multiChoices as $label => $value) {
+            if (is_array($value)) {
+                // grouped options: still [label => value] inside
+                // we want the VALUES (what the browser submits)
+                foreach ($value as $subLabel => $subValue) {
+                    $choices[] = (string) $subValue;
+                }
             } else {
-                $choices[] = (string) $optValue;
+                // single option: label => value
+                $choices[] = (string) $value;
             }
         }
 
         if (!empty($choices)) {
+            // When NOT required, '' must be a valid submitted value.
+            if (!$this->isRequired() && !in_array('', $choices, true)) {
+                $choices[] = '';
+            }            
             $this->addConstraint(new Assert\Choice(['choices' => $choices]));
         }
     }
 
-    public function addMultiChoice(string $option, string $value = ''): self
+    public function addMultiChoice(string $label, string $value = ''): self
     {
-        $this->choices[$option] = $value;
+        $this->choices[$label] = $value;
         return $this;
     }
 
     public function addMultiChoices(array $choices): self
     {
-        foreach ($choices as $option => $value) {
-            if (is_array($value) && array_key_exists('key', $value) && array_key_exists('value', $value) ) {
+        foreach ($choices as $label => $value) {
+            if (is_array($value) 
+                && array_key_exists('key', $value) 
+                && array_key_exists('value', $value) 
+            ) {
                 $this->addMultiChoice((string) $value['key'], (string) $value['value']);
             } else {
-                $this->addMultiChoice((string) $option, (string) $value);
+                $this->addMultiChoice((string) $label, (string) $value);
             }
         }
         return $this;
@@ -64,20 +76,23 @@ trait MultiChoicesTrait
         return $this->addMultiChoices($choices);
     }
 
-    public function getMultiChoice(string $option): ?string
+    public function getMultiChoice(string $label): ?string
     {
-        return $this->choices[$option] ?? null;
+        return $this->choices[$label] ?? null;
     }
 
+    /**
+     * @return array<string,string> [label => value]
+     */    
     public function getMultiChoices(): array
     {
         return $this->choices;
     }
 
-    public function removeMultiChoice(string $option): bool
+    public function removeMultiChoice(string $label): bool
     {
-        if (isset($this->choices[$option])) {
-            unset($this->choices[$option], $this->translated[$option]);
+        if (isset($this->choices[$label])) {
+            unset($this->choices[$label], $this->translated[$label]);
             return true;
         }
         return false;

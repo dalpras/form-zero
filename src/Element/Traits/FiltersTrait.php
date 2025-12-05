@@ -40,8 +40,6 @@ trait FiltersTrait
 
     /**
      * Add filters to element, overwriting any already existing
-     *
-     * @param array|\Laminas\Filter\FilterInterface[] $filters
      */
     public function setFilters(array $filters): self
     {
@@ -55,8 +53,7 @@ trait FiltersTrait
      */
     public function getFilter(string $name): ?FilterInterface
     {
-        /** @var \Laminas\Stdlib\PriorityQueue $filters */
-        $filters = $this->getFilterChain()->getFilters();
+        $filters = $this->getFilterChain();
         foreach ($filters as $filter) {
             if ( get_class($filter) === $name ) {
                 return $filter;

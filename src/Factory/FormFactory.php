@@ -2,21 +2,15 @@
 
 namespace DalPraS\FormZero\Factory;
 
-use DalPraS\FormZero\Decorator\AbstractDecorator;
-use DalPraS\FormZero\ElementInterface;
-use DalPraS\FormZero\Exception\FormFactoryException;
-use DalPraS\FormZero\Factory\FormFactoryInterface;
 use DalPraS\FormZero\ZeroForm;
+use DalPraS\FormZero\ElementInterface;
 use DalPraS\SmartTemplate\TemplateEngine;
-use Psr\Http\Message\ServerRequestInterface;
-use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
-use Laminas\Diactoros\ResponseFactory;
-use Laminas\Diactoros\ServerRequestFactory;
-use Laminas\Diactoros\StreamFactory;
-use Laminas\Diactoros\UploadedFileFactory;
+use Symfony\Component\Validator\Validation;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Translation\Translator;
-use Symfony\Component\Validator\Validation;
+use DalPraS\FormZero\Decorator\AbstractDecorator;
+use DalPraS\FormZero\Factory\FormFactoryInterface;
+use DalPraS\FormZero\Exception\FormFactoryException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class FormFactory implements FormFactoryInterface
@@ -32,17 +26,6 @@ class FormFactory implements FormFactoryInterface
         private ?Translator $translator = null
     ) {
         $this->templateFile ??= self::$defaultTemplateFile;
-    }
-
-    public function getPsrRequest(): ServerRequestInterface
-    {
-        $psrHttpFactory = new PsrHttpFactory(
-            new ServerRequestFactory(),
-            new StreamFactory(),
-            new UploadedFileFactory(),
-            new ResponseFactory()
-        );
-        return $psrHttpFactory->createRequest($this->request);
     }
 
     public function getHttpRequest(): Request

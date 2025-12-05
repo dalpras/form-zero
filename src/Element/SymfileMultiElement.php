@@ -14,8 +14,6 @@ use DalPraS\FormZero\Element\Traits\UploadFileTrait;
  * isValid() -> applica i validatori
  * receive() -> applica i filtri per spostare i files, carica FileUploaded nel value
  * getValue() -> ritorna il FileUploaded
- *
- * Dato che Laminas può utilizzare direttamente $_FILES, lo uso direttamente.
  */
 final class SymfileMultiElement extends SymfileElement implements MultiChoicesInterface, UploadFileInterface
 {

@@ -18,7 +18,11 @@ return function(TemplateEngine $template, $element, string $name) {
                 'class' => implode(' ',  [
                     'form-control',
                     $attribs['class'] ?? '',
-                    $element->isValidated() ? ($element->hasErrors() ? 'is-invalid' : 'is-valid') : ''
+                    $element->isValidated() 
+                        ? ($element->hasErrors() 
+                            ? 'is-invalid' 
+                            : 'is-valid') 
+                        : ''
                 ]),
                 'id'    => $attribs['id'] ?? $attribs['name'] ?? $element->getFullyQualifiedName(),
                 'name'  => $attribs['name'] ?? $element->getFullyQualifiedName(),

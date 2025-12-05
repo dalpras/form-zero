@@ -24,8 +24,6 @@ interface FormFactoryInterface
 
     public function getIgnoreCsrfToken(): bool;
 
-    public function getPsrRequest(): ServerRequestInterface;
-
     public function getHttpRequest(): Request;
 
     public function getValidator(): ValidatorInterface;

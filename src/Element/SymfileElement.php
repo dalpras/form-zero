@@ -30,7 +30,7 @@ class SymfileElement extends Element implements UploadFileInterface
     }
 
     /**
-     * Validate the element using Symfony Validator instead of Laminas ValidatorChain.
+     * Validate the element using Symfony Validator.
      *
      * @param mixed $value   Ignored (we always read from Request)
      * @param mixed $context Full POST data (if needed)

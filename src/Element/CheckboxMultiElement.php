@@ -8,5 +8,4 @@ use DalPraS\FormZero\Element\Traits\ChoicesAlignmentTrait;
 final class CheckboxMultiElement extends MultiElement implements ChoicesAlignmentInterface
 {
     use ChoicesAlignmentTrait;
-
 }

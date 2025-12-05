@@ -4,11 +4,11 @@ namespace DalPraS\FormZero\Element\Intefaces;
 
 interface MultiChoicesInterface
 {
-    public function addMultiChoice(string $option, string $value = ''): self;
-    public function addMultiChoices(array $options): self;
-    public function setMultiChoices(array $options): self;
-    public function getMultiChoice(string $option): ?string;
+    public function addMultiChoice(string $label, string $value = ''): self;
+    public function addMultiChoices(array $choices): self;
+    public function setMultiChoices(array $choices): self;
+    public function getMultiChoice(string $label): ?string;
     public function getMultiChoices(): array;
-    public function removeMultiChoice(string $option): bool;
+    public function removeMultiChoice(string $label): bool;
     public function clearMultiChoices(): self;
 }

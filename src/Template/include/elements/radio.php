@@ -16,27 +16,29 @@ return function(TemplateEngine $template, $element, string $name) {
     $attribs = $element->getAttribs();
     // Compongo le multiopzioni
     $html = '';
-    foreach ((array) $element->getMultiChoices() as $value => $text) {
-        $text = $element->isTranslatorDisabled() ? $text : $helpers->translator()->trans($text);
+    foreach ($element->getMultiChoices() as $label => $value) {
+        $label = $element->isTranslatorDisabled()
+            ? $label
+            : $helpers->translator()->trans($label);
+
         $html .= $render['form']['html']['form-element-checkbox']([
             '{attributes}' => array_replace($attribs, [
                 'class' => implode(' ',  [
                     $attribs['class'] ?? '',
-                    $element->isValidated() ? ($element->hasErrors() ? 'is-invalid' : 'is-valid') : ''
+                    $element->isValidated()
+                        ? ($element->hasErrors() ? 'is-invalid' : 'is-valid')
+                        : ''
                 ]),
                 'name'  => $attribs['name'] ?? $element->getFullyQualifiedName()
             ]),
             '{type}'       => match (get_class($element)) {
-                CheckboxMultiElement::class
-                    => 'checkbox',
+                CheckboxMultiElement::class       => 'checkbox',
                 RadioElement::class,
-                RadioPopupElement::class,
-                    => 'radio',
-                default
-                    => ''
+                RadioPopupElement::class          => 'radio',
+                default                           => ''
             },
             '{value}'   => $helpers->escaper()->escapeHtmlAttr((string) $value),
-            '{text}'    => $text, // $helpers->escaper()->escapeHtml($text),
+            '{text}'    => $helpers->escaper()->escapeHtml($label),
             '{checked}' => in_array((string) $value, (array) $element->getValue()) ? 'checked' : '',
             '{class}'   => $element->isInline() ? 'form-check-inline' : '',
         ]);

@@ -10,12 +10,12 @@ final class RadioImageElement extends MultiElement
     public function isValid($value, $context = null): bool
     {
         $multiChoices = $this->getMultiChoices();
-        $choices      = array_keys($multiChoices);
+        // internal: [label => value], we want the values
+        $choices = array_values($multiChoices);
 
         if (!empty($choices)) {
             $this->addConstraint(new Assert\Choice([
                 'choices'  => $choices,
-                // 'multiple' => $this->isArray(),
             ]));
         }
 
