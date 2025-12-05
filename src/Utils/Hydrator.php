@@ -20,7 +20,7 @@ class Hydrator
      * $data contiene i valori delle proprietà dell'oggeto da settare mediante set*Property*().
      * Se la chiave è numerica usa un "getter" sull'oggeto. Se la chiave è stringa prende il dato passato come valore.
      */
-    public static function hydrateDefaults(ZeroForm &$form, Closure $hydrate): void
+    public static function hydrateForm(ZeroForm &$form, Closure $hydrate): void
     {
         $data = [];
         /** @var \DalPraS\FormZero\Element|\DalPraS\FormZero\SubZeroForm $element */
@@ -32,8 +32,10 @@ class Hydrator
             try {
                 $value = $hydrate($field);
                 $result = match (true) {
-                    is_array($value) 
-                        => $value,
+                    is_bool($value)
+                        => (string)(int) $value,
+                    is_int($value)
+                        => (string) $value,
                     $value instanceof Closure 
                         => $value($field, $element),
                     default
