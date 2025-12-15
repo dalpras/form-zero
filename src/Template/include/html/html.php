@@ -24,7 +24,7 @@ return [
         HTML,
 
     'option' => <<<HTML
-        <option value="{value}" {selected}>{text}</option>
+        <option value="{value}" {selected} {attributes}>{text}</option>
         HTML,
 
     'fieldset' => <<<HTML

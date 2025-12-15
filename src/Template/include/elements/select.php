@@ -37,9 +37,10 @@ return function(TemplateEngine $template, $element, string $name) {
                     : $helpers->translator()->trans($label);
 
                 $carry .= $render['form']['html']['option']([
-                    '{value}'    => $helpers->escaper()->escapeHtmlAttr((string) $value),
-                    '{text}'     => $helpers->escaper()->escapeHtml($text),
-                    '{selected}' => in_array((string) $value, $values) ? ' selected' : '',
+                    '{attributes}' => $element->getChoiceAttributes($label),
+                    '{value}'      => $helpers->escaper()->escapeHtmlAttr((string) $value),
+                    '{text}'       => $helpers->escaper()->escapeHtml($text),
+                    '{selected}'   => in_array((string) $value, $values) ? ' selected' : '',
                 ]);
             }
             return $carry;

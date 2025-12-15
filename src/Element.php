@@ -52,7 +52,6 @@ class Element implements ElementInterface
      */
     protected $value;
 
-
     public function setFactory(FormFactoryInterface $factory): self
     {
         $this->factory = $factory;
@@ -360,12 +359,6 @@ class Element implements ElementInterface
         $this->messages = [];
         $this->isError  = false;
 
-        // Handle empty with required/allowEmpty logic
-        // if ($this->isEmpty($value) && !$this->isRequired() && $this->getAllowEmpty()) {
-        //     return true;
-        // }
-
-
         if ($this->isEmpty($value)) {
             if (!$this->isRequired() && $this->getAllowEmpty()) {
                 // optional and empty → valid
@@ -435,7 +428,7 @@ class Element implements ElementInterface
      */
     public function markAsError(): self
     {
-        $messages = $this->getMessages() + $this->_getErrorMessages();
+        $messages = $this->getMessages() + $this->getFormattedErrorMessages();
         if (empty($messages)) {
             $this->isError = true;
         } else {
@@ -483,7 +476,7 @@ class Element implements ElementInterface
     /**
      * Retrieve error messages and perform translation and value substitution
      */
-    protected function _getErrorMessages(): array
+    protected function getFormattedErrorMessages(): array
     {
         $messages = $this->getErrorMessages();
         $value    = $this->getValue();

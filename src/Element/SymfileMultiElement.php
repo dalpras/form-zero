@@ -20,14 +20,11 @@ final class SymfileMultiElement extends SymfileElement implements MultiChoicesIn
     use MultiChoicesTrait;
     use UploadFileTrait;
 
-    protected array $attribs = [
-        'multiple' => true
-    ];
-
     public function __construct()
     {
         // This says: "this element may have multiple values"
         $this->setIsArray(true);
+        $this->setAttrib('multiple', true);
     }
 
     public function isValid($value, $context = null): bool

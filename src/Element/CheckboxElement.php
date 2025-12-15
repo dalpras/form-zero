@@ -13,10 +13,10 @@ final class CheckboxElement extends Element implements ChoicesAlignmentInterface
     /**
      * Options that will be passed to the view helper
      */
-    public array $options = [
-        'checkedValue'   => "true",
-        'uncheckedValue' => "false",
-    ];
+    // public array $options = [
+    //     'checkedValue'   => "true",
+    //     'uncheckedValue' => "false",
+    // ];
 
     /**
      * Is the checkbox checked?
@@ -89,7 +89,7 @@ final class CheckboxElement extends Element implements ChoicesAlignmentInterface
     public function setCheckedValue(string $value): self
     {
         $this->checkedValue = $value;
-        $this->options['checkedValue'] = $value;
+        // $this->options['checkedValue'] = $value;
         return $this;
     }
 
@@ -107,7 +107,7 @@ final class CheckboxElement extends Element implements ChoicesAlignmentInterface
     public function setUncheckedValue(string $value): self
     {
         $this->uncheckedValue = $value;
-        $this->options['uncheckedValue'] = $value;
+        // $this->options['uncheckedValue'] = $value;
         return $this;
     }
 

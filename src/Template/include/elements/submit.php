@@ -8,13 +8,18 @@ return function(TemplateEngine $template, $element, string $name) {
     /** @var \DalPraS\FormZero\Element\SubmitElement $element */
     $render = $this->renders[$name];
     $attribs = $element->getAttribs();
+
+    /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
+    $helpers = $template->getHelpers();    
+
     $attributes = array_replace($attribs, [
         'class' => implode(' ',  [
             $attribs['class'] ?? '',
             $element->isValidated() ? ($element->hasErrors() ? 'is-invalid' : 'is-valid') : ''
         ]),
         'type'  => 'submit',
-        'value' => $element->getValue() ?? ($element->getOptions()['value']) ?? null,
+        // 'value' => $element->getValue(), // ?? ($element->getOptions()['value']) ?? null,
+        'value' => $helpers->escaper()->escapeHtmlAttr((string) $element->getValue()),
         'id'    => $attribs['id'] ?? $attribs['name'] ?? $element->getFullyQualifiedName(),
         'name'  => $attribs['name'] ?? $element->getFullyQualifiedName(),
     ]);

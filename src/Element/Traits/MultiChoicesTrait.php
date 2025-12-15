@@ -14,10 +14,7 @@ trait MultiChoicesTrait
      */    
     private array $choices = [];
 
-    /**
-     * Which values are translated already?
-     */    
-    private array $translated = [];
+    private array $choicesAttributes = [];
 
     abstract public function addConstraint(Constraint $constraint): void;
     abstract public function isRequired(): bool;
@@ -49,14 +46,14 @@ trait MultiChoicesTrait
         }
     }
 
-    public function addMultiChoice(string $label, string $value = ''): self
-    {
-        $this->choices[$label] = $value;
-        return $this;
-    }
 
-    public function addMultiChoices(array $choices): self
-    {
+    /**
+     * @return array<string,string> [label => value]
+     */    
+    public function getMultiChoices(): array { return $this->choices; }
+    public function setMultiChoices(array $choices): self { $this->clearMultiChoices(); return $this->addMultiChoices($choices); }
+    public function clearMultiChoices(): self { $this->choices = []; return $this; }
+    public function addMultiChoices(array $choices): self {
         foreach ($choices as $label => $value) {
             if (is_array($value) 
                 && array_key_exists('key', $value) 
@@ -70,38 +67,12 @@ trait MultiChoicesTrait
         return $this;
     }
 
-    public function setMultiChoices(array $choices): self
-    {
-        $this->clearMultiChoices();
-        return $this->addMultiChoices($choices);
-    }
+    public function getMultiChoice(string $label): ?string { return $this->choices[$label] ?? null; }
+    public function addMultiChoice(string $label, string $value = ''): self { $this->choices[$label] = $value; return $this; }
+    public function removeMultiChoice(string $label): bool { if (isset($this->choices[$label])) { unset($this->choices[$label]); return true; } return false; }
 
-    public function getMultiChoice(string $label): ?string
-    {
-        return $this->choices[$label] ?? null;
-    }
+    public function getChoicesAttributes(): array { return $this->choicesAttributes; }
+    public function setChoicesAttributes(array $choicesAttributes): self { $this->choicesAttributes = $choicesAttributes; return $this; }
 
-    /**
-     * @return array<string,string> [label => value]
-     */    
-    public function getMultiChoices(): array
-    {
-        return $this->choices;
-    }
-
-    public function removeMultiChoice(string $label): bool
-    {
-        if (isset($this->choices[$label])) {
-            unset($this->choices[$label], $this->translated[$label]);
-            return true;
-        }
-        return false;
-    }
-
-    public function clearMultiChoices(): self
-    {
-        $this->choices    = [];
-        $this->translated = [];
-        return $this;
-    }
+    public function getChoiceAttributes(string $label): array { return (array) ($this->choicesAttributes[$label] ?? []); }
 }

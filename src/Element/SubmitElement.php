@@ -7,19 +7,21 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 final class SubmitElement extends Element
 {
-    public array $options = [
-        'text' => '',
-    ];
+    // public array $options = [
+    //     'text' => '',
+    // ];
+
+    private string $text = '';
 
     public function setText(string $text): self
     {
-        $this->options['text'] = $text;
+        $this->text = $text;
         return $this;
     }
 
     public function getText(): string
     {
-        return $this->options['text'] ?? '';
+        return $this->text;
     }
 
     /**

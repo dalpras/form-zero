@@ -8,8 +8,9 @@ use DalPraS\FormZero\Factory\FormFactoryInterface;
 interface ElementInterface
 {
     public function getId(): string;
-    
     public function getName(): string;
+
+    public function init(): void;
     
     public function setAllowEmpty(bool $flag): self;
     public function getAllowEmpty(): bool;
@@ -25,6 +26,7 @@ interface ElementInterface
     public function setBelongsTo(string $array): self;
 
     public function getFactory(): FormFactoryInterface;
+    public function setFactory(FormFactoryInterface $factory): self;
     
     public function getFilterChain(): FilterChain;
     
@@ -43,6 +45,7 @@ interface ElementInterface
     public function isArray(): bool;
     
     public function isRequired(): bool;
+    public function setRequired(bool $required = true): self;
     
     public function isValid($value, $context = null): bool;
     

@@ -12,7 +12,7 @@ return function(TemplateEngine $template, $element, string $name) {
     $helpers = $template->getHelpers();    
 
     return $render['form']['html']['label']([
-        '{class}'    => 'col-form-label ' . ($options['{label-class}'] ?? ''),
+        '{class}'    => 'col-form-label',
         '{for}'      => $element->getId(),
         '{required}' => $element->isRequired() ? 'required' : '',
         '{text}'     => $element->isTranslatorDisabled() ? $element->getLabel() : $helpers->translator()->trans($element->getLabel())

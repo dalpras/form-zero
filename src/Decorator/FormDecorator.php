@@ -38,7 +38,8 @@ class FormDecorator extends AbstractDecorator
                 '{attributes}' => $attribs,
                 '{elements}'   => function(RenderCollection $render, TemplateEngine $template) use ($content) {
                     $html = $content;
-                    if ( ($this->getOption('hideMandatory') ?? false) === false) {
+                    $mandatory = (bool) ($this->getOption('mandatory') ?? false);
+                    if ($mandatory === true) {
                         $html .= $render['form']['components']['mandatory']($render, $template);
                     }
                     return $html;
