@@ -102,7 +102,7 @@ return [
     'item-buttons' => <<<HTML
         <div class="col-auto">
             <div class="btn-group btn-group-sm pe-1">
-                {buttons}
+                {content}
             </div>
         </div>
         HTML,

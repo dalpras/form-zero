@@ -40,7 +40,7 @@ class AccordionCardDecorator extends AbstractDecorator
                         ? $render['form']['html']['item-mover']()
                         : '',
                     '{buttons}' => ($options['{buttons}'] ?? '') !== ''
-                        ? $render['form']['html']['item-buttons'](['{buttons}' => $options['{buttons}']])
+                        ? $render['form']['html']['item-buttons'](['{content}' => $options['{buttons}']])
                         : '',
                 ])
             ]);
