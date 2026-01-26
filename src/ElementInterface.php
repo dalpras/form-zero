@@ -9,6 +9,7 @@ interface ElementInterface
 {
     public function getId(): string;
     public function getName(): string;
+    public function setName(string $name): self;
 
     public function init(): void;
     
