@@ -38,7 +38,7 @@ return function(TemplateEngine $template, $element, string $name) {
                 default                           => ''
             },
             '{value}'   => $helpers->escaper()->escapeHtmlAttr((string) $value),
-            '{text}'    => $helpers->escaper()->escapeHtml($label),
+            '{text}'    => $label,
             '{checked}' => in_array((string) $value, (array) $element->getValue()) ? 'checked' : '',
             '{class}'   => $element->isInline() ? 'form-check-inline' : '',
         ]);
