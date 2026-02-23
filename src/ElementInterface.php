@@ -7,48 +7,49 @@ use DalPraS\FormZero\Factory\FormFactoryInterface;
 
 interface ElementInterface
 {
+    // Identity / naming
     public function getId(): string;
     public function getName(): string;
-    public function setName(string $name): self;
+    public function setName(string $name): static;
+    public function getBelongsTo(): string;
+    public function setBelongsTo(string $array): static;
+    public function getFullyQualifiedName(): string;
+    public function isArray(): bool;
 
+    // Lifecycle / initialization
     public function init(): void;
-    
-    public function setAllowEmpty(bool $flag): self;
-    public function getAllowEmpty(): bool;
+    public function initOptions(array $options): static;
 
+    // Value
+    public function getValue();
+    public function setValue($value): static;
+
+    // Validation / requirements / errors
+    public function isValid($value, $context = null): bool;
+    public function isRequired(): bool;
+    public function setRequired(bool $required = true): static;
+    public function getAllowEmpty(): bool;
+    public function setAllowEmpty(bool $flag): static;
+    public function hasErrors(): bool;
+    public function addError(string $message): static;
+
+    // Attributes
+    public function getAttrib(string $key);
     public function getAttribs(): array;
     public function setAttrib(string $key, $value): void;
-    public function addAttribs(array $attribs): void;
     public function setAttribs(array $attribs): void;
-    public function getAttrib(string $key);
+    public function addAttribs(array $attribs): void;
     public function removeAttrib(string $key): bool;
 
-    public function getBelongsTo(): string;
-    public function setBelongsTo(string $array): self;
-
-    public function getFactory(): FormFactoryInterface;
-    public function setFactory(FormFactoryInterface $factory): self;
-    
-    public function getFilterChain(): FilterChain;
-    
-    public function getFullyQualifiedName(): string;
-    
-    public function getIgnore(): bool;
-    
+    // Presentation / behavior flags
     public function getLabel(): string;
-    
-    public function getValue();
-    public function setValue($value): self;
-
-    public function addError(string $message): self;
-    public function hasErrors(): bool;
-    
-    public function isArray(): bool;
-    
-    public function isRequired(): bool;
-    public function setRequired(bool $required = true): self;
-    
-    public function isValid($value, $context = null): bool;
-    
+    public function getIgnore(): bool;
     public function isTranslatorDisabled(): bool;
+
+    // Filtering
+    public function getFilterChain(): FilterChain;
+
+    // Dependencies
+    public function getFactory(): FormFactoryInterface;
+    public function setFactory(FormFactoryInterface $factory): static;
 }

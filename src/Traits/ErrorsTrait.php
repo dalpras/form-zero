@@ -11,6 +11,8 @@ trait ErrorsTrait
      */
     private array $errorMessages = [];
 
+    abstract protected function markAsError(): void;
+
     /**
      * Retrieve custom error messages
      */
@@ -30,9 +32,9 @@ trait ErrorsTrait
     /**
      * Add a custom error message to return in the event of failed validation
      */
-    public function addErrorMessage(string $message): self
+    public function addErrorMessage(string $message): static
     {
-        $this->errorMessages[] = (string) $message;
+        $this->errorMessages[] = $message;
         return $this;
     }
 
@@ -47,7 +49,7 @@ trait ErrorsTrait
     /**
      * Add an error message and mark element as failed validation
      */
-    public function addError(string $message): self
+    public function addError(string $message): static
     {
         $this->addErrorMessage($message);
         $this->markAsError();
@@ -56,11 +58,12 @@ trait ErrorsTrait
 
     /**
      * Add multiple error messages and flag element as failed validation
+     * @param list<string> $messages
      */
-    public function addErrors(array $messages): self
+    public function addErrors(array $messages): static
     {
         foreach ($messages as $message) {
-            $this->addError($message);
+            $this->addError((string) $message);
         }
         return $this;
     }
@@ -68,7 +71,7 @@ trait ErrorsTrait
     /**
      * Overwrite any previously set error messages and flag as failed validation
      */
-    public function setErrors(array $messages): self
+    public function setErrors(array $messages): static
     {
         $this->clearErrorMessages();
         return $this->addErrors($messages);

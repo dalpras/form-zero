@@ -27,7 +27,7 @@ trait FormElementTrait
     /**
      * Set form name
      */
-    public function setName(string $name): self
+    public function setName(string $name): static
     {
         $name = $this->filterName($name);
         if ($name === '') {
@@ -48,7 +48,7 @@ trait FormElementTrait
     /**
      * Indicate whether or not translation should be disabled
      */
-    public function setDisableTranslator(bool $flag): self
+    public function setDisableTranslator(bool $flag): static
     {
         $this->translatorDisabled = $flag;
         return $this;

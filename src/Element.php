@@ -52,7 +52,7 @@ class Element implements ElementInterface
      */
     protected $value;
 
-    public function setFactory(FormFactoryInterface $factory): self
+    public function setFactory(FormFactoryInterface $factory): static
     {
         $this->factory = $factory;
         return $this;
@@ -81,7 +81,7 @@ class Element implements ElementInterface
     /**
      * Set element label
      */
-    public function setLabel(string $label): self
+    public function setLabel(string $label): static
     {
         $this->options['label'] = $label;
         return $this;
@@ -107,7 +107,7 @@ class Element implements ElementInterface
     /**
      * Set object state from options array
      */
-    public function initOptions(array $options): self
+    public function initOptions(array $options): static
     {
         if (isset($options['disableTranslator'])) {
             $this->setDisableTranslator($options['disableTranslator']);
@@ -173,7 +173,7 @@ class Element implements ElementInterface
     /**
      * Set element value
      */
-    public function setValue($value): self
+    public function setValue($value): static
     {
         $this->value = $value;
         return $this;
@@ -211,7 +211,7 @@ class Element implements ElementInterface
     /**
      * Set required flag
      */
-    public function setRequired(bool $required = true): self
+    public function setRequired(bool $required = true): static
     {
         $this->options['required'] = $required;
         return $this;
@@ -228,7 +228,7 @@ class Element implements ElementInterface
     /**
      * Set element description
      */
-    public function setDescription(string $description): self
+    public function setDescription(string $description): static
     {
         $this->options['description'] = $description;
         return $this;
@@ -247,7 +247,7 @@ class Element implements ElementInterface
      * When the allow empty flag is enabled and the required flag is false, the
      * element will validate with empty values.
      */
-    public function setAllowEmpty(bool $allowEmpty): self
+    public function setAllowEmpty(bool $allowEmpty): static
     {
         $this->options['allowEmpty'] = $allowEmpty;
         return $this;
@@ -264,7 +264,7 @@ class Element implements ElementInterface
     /**
      * Set ignore flag (used when retrieving values at form level)
      */
-    public function setIgnore(bool $ignore): self
+    public function setIgnore(bool $ignore): static
     {
         $this->options['ignore'] = $ignore;
         return $this;
@@ -281,7 +281,7 @@ class Element implements ElementInterface
     /**
      * Set flag indicating if element represents an array
      */
-    public function setIsArray(bool $isArray): self
+    public function setIsArray(bool $isArray): static
     {
         $this->options['isArray'] = $isArray;
         return $this;
@@ -306,7 +306,7 @@ class Element implements ElementInterface
     /**
      * Set array to which element belongs
      */
-    public function setBelongsTo(string $array): self
+    public function setBelongsTo(string $array): static
     {
         $array = $this->filterName($array, true);
         if ($array !== '') {
@@ -331,7 +331,7 @@ class Element implements ElementInterface
         return $this->options['type'] ?? '';
     }
 
-    public function setType(string $type): self
+    public function setType(string $type): static
     {
         $this->options['type'] = $type;
         return $this;
@@ -417,7 +417,7 @@ class Element implements ElementInterface
     /**
      * Set errorMessageSeparator
      */
-    public function setErrorMessageSeparator(string $separator): self
+    public function setErrorMessageSeparator(string $separator): static
     {
         $this->options['errorMessageSeparator'] = $separator;
         return $this;
@@ -426,7 +426,7 @@ class Element implements ElementInterface
     /**
      * Mark the element as being in a failed validation state
      */
-    public function markAsError(): self
+    public function markAsError(): void
     {
         $messages = $this->getMessages() + $this->getFormattedErrorMessages();
         if (empty($messages)) {
@@ -434,7 +434,6 @@ class Element implements ElementInterface
         } else {
             $this->messages = $messages;
         }
-        return $this;
     }
 
     /**

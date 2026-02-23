@@ -68,7 +68,7 @@ class ZeroForm extends ElementsOrdered
         return $this->getName();
     }
 
-    public function loadDefaultDecorators(): self
+    public function loadDefaultDecorators(): static
     {
         $decorators = $this->getDecorators();
         if (empty($decorators)) {
@@ -133,7 +133,7 @@ class ZeroForm extends ElementsOrdered
     /**
      * Set form legend
      */
-    public function setLegend(string $value): self
+    public function setLegend(string $value): static
     {
         $this->legend = $value;
         return $this;
@@ -150,7 +150,7 @@ class ZeroForm extends ElementsOrdered
     /**
      * Set form description
      */
-    public function setDescription(string $value): self
+    public function setDescription(string $value): static
     {
         $this->description = $value;
         return $this;
@@ -167,7 +167,7 @@ class ZeroForm extends ElementsOrdered
     /**
      * Set visualization order
      */
-    public function setOrder(int $index): self
+    public function setOrder(int $index): static
     {
         $this->order = $index;
         return $this;
@@ -225,7 +225,7 @@ class ZeroForm extends ElementsOrdered
         $this->addElement($element, $order);
     }
 
-    public function addElement(ElementInterface $element, ?int $order = null): self
+    public function addElement(ElementInterface $element, ?int $order = null): static
     {
         $name = $element->getName();
         if (isset($this->elements[$name]) || isset($this->subForms[$name])) {
@@ -296,7 +296,7 @@ class ZeroForm extends ElementsOrdered
     /**
      * Remove all form elements
      */
-    public function clearElements(): self
+    public function clearElements(): static
     {
         foreach (array_keys($this->elements) as $key) {
             $this->del($key);
@@ -309,7 +309,7 @@ class ZeroForm extends ElementsOrdered
      * Set default values for elements
      * Sets values for all elements specified in the array of $defaults.
      */
-    public function setDefaults(array $defaults): self
+    public function setDefaults(array $defaults): static
     {
         $eBelongTo = null;
 
@@ -342,7 +342,7 @@ class ZeroForm extends ElementsOrdered
     /**
      * Set default value for an element
      */
-    public function setDefault(string $name, $value): self
+    public function setDefault(string $name, $value): static
     {
         if ($element = $this->getElement($name)) {
             $element->setValue($value);
@@ -490,7 +490,7 @@ class ZeroForm extends ElementsOrdered
     /**
      * Set all elements' filters
      */
-    public function setElementFilters(array $filters): self
+    public function setElementFilters(array $filters): static
     {
         /** @var \DalPraS\FormZero\Element $element */
         foreach ($this->getElements() as $element) {
@@ -502,7 +502,7 @@ class ZeroForm extends ElementsOrdered
     /**
      * Set name of array elements belong to
      */
-    public function setElementsBelongTo(string $array): self
+    public function setElementsBelongTo(string $array): static
     {
         $origName = $this->getElementsBelongTo();
         $belongsTo = $this->filterName($array, true);
@@ -564,7 +564,7 @@ class ZeroForm extends ElementsOrdered
     /**
      * Set flag indicating elements belong to array
      */
-    public function setIsArray(bool $flag): self
+    public function setIsArray(bool $flag): static
     {
         $this->isArray = $flag;
         return $this;
@@ -591,7 +591,7 @@ class ZeroForm extends ElementsOrdered
     /**
      * Add a form group/subform
      */
-    public function addSubForm(SubZeroForm $subForm, $name, ?int $order = null): self
+    public function addSubForm(SubZeroForm $subForm, $name, ?int $order = null): static
     {
         $oldName = $subForm->getName();
 
@@ -644,7 +644,7 @@ class ZeroForm extends ElementsOrdered
     /**
      * Remove all form subForms/subforms
      */
-    public function clearSubForms(): self
+    public function clearSubForms(): static
     {
         foreach (array_keys($this->subForms) as $key) {
             $this->del($key);
@@ -849,10 +849,9 @@ class ZeroForm extends ElementsOrdered
     /**
      * Mark the element as being in a failed validation state
      */
-    public function markAsError(): self
+    public function markAsError(): void
     {
         $this->errorsExist  = true;
-        return $this;
     }
 
     /**

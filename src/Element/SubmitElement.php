@@ -13,7 +13,7 @@ final class SubmitElement extends Element
 
     private string $text = '';
 
-    public function setText(string $text): self
+    public function setText(string $text): static
     {
         $this->text = $text;
         return $this;

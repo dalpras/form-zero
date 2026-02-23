@@ -66,7 +66,7 @@ final class HashElement extends Element
      *
      * @return $this
      */
-    public function setRotateOncePerSession(bool $on): self
+    public function setRotateOncePerSession(bool $on): static
     {
         $this->rotateOncePerSession = $on;
         return $this;

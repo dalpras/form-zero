@@ -39,7 +39,7 @@ final class CheckboxElement extends Element implements ChoicesAlignmentInterface
      * Intercept checked and unchecked values and set them early; test stored
      * value against checked and unchecked values after configuration.
      */
-    public function initOptions(array $options): self
+    public function initOptions(array $options): static
     {
         if (array_key_exists('checkedValue', $options)) {
             $this->setCheckedValue($options['checkedValue']);
@@ -71,7 +71,7 @@ final class CheckboxElement extends Element implements ChoicesAlignmentInterface
      *
      * @param mixed $value
      */
-    public function setValue($value): self
+    public function setValue($value): static
     {
         if ($value == $this->getCheckedValue()) {
             parent::setValue($value);
@@ -86,7 +86,7 @@ final class CheckboxElement extends Element implements ChoicesAlignmentInterface
     /**
      * Set checked value
      */
-    public function setCheckedValue(string $value): self
+    public function setCheckedValue(string $value): static
     {
         $this->checkedValue = $value;
         // $this->options['checkedValue'] = $value;
@@ -104,7 +104,7 @@ final class CheckboxElement extends Element implements ChoicesAlignmentInterface
     /**
      * Set unchecked value
      */
-    public function setUncheckedValue(string $value): self
+    public function setUncheckedValue(string $value): static
     {
         $this->uncheckedValue = $value;
         // $this->options['uncheckedValue'] = $value;
@@ -122,7 +122,7 @@ final class CheckboxElement extends Element implements ChoicesAlignmentInterface
     /**
      * Set checked flag
      */
-    public function setChecked(bool $flag): self
+    public function setChecked(bool $flag): static
     {
         $this->checked = $flag;
         if ($this->checked) {

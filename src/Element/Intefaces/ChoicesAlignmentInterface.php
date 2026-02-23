@@ -7,7 +7,7 @@ namespace DalPraS\FormZero\Element\Intefaces;
 interface ChoicesAlignmentInterface
 {
     public function isInline(): bool;
-    public function setInline(bool $inline): self;
+    public function setInline(bool $inline): static;
     public function getSeparator(): string;
-    public function setSeparator(string $separator): self;
+    public function setSeparator(string $separator): static;
 }

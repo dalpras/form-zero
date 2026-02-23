@@ -41,7 +41,7 @@ trait FiltersTrait
     /**
      * Add filters to element, overwriting any already existing
      */
-    public function setFilters(array $filters): self
+    public function setFilters(array $filters): static
     {
         $this->clearFilterChain();
         $this->addFilters($filters);

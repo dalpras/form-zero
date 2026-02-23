@@ -12,21 +12,13 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 interface FormFactoryInterface
 {
-    public function createForm(string $class, ...$args): ZeroForm;
-    
     public function createElement(ElementInterface|string $element, string $name, array $options): ElementInterface;
-
-    public function getTemplate(): TemplateEngine;
-
-    public function getTemplateFile(): string;
-    
-    public function setIgnoreCsrfToken(bool $disableCsrfToken = true): FormFactoryInterface;
-
-    public function getIgnoreCsrfToken(): bool;
-
+    public function createForm(string $class, ...$args): ZeroForm;
     public function getHttpRequest(): Request;
-
-    public function getValidator(): ValidatorInterface;
-
+    public function getIgnoreCsrfToken(): bool;
+    public function getTemplate(): TemplateEngine;
+    public function getTemplateFile(): string;
     public function getTranslator(): ?Translator;
+    public function getValidator(): ValidatorInterface;
+    public function setIgnoreCsrfToken(bool $disableCsrfToken = true): FormFactoryInterface;
 }

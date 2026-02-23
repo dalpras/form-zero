@@ -29,13 +29,13 @@ abstract class AbstractDecorator
         }
     }
 
-    public function setOptions(array $options): self
+    public function setOptions(array $options):static
     {
         $this->options = $options;
         return $this;
     }
 
-    public function setOption(string $key, mixed $value): self
+    public function setOption(string $key, mixed $value):static
     {
         $this->options[(string) $key] = $value;
         return $this;
@@ -64,7 +64,7 @@ abstract class AbstractDecorator
         return false;
     }
 
-    public function clearOptions(): self
+    public function clearOptions():static
     {
         $this->options = [];
         return $this;
@@ -73,7 +73,7 @@ abstract class AbstractDecorator
     /**
      * Set current form element
      */
-    public function setElement(ElementInterface|ZeroForm $element): self
+    public function setElement(ElementInterface|ZeroForm $element):static
     {
         switch (true) {
             case $element instanceof ElementInterface:

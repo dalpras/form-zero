@@ -13,7 +13,7 @@ class SubZeroForm extends ZeroForm
      */
     protected bool $isArray = true;
 
-    public function loadDefaultDecorators(): self
+    public function loadDefaultDecorators(): static
     {
         $decorators = $this->getDecorators();
         if (empty($decorators)) {

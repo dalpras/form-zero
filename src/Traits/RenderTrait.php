@@ -22,7 +22,7 @@ trait RenderTrait
      * When render this method, is used to set $isRendered member to prevent repeatedly
      * merging belongsTo setting
      */
-    public function setIsRendered(): self
+    public function setIsRendered(): static
     {
         $this->isRendered = true;
         return $this;
@@ -39,7 +39,7 @@ trait RenderTrait
     /**
      * Add many decorators at once
      */
-    public function addDecorators(array $decorators): self
+    public function addDecorators(array $decorators): static
     {
         foreach ($decorators as $decorator) {
             $this->addDecorator($decorator);
@@ -50,7 +50,7 @@ trait RenderTrait
     /**
      * Overwrite all decorators
      */
-    public function setDecorators(array $decorators): self
+    public function setDecorators(array $decorators): static
     {
         $this->clearDecorators();
         return $this->addDecorators($decorators);
@@ -77,7 +77,7 @@ trait RenderTrait
     /**
      * Clear all decorators
      */
-    public function clearDecorators(): self
+    public function clearDecorators(): static
     {
         $this->decorators = [];
         return $this;
@@ -86,7 +86,7 @@ trait RenderTrait
     /**
      * Add a decorator for rendering the element
      */
-    public function addDecorator($decorator): self
+    public function addDecorator($decorator): static
     {
         switch (true) {
             case $decorator instanceof AbstractDecorator:

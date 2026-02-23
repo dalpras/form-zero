@@ -51,9 +51,9 @@ trait MultiChoicesTrait
      * @return array<string,string> [label => value]
      */    
     public function getMultiChoices(): array { return $this->choices; }
-    public function setMultiChoices(array $choices): self { $this->clearMultiChoices(); return $this->addMultiChoices($choices); }
-    public function clearMultiChoices(): self { $this->choices = []; return $this; }
-    public function addMultiChoices(array $choices): self {
+    public function setMultiChoices(array $choices): static { $this->clearMultiChoices(); return $this->addMultiChoices($choices); }
+    public function clearMultiChoices(): static { $this->choices = []; return $this; }
+    public function addMultiChoices(array $choices): static {
         foreach ($choices as $label => $value) {
             if (is_array($value) 
                 && array_key_exists('key', $value) 
@@ -68,11 +68,11 @@ trait MultiChoicesTrait
     }
 
     public function getMultiChoice(string $label): ?string { return $this->choices[$label] ?? null; }
-    public function addMultiChoice(string $label, string $value = ''): self { $this->choices[$label] = $value; return $this; }
+    public function addMultiChoice(string $label, string $value = ''): static { $this->choices[$label] = $value; return $this; }
     public function removeMultiChoice(string $label): bool { if (isset($this->choices[$label])) { unset($this->choices[$label]); return true; } return false; }
 
     public function getChoicesAttributes(): array { return $this->choicesAttributes; }
-    public function setChoicesAttributes(array $choicesAttributes): self { $this->choicesAttributes = $choicesAttributes; return $this; }
+    public function setChoicesAttributes(array $choicesAttributes): static { $this->choicesAttributes = $choicesAttributes; return $this; }
 
     public function getChoiceAttributes(string $label): array { return (array) ($this->choicesAttributes[$label] ?? []); }
 }

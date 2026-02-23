@@ -154,7 +154,7 @@ class FormFactory implements FormFactoryInterface
     }    
 
 
-    public function setIgnoreCsrfToken(bool $ignoreCsrfToken = true): self
+    public function setIgnoreCsrfToken(bool $ignoreCsrfToken = true): static
     {
         $this->ignoreCsrfToken = $ignoreCsrfToken;
         return $this;

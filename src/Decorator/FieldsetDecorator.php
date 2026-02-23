@@ -39,7 +39,7 @@ class FieldsetDecorator extends AbstractDecorator
     /**
      * Set legend
      */
-    public function setLegend(string $value): self
+    public function setLegend(string $value): static
     {
         $this->legend = (string) $value;
         return $this;

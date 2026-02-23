@@ -17,7 +17,7 @@ trait ConstraintsTrait
      *
      * @param Constraint[] $constraints
      */
-    public function setConstraints(array $constraints): self
+    public function setConstraints(array $constraints): static
     {
         $this->clearConstraints();
         $this->addConstraints($constraints);
@@ -45,7 +45,7 @@ trait ConstraintsTrait
      *
      * @param Constraint[] $constraints
      */
-    public function addConstraints(array $constraints): self
+    public function addConstraints(array $constraints): static
     {
         foreach ($constraints as $constraint) {
             if (!$constraint instanceof Constraint) {
@@ -66,7 +66,7 @@ trait ConstraintsTrait
     /**
      * Prepend a constraint so that it runs before the others.
      */
-    public function prependConstraint(Constraint $constraint): self
+    public function prependConstraint(Constraint $constraint): static
     {
         array_unshift($this->constraints, $constraint);
         return $this;
@@ -75,7 +75,7 @@ trait ConstraintsTrait
     /**
      * Remove all constraints.
      */
-    public function clearConstraints(): self
+    public function clearConstraints(): static
     {
         $this->constraints = [];
         return $this;

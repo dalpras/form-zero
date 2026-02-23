@@ -21,7 +21,7 @@ trait ChoicesAlignmentTrait
         return $this->inline;
     }
 
-    public function setInline(bool $inline): self
+    public function setInline(bool $inline): static
     {
         $this->inline = $inline;
         return $this;
@@ -32,7 +32,7 @@ trait ChoicesAlignmentTrait
         return $this->separator;
     }
 
-    public function setSeparator(string $separator): self
+    public function setSeparator(string $separator): static
     {
         $this->separator = $separator;
         return $this;
