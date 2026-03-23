@@ -21,52 +21,52 @@ use DalPraS\FormZero\Element\CheckboxMultiElement;
 return [
     'components' => [
         'feedback'
-            => require(__DIR__ . '/include/components/feedback.php'),
+            => $this->require(__DIR__ . '/include/components/feedback.php'),
         'label'
-            => require(__DIR__ . '/include/components/label.php'),
+            => $this->require(__DIR__ . '/include/components/label.php'),
         'description'
-            => require(__DIR__ . '/include/components/description.php'),
+            => $this->require(__DIR__ . '/include/components/description.php'),
         'mandatory'
-            => require(__DIR__ . '/include/components/mandatory.php'),
+            => $this->require(__DIR__ . '/include/components/mandatory.php'),
     ],
 
     'element' => fn($type) => match ($type) {
         CheckboxElement::class 
-            => require(__DIR__ . '/include/elements/checkbox.php'),
+            => $this->require(__DIR__ . '/include/elements/checkbox.php'),
 
         DatePickerElement::class
-            => require(__DIR__ . '/include/elements/date-picker.php'),
+            => $this->require(__DIR__ . '/include/elements/date-picker.php'),
 
         HiddenElement::class, 
         HashElement::class,
-            => require(__DIR__ . '/include/elements/hidden.php'),
+            => $this->require(__DIR__ . '/include/elements/hidden.php'),
 
         RadioElement::class, 
         CheckboxMultiElement::class
-            => require(__DIR__ . '/include/elements/radio.php'),
+            => $this->require(__DIR__ . '/include/elements/radio.php'),
 
         SelectElement::class, 
         SelectMultiElement::class
-            => require(__DIR__ . '/include/elements/select.php'),
+            => $this->require(__DIR__ . '/include/elements/select.php'),
 
         SubmitElement::class
-            => require(__DIR__ . '/include/elements/submit.php'),
+            => $this->require(__DIR__ . '/include/elements/submit.php'),
 
         TextElement::class, 
         EmailElement::class, 
         SearchElement::class, 
         PasswordElement::class
-            => require(__DIR__ . '/include/elements/input.php'),
+            => $this->require(__DIR__ . '/include/elements/input.php'),
         
         SymfileElement::class, 
         SymfileMultiElement::class
-            => require(__DIR__ . '/include/elements/symfile.php'),
+            => $this->require(__DIR__ . '/include/elements/symfile.php'),
         
         TextareaElement::class
-            => require(__DIR__ . '/include/elements/textarea.php'),
+            => $this->require(__DIR__ . '/include/elements/textarea.php'),
     },
 
     'html' 
-        => require(__DIR__ . '/include/html/html.php'),
+        => $this->require(__DIR__ . '/include/html/html.php'),
 
 ];
