@@ -4,7 +4,6 @@ namespace DalPraS\FormZero\Decorator;
 
 use DalPraS\FormZero\Decorator\AbstractDecorator;
 use DalPraS\SmartTemplate\Collection\RenderCollection;
-use DalPraS\SmartTemplate\TemplateEngine;
 
 class ElementFeedbackDecorator extends AbstractDecorator
 {
@@ -13,8 +12,8 @@ class ElementFeedbackDecorator extends AbstractDecorator
         /** @var \DalPraS\FormZero\Element $element */
         $element = $this->getElement();
         $factory = $element->getFactory();
-        return $factory->getTemplate()->render($factory->getTemplateFile(), fn(RenderCollection $render, TemplateEngine $template, string $name)
-            => $content . $render['form']['components']['feedback']($template, $element, $name)
+        return $factory->getTemplate()->render($factory->getTemplateFile(), fn(RenderCollection $render, string $name)
+            => $content . $render['form']['components']['feedback']($element, $name)
         );
     }
 }

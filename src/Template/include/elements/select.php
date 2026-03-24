@@ -1,16 +1,14 @@
 <?php
 /* select.php */
+/** @var \DalPraS\SmartTemplate\TemplateEngine $this */
 
-use DalPraS\SmartTemplate\TemplateEngine;
+use DalPraS\SmartTemplate\Collection\RenderCollection;
 
-return function(TemplateEngine $template, $element, string $name) {
-    /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
+return function(RenderCollection $render, $element) {
     /** @var \DalPraS\FormZero\Element\SelectElement|\DalPraS\FormZero\Element\SelectMultiElement $element */
-    $render = $this->renders[$name];
-    $attribs = $element->getAttribs();
 
-    /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
-    $helpers = $template->getHelpers();
+    $attribs = $element->getAttribs();
+    $helpers = $this->getHelpers();
 
     $attribs['name'] ??= $element->getFullyQualifiedName();
     if (isset($attribs['multiple']) && substr($attribs['name'], -2) !== '[]') {

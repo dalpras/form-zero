@@ -81,9 +81,12 @@ class FieldsetDecorator extends AbstractDecorator
         }
 
         $factory = $element->getFactory();
-        return $factory->getTemplate()->render($factory->getTemplateFile(), fn(RenderCollection $render, TemplateEngine $template) => $render['form']['html']['fieldset']([
+        $template = $factory->getTemplate();
+        $helpers = $template->getHelpers();
+
+        return $template->render($factory->getTemplateFile(), fn(RenderCollection $render) => $render['form']['html']['fieldset']([
             '{legend}'  => $this->getLegend() !== '' ? $render['form']['html']['legend']([
-                '{text}' => $template->getHelpers()->escaper()->escapeHtml(trim($this->getLegend()))
+                '{text}' => $helpers->escaper()->escapeHtml(trim($this->getLegend()))
             ]) :  '',
             '{attributes}' => function() use ($attribs, $element) {
                 $attribs['name'] ??= $element->getFullyQualifiedName();

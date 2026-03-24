@@ -4,7 +4,6 @@ namespace DalPraS\FormZero\Decorator;
 
 use DalPraS\FormZero\Decorator\AbstractDecorator;
 use DalPraS\SmartTemplate\Collection\RenderCollection;
-use DalPraS\SmartTemplate\TemplateEngine;
 
 class ElementDescriptionDecorator extends AbstractDecorator
 {
@@ -14,9 +13,8 @@ class ElementDescriptionDecorator extends AbstractDecorator
         $element = $this->getElement();
         $factory = $element->getFactory();
 
-        return $factory->getTemplate()->render($factory->getTemplateFile(), function(RenderCollection $render, TemplateEngine $template, string $name) use ($content, $element) {
-
-            $description = $render['form']['components']['description']($template, $element, $name);
+        return $factory->getTemplate()->render($factory->getTemplateFile(), function(RenderCollection $render, string $name) use ($content, $element) {
+            $description = $render['form']['components']['description']($element, $name);
             if ($this->getOption('collapsible') === true) {
                 return $content . $render['form']['html']['description-collapse']([
                     '{id}' => $element->getId(),

@@ -14,7 +14,9 @@ class AccordionDecorator extends AbstractDecorator
     {
         $element = $this->getElement();
         $factory = $element->getFactory();
-        return $factory->getTemplate()->render($factory->getTemplateFile(), function(RenderCollection $render) use ($element, $content) {
+        $template = $factory->getTemplate();
+
+        return $template->render($factory->getTemplateFile(), function(RenderCollection $render) use ($element, $content) {
             return $render['form']['html']['accordion'](
                 array_replace_recursive($this->getOption('options'), [
                     '{attributes}' => [

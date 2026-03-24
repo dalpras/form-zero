@@ -1,18 +1,16 @@
 <?php
 /* radio.php */
+/** @var \DalPraS\SmartTemplate\TemplateEngine $this */
+
 use DalPraS\FormZero\Element\CheckboxMultiElement;
 use DalPraS\FormZero\Element\RadioElement;
 use DalPraS\FormZero\Element\RadioPopupElement;
-use DalPraS\SmartTemplate\TemplateEngine;
+use DalPraS\SmartTemplate\Collection\RenderCollection;
 
-return function(TemplateEngine $template, $element, string $name) {
-    /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
+return function(RenderCollection $render, $element) {
     /** @var \DalPraS\FormZero\Element\RadioElement|\DalPraS\FormZero\Element\RadioPopupElement|\DalPraS\FormZero\Element\CheckboxMultiElement $element */
 
-    /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
-    $helpers = $template->getHelpers();
-
-    $render = $this->renders[$name];
+    $helpers = $this->getHelpers();
     $attribs = $element->getAttribs();
     // Compongo le multiopzioni
     $html = '';

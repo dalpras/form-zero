@@ -20,7 +20,6 @@ use DalPraS\FormZero\Element\SymfileMultiElement;
 use DalPraS\FormZero\Element\TextareaElement;
 use DalPraS\FormZero\Element\TextElement;
 use DalPraS\SmartTemplate\Collection\RenderCollection;
-use DalPraS\SmartTemplate\TemplateEngine;
 use Throwable;
 
 class ElementBaseDecorator extends AbstractDecorator
@@ -30,7 +29,9 @@ class ElementBaseDecorator extends AbstractDecorator
         /** @var \DalPraS\FormZero\Element $element */
         $element = $this->getElement();
         $factory = $element->getFactory();
-        return $factory->getTemplate()->render($factory->getTemplateFile(), function(RenderCollection $render, TemplateEngine $template, string $name) use ($element, $content) {
+        $template = $factory->getTemplate();
+        
+        return $template->render($factory->getTemplateFile(), function(RenderCollection $render) use ($element, $content) {
             try {
                 $html = match (true) {
                     $element instanceof HashElement,
@@ -49,7 +50,7 @@ class ElementBaseDecorator extends AbstractDecorator
                     $element instanceof RadioElement,
                     $element instanceof SymfileElement,
                     $element instanceof SymfileMultiElement
-                        => $render['form']['element']($element::class)($template, $element, $name),
+                        => $render['form']['element']($element::class)($render, $element),
                     default
                         => 'Invalid element type'
                 };

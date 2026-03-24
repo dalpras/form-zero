@@ -1,15 +1,11 @@
 <?php
 /* label.php */
 
-use DalPraS\SmartTemplate\TemplateEngine;
-
-return function(TemplateEngine $template, $element, string $name) {
-    /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
+return function($element, string $name) {
     /** @var \DalPraS\FormZero\Element $element */    
     $render = $this->renders[$name];
 
-    /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
-    $helpers = $template->getHelpers();    
+    $helpers = $this->getHelpers();    
 
     return $render['form']['html']['label']([
         '{class}'    => 'col-form-label',

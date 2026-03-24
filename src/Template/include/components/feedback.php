@@ -1,14 +1,10 @@
 <?php
 /* feedback.php */
 
-use DalPraS\SmartTemplate\TemplateEngine;
-
-return function(TemplateEngine $template, $element, string $name) {
-    /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
+return function($element, string $name) {
     /** @var \DalPraS\FormZero\Element $element */
 
-    /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
-    $helpers = $template->getHelpers();    
+    $helpers = $this->getHelpers();    
     // Feedback
     if ($element->hasErrors()) {
         $render = $this->renders[$name];

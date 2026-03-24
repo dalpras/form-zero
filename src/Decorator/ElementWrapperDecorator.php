@@ -15,7 +15,9 @@ class ElementWrapperDecorator extends AbstractDecorator
     {
         $element = $this->getElement();
         $factory = $element->getFactory();
-        return $factory->getTemplate()->render($factory->getTemplateFile(), function(RenderCollection $render) use ($content, $element) {
+        $template = $factory->getTemplate();
+
+        return $template->render($factory->getTemplateFile(), function(RenderCollection $render) use ($content, $element) {
             $attributes = $this->getOption('attributes') ?? [];
             $fn = ($attributes instanceof Closure) ? $attributes : fn() => $attributes;
             return $render['form']['html']['content-wrapper']([

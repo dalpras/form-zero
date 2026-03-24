@@ -27,7 +27,9 @@ class FormDecorator extends AbstractDecorator
     {
         $element = $this->getElement();
         $factory = $element->getFactory();
-        return $factory->getTemplate()->render($factory->getTemplateFile(), function(RenderCollection $render) use ($element, $content) {
+        $template = $factory->getTemplate();
+
+        return $template->render($factory->getTemplateFile(), function(RenderCollection $render) use ($element, $content) {
             $attribs       = $element->getAttribs();
             $attribs['id'] = $element->getId();
 
@@ -36,11 +38,11 @@ class FormDecorator extends AbstractDecorator
 
             return $render['form']['html']['form']([
                 '{attributes}' => $attribs,
-                '{elements}'   => function(RenderCollection $render, TemplateEngine $template) use ($content) {
+                '{elements}'   => function(RenderCollection $render) use ($content) {
                     $html = $content;
                     $mandatory = (bool) ($this->getOption('mandatory') ?? false);
                     if ($mandatory === true) {
-                        $html .= $render['form']['components']['mandatory']($render, $template);
+                        $html .= $render['form']['components']['mandatory']($render);
                     }
                     return $html;
                 }

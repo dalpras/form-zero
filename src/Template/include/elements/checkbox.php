@@ -1,14 +1,13 @@
 <?php
 /* checkbox.php */
+/** @var \DalPraS\SmartTemplate\TemplateEngine $this */
 
-use DalPraS\SmartTemplate\TemplateEngine;
+use DalPraS\SmartTemplate\Collection\RenderCollection;
 
-return function(TemplateEngine $template, $element, string $name) {
-    $render = $this->renders[$name];
+return function(RenderCollection $render, $element) {
     $attribs = $element->getAttribs();
 
-    /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
-    $helpers = $template->getHelpers();
+    $helpers = $this->getHelpers();
 
     // Field hidden with the Unchecked value
     $html = $render['form']['html']['input']([

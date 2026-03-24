@@ -4,7 +4,6 @@ namespace DalPraS\FormZero\Decorator;
 
 use DalPraS\FormZero\Decorator\AbstractDecorator;
 use DalPraS\SmartTemplate\Collection\RenderCollection;
-use DalPraS\SmartTemplate\TemplateEngine;
 
 class ElementLabelDecorator extends AbstractDecorator
 {
@@ -12,16 +11,18 @@ class ElementLabelDecorator extends AbstractDecorator
     {
         $element = $this->getElement();
         $factory = $element->getFactory();
-        return $factory->getTemplate()->render($factory->getTemplateFile(), function(RenderCollection $render, TemplateEngine $template) use ($content, $element) {
+        $template = $factory->getTemplate();
+        $helpers = $template->getHelpers();
+        
+        return $template->render($factory->getTemplateFile(), function(RenderCollection $render) use ($content, $element, $helpers) {
             if ( $element->getLabel() !== '' ) {
-                /** @var \DalPraS\SmartTemplate\TemplateEngine $template */
-                $helpers =  $template->getHelpers();
                 return $render['form']['html']['label']([
                         '{class}'    => $this->getOption('class') ?? 'form-label',
                         '{for}'      => $this->getOption('for') ?? $element->getId(),
                         '{required}' => $element->isRequired() ? 'required' : '',
                         '{text}'     => $element->isTranslatorDisabled() ? $element->getLabel() : $helpers->translator()->trans($element->getLabel())
-                    ]) . $content;
+                    ]) . 
+                    $content;
             }
             return $content;
         });

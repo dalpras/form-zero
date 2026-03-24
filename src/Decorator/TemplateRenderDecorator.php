@@ -5,7 +5,6 @@ namespace DalPraS\FormZero\Decorator;
 use Closure;
 use DalPraS\FormZero\Decorator\AbstractDecorator;
 use DalPraS\SmartTemplate\Collection\RenderCollection;
-use DalPraS\SmartTemplate\TemplateEngine;
 use Throwable;
 
 /**
@@ -14,7 +13,7 @@ use Throwable;
  * @deprecated use instead CallbackDecorator
  * 
  * Example:
- * (new TemplateRenderDecorator(['callback' => fn(string $content, RenderCollection $render, TemplateEngine $template, Element|SubZeroForm $element, string $name) => $content . 'postfix']))->render()
+ * (new TemplateRenderDecorator(['callback' => fn(string $content, RenderCollection $render) => $content . 'postfix']))->render()
  *
  */
 class TemplateRenderDecorator extends AbstractDecorator
@@ -34,8 +33,10 @@ class TemplateRenderDecorator extends AbstractDecorator
         if ($callback instanceof Closure) {
             $element = $this->getElement();
             $factory = $element->getFactory();
+            $template = $factory->getTemplate();
+
             try {
-                return $factory->getTemplate()->render($factory->getTemplateFile(), fn(RenderCollection $render, TemplateEngine $template, string $name) => $callback($content, $render, $template, $element, $name));
+                return $template->render($factory->getTemplateFile(), fn(RenderCollection $render, string $name) => $callback($content, $render, $element, $name));
             } catch (Throwable $th) {
                 return $th->getMessage() . $th->getTraceAsString();
             }
