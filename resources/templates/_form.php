@@ -1,22 +1,22 @@
 <?php
-/* form.inc.php */
+/* _form.php */
 
-use DalPraS\FormZero\Element\HashElement;
-use DalPraS\FormZero\Element\TextElement;
+use DalPraS\FormZero\Element\CheckboxElement;
+use DalPraS\FormZero\Element\CheckboxMultiElement;
+use DalPraS\FormZero\Element\DatePickerElement;
 use DalPraS\FormZero\Element\EmailElement;
-use DalPraS\FormZero\Element\RadioElement;
+use DalPraS\FormZero\Element\HashElement;
 use DalPraS\FormZero\Element\HiddenElement;
+use DalPraS\FormZero\Element\PasswordElement;
+use DalPraS\FormZero\Element\RadioElement;
 use DalPraS\FormZero\Element\SearchElement;
 use DalPraS\FormZero\Element\SelectElement;
+use DalPraS\FormZero\Element\SelectMultiElement;
 use DalPraS\FormZero\Element\SubmitElement;
 use DalPraS\FormZero\Element\SymfileElement;
-use DalPraS\FormZero\Element\CheckboxElement;
-use DalPraS\FormZero\Element\PasswordElement;
-use DalPraS\FormZero\Element\TextareaElement;
-use DalPraS\FormZero\Element\DatePickerElement;
-use DalPraS\FormZero\Element\SelectMultiElement;
 use DalPraS\FormZero\Element\SymfileMultiElement;
-use DalPraS\FormZero\Element\CheckboxMultiElement;
+use DalPraS\FormZero\Element\TextareaElement;
+use DalPraS\FormZero\Element\TextElement;
 
 return [
     'components' => [
