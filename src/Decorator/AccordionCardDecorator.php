@@ -16,7 +16,7 @@ class AccordionCardDecorator extends AbstractDecorator
         $factory = $element->getFactory();
         $engine = $factory->getTemplate();
         
-        return $engine->render($factory->getTemplateFile(), function(RenderCollection $render) use ($content) {
+        return $engine->renderDefault(function(RenderCollection $render) use ($content) {
             $options = $this->getOption('options');
 
             return $render->at('form.html.accordion-item')([
