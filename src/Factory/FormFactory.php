@@ -17,21 +17,11 @@ class FormFactory implements FormFactoryInterface
 {
     private bool $ignoreCsrfToken = false;
 
-    /**
-     * Kept for backward compatibility.
-     *
-     * New SmartTemplate versions use preset namespaces,
-     * not filesystem template filenames.
-     */
-    protected static string $defaultTemplateFile = FormPreset::NAMESPACE;
-
     public function __construct(
-        private ?string $templateFile = null,
         private ?TemplateEngine $template = null,
         private ?Request $request = null,
         private ?Translator $translator = null
     ) {
-        $this->templateFile ??= self::$defaultTemplateFile;
     }
 
     public function getHttpRequest(): Request
@@ -154,16 +144,6 @@ class FormFactory implements FormFactoryInterface
         }
 
         return $this->template;
-    }
-
-    /**
-     * Backward-compatible accessor.
-     *
-     * This now returns the template namespace, not a PHP filename.
-     */
-    public function getTemplateFile(): string
-    {
-        return $this->templateFile;
     }
 
     public function setIgnoreCsrfToken(bool $ignoreCsrfToken = true): static

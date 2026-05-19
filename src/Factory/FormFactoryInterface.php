@@ -16,7 +16,6 @@ interface FormFactoryInterface
     public function getHttpRequest(): Request;
     public function getIgnoreCsrfToken(): bool;
     public function getTemplate(): TemplateEngine;
-    public function getTemplateFile(): string;
     public function getTranslator(): ?Translator;
     public function getValidator(): ValidatorInterface;
     public function setIgnoreCsrfToken(bool $disableCsrfToken = true): FormFactoryInterface;

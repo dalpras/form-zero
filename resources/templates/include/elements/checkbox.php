@@ -10,7 +10,7 @@ return function(RenderCollection $render, $element) {
     $helpers = $this->getHelpers();
 
     // Field hidden with the Unchecked value
-    $html = $render['form']['html']['input']([
+    $html = $render->at('form.html.input')([
         '{attributes}' => array_replace($attribs, [
             'id'   => $attribs['id'] ?? $attribs['name'] ?? $element->getFullyQualifiedName(),
             'name' => $attribs['name'] ?? $element->getFullyQualifiedName()
@@ -24,7 +24,7 @@ return function(RenderCollection $render, $element) {
     $isChecked = $element->isChecked() || ((string) $element->getValue() === $checkedValue);
 
     // checkbox
-    $html .= $render['form']['html']['form-element-checkbox']([
+    $html .= $render->at('form.html.form-element-checkbox')([
         '{attributes}' => array_replace($attribs, [
             'class' => implode(' ',  [
                 $attribs['class'] ?? '',

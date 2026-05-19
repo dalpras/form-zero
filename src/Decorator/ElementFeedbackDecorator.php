@@ -12,8 +12,10 @@ class ElementFeedbackDecorator extends AbstractDecorator
         /** @var \DalPraS\FormZero\Element $element */
         $element = $this->getElement();
         $factory = $element->getFactory();
-        return $factory->getTemplate()->render($factory->getTemplateFile(), fn(RenderCollection $render, string $name)
-            => $content . $render['form']['components']['feedback']($element, $name)
+        $engine = $factory->getTemplate();
+
+        return $engine->renderDefault(fn(RenderCollection $render, string $name)
+            => $content . $render->at('form.components.feedback')($element, $name)
         );
     }
 }

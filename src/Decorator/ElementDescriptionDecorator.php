@@ -12,11 +12,12 @@ class ElementDescriptionDecorator extends AbstractDecorator
         /** @var \DalPraS\FormZero\Element $element */
         $element = $this->getElement();
         $factory = $element->getFactory();
+        $engine = $factory->getTemplate();
 
-        return $factory->getTemplate()->render($factory->getTemplateFile(), function(RenderCollection $render, string $name) use ($content, $element) {
-            $description = $render['form']['components']['description']($element, $name);
+        return $engine->renderDefault(function(RenderCollection $render, string $name) use ($content, $element) {
+            $description = $render->at('form.components.description')($element, $name);
             if ($this->getOption('collapsible') === true) {
-                return $content . $render['form']['html']['description-collapse']([
+                return $content . $render->at('form.html.description-collapse')([
                     '{id}' => $element->getId(),
                     '{description}' => $description
                 ]);

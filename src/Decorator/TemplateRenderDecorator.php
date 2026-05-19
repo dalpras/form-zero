@@ -33,10 +33,10 @@ class TemplateRenderDecorator extends AbstractDecorator
         if ($callback instanceof Closure) {
             $element = $this->getElement();
             $factory = $element->getFactory();
-            $template = $factory->getTemplate();
+            $engine = $factory->getTemplate();
 
             try {
-                return $template->render($factory->getTemplateFile(), fn(RenderCollection $render, string $name) => $callback($content, $render, $element, $name));
+                return $engine->renderDefault(fn(RenderCollection $render, string $name) => $callback($content, $render, $element, $name));
             } catch (Throwable $th) {
                 return $th->getMessage() . $th->getTraceAsString();
             }

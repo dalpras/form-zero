@@ -8,7 +8,7 @@ return function($element, string $name) {
     $helpers = $this->getHelpers();    
     if (strlen(trim($description)) > 0) {
         $render = $this->renders[$name];
-        return $render['form']['html']['description']([
+        return $render->at('form.html.description')([
             '{text}' => $element->isTranslatorDisabled() ? $description: $helpers->translator()->trans($description)
         ]);
     }

@@ -10,7 +10,7 @@ return function(RenderCollection $render, $element) {
 
     $helpers = $this->getHelpers();
 
-    $html = $render['form']['html']['datepicker']([
+    $html = $render->at('form.html.datepicker')([
         '{attributes}' => array_replace($attribs, [
             'class' => implode(' ',  [
                 'form-control',

@@ -29,9 +29,9 @@ class ElementBaseDecorator extends AbstractDecorator
         /** @var \DalPraS\FormZero\Element $element */
         $element = $this->getElement();
         $factory = $element->getFactory();
-        $template = $factory->getTemplate();
+        $engine = $factory->getTemplate();
         
-        return $template->render($factory->getTemplateFile(), function(RenderCollection $render) use ($element, $content) {
+        return $engine->renderDefault(function(RenderCollection $render) use ($element, $content) {
             try {
                 $html = match (true) {
                     $element instanceof HashElement,
@@ -50,7 +50,7 @@ class ElementBaseDecorator extends AbstractDecorator
                     $element instanceof RadioElement,
                     $element instanceof SymfileElement,
                     $element instanceof SymfileMultiElement
-                        => $render['form']['element']($element::class)($render, $element),
+                        => $render->at('form.element')($element::class)($render, $element),
                     default
                         => 'Invalid element type'
                 };

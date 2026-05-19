@@ -19,7 +19,7 @@ return function(RenderCollection $render, $element) {
             ? $label
             : $helpers->translator()->trans($label);
 
-        $html .= $render['form']['html']['form-element-checkbox']([
+        $html .= $render->at('form.html.form-element-checkbox')([
             '{attributes}' => array_replace($attribs, [
                 'class' => implode(' ',  [
                     $attribs['class'] ?? '',

@@ -11,12 +11,12 @@ class ElementLabelDecorator extends AbstractDecorator
     {
         $element = $this->getElement();
         $factory = $element->getFactory();
-        $template = $factory->getTemplate();
-        $helpers = $template->getHelpers();
+        $engine = $factory->getTemplate();
+        $helpers = $engine->getHelpers();
         
-        return $template->render($factory->getTemplateFile(), function(RenderCollection $render) use ($content, $element, $helpers) {
+        return $engine->renderDefault(function(RenderCollection $render) use ($content, $element, $helpers) {
             if ( $element->getLabel() !== '' ) {
-                return $render['form']['html']['label']([
+                return $render->at('form.html.label')([
                         '{class}'    => $this->getOption('class') ?? 'form-label',
                         '{for}'      => $this->getOption('for') ?? $element->getId(),
                         '{required}' => $element->isRequired() ? 'required' : '',

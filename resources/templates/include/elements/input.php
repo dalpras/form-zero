@@ -14,7 +14,7 @@ return function(RenderCollection $render, $element) {
 
     $helpers = $this->getHelpers();
 
-    $html = $render['form']['html']['input']([
+    $html = $render->at('form.html.input')([
         '{attributes}' => array_replace($attribs, [
             'class' => implode(' ',  [
                 'form-control',

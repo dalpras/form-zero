@@ -14,10 +14,10 @@ class AccordionDecorator extends AbstractDecorator
     {
         $element = $this->getElement();
         $factory = $element->getFactory();
-        $template = $factory->getTemplate();
+        $engine = $factory->getTemplate();
 
-        return $template->render($factory->getTemplateFile(), function(RenderCollection $render) use ($element, $content) {
-            return $render['form']['html']['accordion'](
+        return $engine->renderDefault(function(RenderCollection $render) use ($element, $content) {
+            return $render->at('form.html.accordion')(
                 array_replace_recursive($this->getOption('options'), [
                     '{attributes}' => [
                         'data-row-for' => $element->getId()

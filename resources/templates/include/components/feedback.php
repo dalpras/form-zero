@@ -8,7 +8,7 @@ return function($element, string $name) {
     // Feedback
     if ($element->hasErrors()) {
         $render = $this->renders[$name];
-        $html = $render['form']['html']['feedback']([
+        $html = $render->at('form.html.feedback')([
             '{text}' => function() use ($element, $helpers) {
                 $feedbacks = [];
                 // potrebbe essere recursive

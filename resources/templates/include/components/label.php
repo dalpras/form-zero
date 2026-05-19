@@ -7,7 +7,7 @@ return function($element, string $name) {
 
     $helpers = $this->getHelpers();    
 
-    return $render['form']['html']['label']([
+    return $render->at('form.html.label')([
         '{class}'    => 'col-form-label',
         '{for}'      => $element->getId(),
         '{required}' => $element->isRequired() ? 'required' : '',

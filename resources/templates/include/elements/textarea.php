@@ -10,7 +10,7 @@ return function(RenderCollection $render, $element) {
     $attribs = $element->getAttribs();
     $helpers = $this->getHelpers();
 
-    $html = $render['form']['html']['textarea']([
+    $html = $render->at('form.html.textarea')([
         '{attributes}' => array_replace($attribs, [
             'class' => implode(' ',  [
                 'form-control',
