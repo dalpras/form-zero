@@ -3,7 +3,7 @@
 return [
     'form' => <<<HTML
         <form {attributes}>
-            {elements}
+            {content}
         </form>
         HTML,
 
@@ -12,27 +12,27 @@ return [
         HTML,
 
     'button' => <<<HTML
-        <button {attributes}>{text}</button>
+        <button {attributes}>{content}</button>
         HTML,
 
     'textarea' => <<<HTML
-        <textarea {attributes}>{value}</textarea>
+        <textarea {attributes}>{content}</textarea>
         HTML,
 
     'select' => <<<HTML
-        <select {attributes}>{options}</select>
+        <select {attributes}>{content}</select>
         HTML,
 
     'option' => <<<HTML
-        <option value="{value}" {selected} {attributes}>{text}</option>
+        <option value="{value}" {attributes}>{content}</option>
         HTML,
 
     'fieldset' => <<<HTML
-        <fieldset {attributes}>{legend}{content}</fieldset>
+        <fieldset {attributes}>{content}</fieldset>
         HTML,
 
     'legend' => <<<HTML
-        <legend>{text}</legend>
+        <legend>{content}</legend>
         HTML,
 
     'datepicker' => <<<HTML
@@ -45,23 +45,23 @@ return [
     'form-element-checkbox' => <<<HTML
         <div class="form-check {class}">
             <input class="form-check-input" type="{type}" value="{value}" {checked} {attributes}/>
-            <label class="form-check-label">{text}</label>
+            <label class="form-check-label">{content}</label>
         </div>
         HTML,
 
     'feedback' => <<<HTML
-        <div class="invalid-feedback d-block">{text}</div>
+        <div class="invalid-feedback d-block">{content}</div>
         HTML,
 
     'description-collapse' => <<<HTML
         <a href="#collapse-{id}" data-bs-toggle="collapse"><i class="fa-solid fa-info-circle fa-lg"></i></a>
         <div id="collapse-{id}" class="collapse">
-            {description}
+            {content}
         </div>
         HTML,
 
     'description' => <<<HTML
-        <div class="form-text text-muted small">{text}</div>
+        <div class="form-text text-muted small">{content}</div>
         HTML,
 
     'accordion' => <<<HTML
@@ -93,7 +93,7 @@ return [
         <div class="col">
             <h2 class="accordion-header p-0" id="header-{id}">
                 <button class="accordion-button {class}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{id}" aria-expanded="false" aria-controls="collapse-{id}">
-                    {text}
+                    {content}
                 </button>
             </h2>
         </div>
@@ -114,7 +114,7 @@ return [
         HTML,
 
     'label' => <<<HTML
-        <label class="{class} {required}" for="{for}">{text}</label>
+        <label class="{class} {required}" for="{for}">{content}</label>
         HTML,
 
     'content-wrapper' => <<<HTML

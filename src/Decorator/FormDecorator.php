@@ -29,15 +29,15 @@ class FormDecorator extends AbstractDecorator
         $engine = $factory->getTemplate();
 
         return $engine->renderDefault(function(RenderCollection $render) use ($element, $content) {
-            $attribs       = $element->getAttribs();
-            $attribs['id'] = $element->getId();
+            $attributes       = $element->getAttribs();
+            $attributes['id'] = $element->getId();
 
-            $attribs['name'] ??= $element->getFullyQualifiedName();
-            $attribs['id']   ??= $attribs['name'];
+            $attributes['name'] ??= $element->getFullyQualifiedName();
+            $attributes['id']   ??= $attributes['name'];
 
             return $render->at('form.html.form')([
-                '{attributes}' => $attribs,
-                '{elements}'   => function(RenderCollection $render) use ($content) {
+                '{attributes}' => $attributes,
+                '{content}'   => function(RenderCollection $render) use ($content) {
                     $html = $content;
                     $mandatory = (bool) ($this->getOption('mandatory') ?? false);
                     if ($mandatory === true) {

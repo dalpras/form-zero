@@ -19,7 +19,7 @@ class ElementDescriptionDecorator extends AbstractDecorator
             if ($this->getOption('collapsible') === true) {
                 return $content . $render->at('form.html.description-collapse')([
                     '{id}' => $element->getId(),
-                    '{description}' => $description
+                    '{content}' => $description
                 ]);
             }
             return $content . $description;

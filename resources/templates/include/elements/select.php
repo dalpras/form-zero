@@ -7,24 +7,24 @@ use DalPraS\SmartTemplate\Collection\RenderCollection;
 return function(RenderCollection $render, $element) {
     /** @var \DalPraS\FormZero\Element\SelectElement|\DalPraS\FormZero\Element\SelectMultiElement $element */
 
-    $attribs = $element->getAttribs();
+    $attributes = $element->getAttribs();
     $helpers = $this->getHelpers();
 
-    $attribs['name'] ??= $element->getFullyQualifiedName();
-    if (isset($attribs['multiple']) && substr($attribs['name'], -2) !== '[]') {
-        $attribs['name'] .= '[]';
+    $attributes['name'] ??= $element->getFullyQualifiedName();
+    if (isset($attributes['multiple']) && substr($attributes['name'], -2) !== '[]') {
+        $attributes['name'] .= '[]';
     }
 
     $html = $render->at('form.html.select')([
-        '{attributes}' => array_replace($attribs, [
+        '{attributes}' => array_replace($attributes, [
             'class' => implode(' ', [
                 'form-select',
-                $attribs['class'] ?? '',
+                $attributes['class'] ?? '',
                 $element->isValidated() ? ($element->hasErrors() ? ' is-invalid' : ' is-valid') : '',
             ]),
-            'id' => $attribs['id'] ?? $element->getFullyQualifiedName(),
+            'id' => $attributes['id'] ?? $element->getFullyQualifiedName(),
         ]),
-        '{options}' => function() use ($element, $render, $helpers) {
+        '{content}' => function() use ($element, $render, $helpers) {
             // force $value to array so we can compare multiple values to multiple
             // options; also ensure it's a string for comparison purposes.
             $values = array_map(fn($value) => strval($value), (array) $element->getValue());
@@ -35,10 +35,9 @@ return function(RenderCollection $render, $element) {
                     : $helpers->translator()->trans($label);
 
                 $carry .= $render->at('form.html.option')([
-                    '{attributes}' => $element->getChoiceAttributes($label),
+                    '{attributes}' => array_merge($element->getChoiceAttributes($label), in_array((string) $value, $values) ? ['selected' => ''] : []),
                     '{value}'      => $helpers->escaper()->escapeHtmlAttr((string) $value),
-                    '{text}'       => $helpers->escaper()->escapeHtml($text),
-                    '{selected}'   => in_array((string) $value, $values) ? ' selected' : '',
+                    '{content}'       => $helpers->escaper()->escapeHtml($text),
                 ]);
             }
             return $carry;

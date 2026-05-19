@@ -2,17 +2,17 @@
 
 namespace DalPraS\FormZero;
 
-use Throwable;
-use DalPraS\FormZero\Traits\ErrorsTrait;
-use DalPraS\FormZero\Traits\RenderTrait;
-use DalPraS\FormZero\Traits\AttributesTrait;
-use DalPraS\FormZero\Traits\ConstraintsTrait;
-use DalPraS\FormZero\Traits\FormElementTrait;
 use DalPraS\FormZero\Decorator\AbstractDecorator;
 use DalPraS\FormZero\Element\Traits\FiltersTrait;
 use DalPraS\FormZero\Factory\FormFactoryInterface;
+use DalPraS\FormZero\Traits\AttributesTrait;
+use DalPraS\FormZero\Traits\ConstraintsTrait;
+use DalPraS\FormZero\Traits\ErrorsTrait;
+use DalPraS\FormZero\Traits\FormElementTrait;
+use DalPraS\FormZero\Traits\RenderTrait;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface as SymfonyValidator;
+use Throwable;
 
 class Element implements ElementInterface
 {

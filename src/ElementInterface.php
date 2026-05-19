@@ -2,8 +2,8 @@
 
 namespace DalPraS\FormZero;
 
-use Laminas\Filter\FilterChain;
 use DalPraS\FormZero\Factory\FormFactoryInterface;
+use Laminas\Filter\FilterChain;
 
 interface ElementInterface
 {

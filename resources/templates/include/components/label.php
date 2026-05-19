@@ -11,6 +11,6 @@ return function($element, string $name) {
         '{class}'    => 'col-form-label',
         '{for}'      => $element->getId(),
         '{required}' => $element->isRequired() ? 'required' : '',
-        '{text}'     => $element->isTranslatorDisabled() ? $element->getLabel() : $helpers->translator()->trans($element->getLabel())
+        '{content}'     => $element->isTranslatorDisabled() ? $element->getLabel() : $helpers->translator()->trans($element->getLabel())
     ]);
 };

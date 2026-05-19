@@ -2,11 +2,11 @@
 
 namespace DalPraS\FormZero\Decorator;
 
-use DalPraS\FormZero\ZeroForm;
 use DalPraS\FormZero\Decorator\AbstractDecorator;
 use DalPraS\FormZero\Element\SymfileElement;
 use DalPraS\FormZero\ElementInterface;
 use DalPraS\FormZero\SubZeroForm;
+use DalPraS\FormZero\ZeroForm;
 use InvalidArgumentException;
 
 /**

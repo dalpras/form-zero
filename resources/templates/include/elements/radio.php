@@ -11,7 +11,7 @@ return function(RenderCollection $render, $element) {
     /** @var \DalPraS\FormZero\Element\RadioElement|\DalPraS\FormZero\Element\RadioPopupElement|\DalPraS\FormZero\Element\CheckboxMultiElement $element */
 
     $helpers = $this->getHelpers();
-    $attribs = $element->getAttribs();
+    $attributes = $element->getAttribs();
     // Compongo le multiopzioni
     $html = '';
     foreach ($element->getMultiChoices() as $label => $value) {
@@ -20,14 +20,14 @@ return function(RenderCollection $render, $element) {
             : $helpers->translator()->trans($label);
 
         $html .= $render->at('form.html.form-element-checkbox')([
-            '{attributes}' => array_replace($attribs, [
+            '{attributes}' => array_replace($attributes, [
                 'class' => implode(' ',  [
-                    $attribs['class'] ?? '',
+                    $attributes['class'] ?? '',
                     $element->isValidated()
                         ? ($element->hasErrors() ? 'is-invalid' : 'is-valid')
                         : ''
                 ]),
-                'name'  => $attribs['name'] ?? $element->getFullyQualifiedName()
+                'name'  => $attributes['name'] ?? $element->getFullyQualifiedName()
             ]),
             '{type}'       => match (get_class($element)) {
                 CheckboxMultiElement::class       => 'checkbox',
@@ -36,7 +36,7 @@ return function(RenderCollection $render, $element) {
                 default                           => ''
             },
             '{value}'   => $helpers->escaper()->escapeHtmlAttr((string) $value),
-            '{text}'    => $label,
+            '{content}' => $label,
             '{checked}' => in_array((string) $value, (array) $element->getValue()) ? 'checked' : '',
             '{class}'   => $element->isInline() ? 'form-check-inline' : '',
         ]);

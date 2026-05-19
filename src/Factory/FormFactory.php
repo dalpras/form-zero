@@ -108,10 +108,10 @@ class FormFactory implements FormFactoryInterface
             }
         }
 
-        $attribs = [];
+        $attributes = [];
 
         if (isset($options['attribs'])) {
-            $attribs = $options['attribs'];
+            $attributes = $options['attribs'];
             unset($options['attribs']);
         }
 
@@ -119,7 +119,7 @@ class FormFactory implements FormFactoryInterface
             ->setName($name)
             ->initOptions($options);
 
-        foreach ($attribs as $key => $value) {
+        foreach ($attributes as $key => $value) {
             $element->setAttrib($key, $value);
         }
 

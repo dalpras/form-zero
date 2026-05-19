@@ -7,22 +7,22 @@ use DalPraS\SmartTemplate\Collection\RenderCollection;
 return function(RenderCollection $render, $element) {
     /** @var \DalPraS\FormZero\Element\SymfileElement|\DalPraS\FormZero\Element\SymfileMultiElement $element */
 
-    $attribs = $element->getAttribs();
+    $attributes = $element->getAttribs();
     $helpers = $this->getHelpers();
 
     $html = $render->at('form.html.input')([
-        '{attributes}' => array_replace($attribs, [
+        '{attributes}' => array_replace($attributes, [
             'class' => implode(' ',  [
                 'form-control',
-                $attribs['class'] ?? '',
+                $attributes['class'] ?? '',
                 $element->isValidated() 
                     ? ($element->hasErrors() 
                         ? 'is-invalid' 
                         : 'is-valid') 
                     : ''
             ]),
-            'id'    => $attribs['id'] ?? $attribs['name'] ?? $element->getFullyQualifiedName(),
-            'name'  => $attribs['name'] ?? $element->getFullyQualifiedName(),
+            'id'    => $attributes['id'] ?? $attributes['name'] ?? $element->getFullyQualifiedName(),
+            'name'  => $attributes['name'] ?? $element->getFullyQualifiedName(),
         ]),
         '{type}' => 'file',
         '{value}' => $helpers->escaper()->escapeHtmlAttr((string) $element->getValue()),

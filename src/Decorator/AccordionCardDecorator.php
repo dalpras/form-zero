@@ -36,7 +36,7 @@ class AccordionCardDecorator extends AbstractDecorator
                     '{trigger}'    => $render->at('form.html.item-trigger')([
                         '{class}' => $this->getOption('collapsed') ? 'collapsed' : '',
                         '{id}'    => $this->getOption('id'),
-                        '{text}'  => $options['{text}'] ?? ''
+                        '{content}'  => $options['{text}'] ?? ''
                     ]),
                     '{mover}'   => $this->getOption('draggable')
                         ? $render->at('form.html.item-mover')()

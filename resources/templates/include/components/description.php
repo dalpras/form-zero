@@ -9,7 +9,7 @@ return function($element, string $name) {
     if (strlen(trim($description)) > 0) {
         $render = $this->renders[$name];
         return $render->at('form.html.description')([
-            '{text}' => $element->isTranslatorDisabled() ? $description: $helpers->translator()->trans($description)
+            '{content}' => $element->isTranslatorDisabled() ? $description: $helpers->translator()->trans($description)
         ]);
     }
     return '';

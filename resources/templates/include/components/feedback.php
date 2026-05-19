@@ -9,7 +9,7 @@ return function($element, string $name) {
     if ($element->hasErrors()) {
         $render = $this->renders[$name];
         $html = $render->at('form.html.feedback')([
-            '{text}' => function() use ($element, $helpers) {
+            '{content}' => function() use ($element, $helpers) {
                 $feedbacks = [];
                 // potrebbe essere recursive
                 $iterator = new \RecursiveArrayIterator($element->getMessages());

@@ -5,37 +5,37 @@
 use DalPraS\SmartTemplate\Collection\RenderCollection;
 
 return function(RenderCollection $render, $element) {
-    $attribs = $element->getAttribs();
+    $attributes = $element->getAttribs();
 
     $helpers = $this->getHelpers();
 
     // Field hidden with the Unchecked value
     $html = $render->at('form.html.input')([
-        '{attributes}' => array_replace($attribs, [
-            'id'   => $attribs['id'] ?? $attribs['name'] ?? $element->getFullyQualifiedName(),
-            'name' => $attribs['name'] ?? $element->getFullyQualifiedName()
+        '{attributes}' => array_replace($attributes, [
+            'id'   => $attributes['id'] ?? $attributes['name'] ?? $element->getFullyQualifiedName(),
+            'name' => $attributes['name'] ?? $element->getFullyQualifiedName()
         ]),
         '{type}'       => 'hidden',
         '{value}'      => $helpers->escaper()->escapeHtmlAttr((string) $element->getUncheckedValue()),
     ]);
-    unset($attribs['id']); // only one element can have a certain ID
+    unset($attributes['id']); // only one element can have a certain ID
 
     $checkedValue = $element->getCheckedValue();
     $isChecked = $element->isChecked() || ((string) $element->getValue() === $checkedValue);
 
     // checkbox
     $html .= $render->at('form.html.form-element-checkbox')([
-        '{attributes}' => array_replace($attribs, [
+        '{attributes}' => array_replace($attributes, [
             'class' => implode(' ',  [
-                $attribs['class'] ?? '',
+                $attributes['class'] ?? '',
                 $element->isValidated() ? ($element->hasErrors() ? 'is-invalid' : 'is-valid') : ''
             ]),
-            'id'    => $attribs['id'] ?? $attribs['name'] ?? $element->getFullyQualifiedName(),
-            'name'  => $attribs['name'] ?? $element->getFullyQualifiedName(),
+            'id'    => $attributes['id'] ?? $attributes['name'] ?? $element->getFullyQualifiedName(),
+            'name'  => $attributes['name'] ?? $element->getFullyQualifiedName(),
         ]),
         '{type}'    => 'checkbox',
         '{value}'   => $helpers->escaper()->escapeHtmlAttr($checkedValue),
-        '{text}'    => '',
+        '{content}' => '',
         '{checked}' => $isChecked ? 'checked' : '',
         '{class}' => 'form-check-inline',
     ]);

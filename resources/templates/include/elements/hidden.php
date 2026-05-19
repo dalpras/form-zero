@@ -6,14 +6,14 @@ use DalPraS\SmartTemplate\Collection\RenderCollection;
 
 return function(RenderCollection $render, $element) {
     /** @var \DalPraS\FormZero\Element\HiddenElement|\DalPraS\FormZero\Element\HashElement $element */
-    $attribs = $element->getAttribs();
+    $attributes = $element->getAttribs();
 
     $helpers = $this->getHelpers();
 
     $html = $render->at('form.html.input')([
-        '{attributes}' => array_replace($attribs, [
-            'id'   => $attribs['id'] ?? $attribs['name'] ?? $element->getFullyQualifiedName(),
-            'name' => $attribs['name'] ?? $element->getFullyQualifiedName(),
+        '{attributes}' => array_replace($attributes, [
+            'id'   => $attributes['id'] ?? $attributes['name'] ?? $element->getFullyQualifiedName(),
+            'name' => $attributes['name'] ?? $element->getFullyQualifiedName(),
         ]),
         '{type}'    => 'hidden',
         '{value}'   => $helpers->escaper()->escapeHtmlAttr((string) $element->getValue()),

@@ -4,7 +4,6 @@ namespace DalPraS\FormZero\Decorator;
 
 use DalPraS\FormZero\Decorator\AbstractDecorator;
 use DalPraS\SmartTemplate\Collection\RenderCollection;
-use DalPraS\SmartTemplate\TemplateEngine;
 
 /**
  * Fieldset
@@ -29,8 +28,8 @@ class FieldsetDecorator extends AbstractDecorator
     {
         $options = parent::getOptions();
         if (null !== ($element = $this->getElement())) {
-            $attribs = $element->getAttribs();
-            $options = array_merge($attribs, $options);
+            $attributes = $element->getAttribs();
+            $options = array_merge($attributes, $options);
             $this->setOptions($options);
         }
         return $options;
@@ -73,11 +72,11 @@ class FieldsetDecorator extends AbstractDecorator
         /** @var \DalPraS\FormZero\Element $element */
         $element = $this->getElement();
 
-        $attribs = $this->getOptions();
+        $attributes = $this->getOptions();
         $id = (string) $element->getId();
 
-        if ((!array_key_exists('id', $attribs) || $attribs['id'] == $id) && '' !== $id) {
-            $attribs['id'] = 'fieldset-' . $id;
+        if ((!array_key_exists('id', $attributes) || $attributes['id'] == $id) && '' !== $id) {
+            $attributes['id'] = 'fieldset-' . $id;
         }
 
         $factory = $element->getFactory();
@@ -85,15 +84,20 @@ class FieldsetDecorator extends AbstractDecorator
         $helpers = $engine->getHelpers();
 
         return $engine->renderDefault(fn(RenderCollection $render) => $render->at('form.html.fieldset')([
-            '{legend}'  => $this->getLegend() !== '' ? $render->at('form.html.legend')([
-                '{text}' => $helpers->escaper()->escapeHtml(trim($this->getLegend()))
-            ]) :  '',
-            '{attributes}' => function() use ($attribs, $element) {
-                $attribs['name'] ??= $element->getFullyQualifiedName();
-                $attribs['id']   ??= $attribs['name'];
-                return $attribs;
+            '{attributes}' => function() use ($attributes, $element) {
+                $attributes['name'] ??= $element->getFullyQualifiedName();
+                $attributes['id']   ??= $attributes['name'];
+                return $attributes;
             },
-            '{content}' => $content
+            '{content}' => function($render) use ($content, $helpers) {
+                $html = $this->getLegend() !== '' 
+                    ? $render->at('form.html.legend')([
+                        '{content}' => $helpers->escaper()->escapeHtml(trim($this->getLegend()))
+                    ]) 
+                    :  '';
+                $html .= $content;
+                return $html;
+            }
         ]));
     }
 }

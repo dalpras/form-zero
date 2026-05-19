@@ -2,9 +2,9 @@
 
 namespace DalPraS\FormZero;
 
-use DalPraS\FormZero\ZeroForm;
 use DalPraS\FormZero\Decorator\ElementsDecorator;
 use DalPraS\FormZero\Decorator\FieldsetDecorator;
+use DalPraS\FormZero\ZeroForm;
 
 class SubZeroForm extends ZeroForm 
 {
