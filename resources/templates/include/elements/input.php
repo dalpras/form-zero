@@ -36,7 +36,7 @@ return function(RenderCollection $render, $element) {
             default
                 => 'text'
         },
-        '{value}' => $helpers->escaper()->escapeHtmlAttr((string) $element->getValue()),
+        '{value}' => $helpers->escaper()->escapeHtml((string) $element->getValue()),
     ]);
     return $html;
 };

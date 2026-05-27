@@ -16,7 +16,7 @@ return function(RenderCollection $render, $element) {
             $element->isValidated() ? ($element->hasErrors() ? 'is-invalid' : 'is-valid') : ''
         ]),
         'type'  => 'submit',
-        'value' => $helpers->escaper()->escapeHtmlAttr((string) $element->getValue()),
+        'value' => $helpers->escaper()->escapeHtml((string) $element->getValue()),
         'id'    => $attributes['id'] ?? $attributes['name'] ?? $element->getFullyQualifiedName(),
         'name'  => $attributes['name'] ?? $element->getFullyQualifiedName(),
     ]);

@@ -24,7 +24,7 @@ return function(RenderCollection $render, $element) {
             'id'    => $attributes['id'] ?? $attributes['name'] ?? $element->getFullyQualifiedName(),
             'name'  => $attributes['name'] ?? $element->getFullyQualifiedName(),
         ]),
-        '{content}'   => $helpers->escaper()->escapeHtmlAttr((string) $element->getValue()),
+        '{content}'   => $helpers->escaper()->escapeHtml((string) $element->getValue()),
     ]);
     return $html;
 };

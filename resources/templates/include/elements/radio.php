@@ -35,7 +35,7 @@ return function(RenderCollection $render, $element) {
                 RadioPopupElement::class          => 'radio',
                 default                           => ''
             },
-            '{value}'   => $helpers->escaper()->escapeHtmlAttr((string) $value),
+            '{value}'   => $helpers->escaper()->escapeHtml((string) $value),
             '{content}' => $label,
             '{checked}' => in_array((string) $value, (array) $element->getValue()) ? 'checked' : '',
             '{class}'   => $element->isInline() ? 'form-check-inline' : '',

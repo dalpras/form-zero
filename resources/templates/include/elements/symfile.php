@@ -25,7 +25,7 @@ return function(RenderCollection $render, $element) {
             'name'  => $attributes['name'] ?? $element->getFullyQualifiedName(),
         ]),
         '{type}' => 'file',
-        '{value}' => $helpers->escaper()->escapeHtmlAttr((string) $element->getValue()),
+        '{value}' => $helpers->escaper()->escapeHtml((string) $element->getValue()),
     ]);
     return $html;
 };

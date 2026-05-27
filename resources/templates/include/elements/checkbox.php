@@ -16,7 +16,7 @@ return function(RenderCollection $render, $element) {
             'name' => $attributes['name'] ?? $element->getFullyQualifiedName()
         ]),
         '{type}'       => 'hidden',
-        '{value}'      => $helpers->escaper()->escapeHtmlAttr((string) $element->getUncheckedValue()),
+        '{value}'      => $helpers->escaper()->escapeHtml((string) $element->getUncheckedValue()),
     ]);
     unset($attributes['id']); // only one element can have a certain ID
 
@@ -34,7 +34,7 @@ return function(RenderCollection $render, $element) {
             'name'  => $attributes['name'] ?? $element->getFullyQualifiedName(),
         ]),
         '{type}'    => 'checkbox',
-        '{value}'   => $helpers->escaper()->escapeHtmlAttr($checkedValue),
+        '{value}'   => $helpers->escaper()->escapeHtml($checkedValue),
         '{content}' => '',
         '{checked}' => $isChecked ? 'checked' : '',
         '{class}' => 'form-check-inline',

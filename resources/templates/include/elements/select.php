@@ -36,7 +36,7 @@ return function(RenderCollection $render, $element) {
 
                 $carry .= $render->at('form.html.option')([
                     '{attributes}' => array_merge($element->getChoiceAttributes($label), in_array((string) $value, $values) ? ['selected' => ''] : []),
-                    '{value}'      => $helpers->escaper()->escapeHtmlAttr((string) $value),
+                    '{value}'      => $helpers->escaper()->escapeHtml((string) $value),
                     '{content}'       => $helpers->escaper()->escapeHtml($text),
                 ]);
             }
