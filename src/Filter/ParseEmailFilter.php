@@ -2,7 +2,6 @@
 
 namespace DalPraS\FormZero\Filter;
 
-use Laminas\Filter\FilterInterface;
 
 final class ParseEmailFilter implements FilterInterface
 {

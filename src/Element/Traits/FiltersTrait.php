@@ -5,8 +5,8 @@ declare (strict_types=1);
 namespace DalPraS\FormZero\Element\Traits;
 
 use InvalidArgumentException;
-use Laminas\Filter\FilterChain;
-use Laminas\Filter\FilterInterface;
+use DalPraS\FormZero\Filter\FilterChain;
+use DalPraS\FormZero\Filter\FilterInterface;
 
 trait FiltersTrait
 {
@@ -24,12 +24,30 @@ trait FiltersTrait
         $filterChain = $this->getFilterChain();
         foreach ($filters as $filterInfo) {
             switch (true) {
+                case $filterInfo instanceof FilterInterface:
+                    $filterChain->attach($filterInfo);
+                    break;
+
                 case is_string($filterInfo):
                     $filterChain->attachByName($filterInfo);
                     break;
 
                 case is_array($filterInfo):
-                    $filterChain->attachByName(...$filterInfo);
+                    $name = $filterInfo['name'] ?? $filterInfo[0] ?? null;
+                    $options = $filterInfo['options'] ?? $filterInfo[1] ?? [];
+
+                    // Laminas accepted a numeric priority as the second positional
+                    // argument. FormZero keeps filter order explicit through the
+                    // array order, so priority is intentionally ignored here.
+                    if (is_int($options) || is_float($options)) {
+                        $options = [];
+                    }
+
+                    if (!is_string($name) || !is_array($options)) {
+                        throw new InvalidArgumentException('Invalid filter array passed to addFilters()');
+                    }
+
+                    $filterChain->attachByName($name, $options);
                     break;
 
                 default:

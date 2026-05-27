@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace DalPraS\FormZero\Filter;
 
-use Laminas\Filter\FilterInterface;
 use libphonenumber\NumberParseException;
 use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberUtil;
