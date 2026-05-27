@@ -42,7 +42,8 @@
 			"url": "../smart-template",
 			"options": {
 				"symlink": true
-			}
+			},
+            "canonical": false
 		}
 	],    
 	"minimum-stability" : "dev",
