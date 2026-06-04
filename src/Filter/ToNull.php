@@ -12,8 +12,18 @@ final class ToNull implements FilterInterface
     public const TYPE_BOOLEAN = 'boolean';
     public const TYPE_ALL = 'all';
 
-    public function __construct(private string $type = self::TYPE_ALL)
+    private string $type;
+
+    /**
+     * @param string|array{type?: string} $type
+     */
+    public function __construct(string|array $type = self::TYPE_ALL)
     {
+        if (is_array($type)) {
+            $type = $type['type'] ?? self::TYPE_ALL;
+        }
+
+        $this->type = $type;
     }
 
     public function filter(mixed $value): mixed
