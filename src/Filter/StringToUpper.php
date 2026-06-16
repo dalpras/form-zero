@@ -12,6 +12,8 @@ final class StringToUpper implements FilterInterface
             return $value;
         }
 
-        return function_exists('mb_strtoupper') ? mb_strtoupper($value) : strtoupper($value);
+        return function_exists('mb_strtoupper') 
+            ? mb_strtoupper($value) 
+            : strtoupper($value);
     }
 }

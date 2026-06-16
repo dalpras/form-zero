@@ -26,7 +26,7 @@ class PhoneNumberFilter implements FilterInterface
         return $this->message;
     }
 
-    public function filter($value)
+    public function filter(mixed $value): mixed
     {
         $this->message = '';
 

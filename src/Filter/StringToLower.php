@@ -12,6 +12,8 @@ final class StringToLower implements FilterInterface
             return $value;
         }
 
-        return function_exists('mb_strtolower') ? mb_strtolower($value) : strtolower($value);
+        return function_exists('mb_strtolower') 
+            ? mb_strtolower($value) 
+            : strtolower($value);
     }
 }
