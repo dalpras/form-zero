@@ -7,6 +7,7 @@ namespace DalPraS\FormZero\Filter;
 final class ToNull implements FilterInterface
 {
     public const TYPE_STRING = 'string';
+    public const TYPE_INTEGER = 'integer';
     public const TYPE_ZERO = 'zero';
     public const TYPE_EMPTY_ARRAY = 'empty_array';
     public const TYPE_BOOLEAN = 'boolean';
@@ -30,6 +31,7 @@ final class ToNull implements FilterInterface
     {
         return match ($this->type) {
             self::TYPE_STRING => $value === '' ? null : $value,
+            self::TYPE_INTEGER => $value === 0 ? null : $value,
             self::TYPE_ZERO => $value === 0 || $value === '0' ? null : $value,
             self::TYPE_EMPTY_ARRAY => $value === [] ? null : $value,
             self::TYPE_BOOLEAN => $value === false ? null : $value,
