@@ -3,6 +3,7 @@
 namespace DalPraS\FormZero;
 
 use DalPraS\FormZero\Decorator\AbstractDecorator;
+use DalPraS\FormZero\Decorator\DecoratorPreset;
 use DalPraS\FormZero\Element\Traits\FiltersTrait;
 use DalPraS\FormZero\Factory\FormFactoryInterface;
 use DalPraS\FormZero\Traits\AttributesTrait;
@@ -93,6 +94,17 @@ class Element implements ElementInterface
     public function getLabel(): string
     {
         return $this->options['label'] ?? '';
+    }
+
+    public function layout(FormLayout|string $layout): static
+    {
+        return $this->setLayout($layout);
+    }
+
+    public function setLayout(FormLayout|string $layout): static
+    {
+        $this->setDecorators(DecoratorPreset::forLayout($layout));
+        return $this;
     }
 
     /**

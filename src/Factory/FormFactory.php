@@ -3,7 +3,9 @@
 namespace DalPraS\FormZero\Factory;
 
 use DalPraS\FormZero\Decorator\AbstractDecorator;
+use DalPraS\FormZero\Decorator\DecoratorPreset;
 use DalPraS\FormZero\ElementInterface;
+use DalPraS\FormZero\FormLayout;
 use DalPraS\FormZero\Exception\FormFactoryException;
 use DalPraS\FormZero\Preset\FormPreset;
 use DalPraS\FormZero\ZeroForm;
@@ -67,6 +69,13 @@ class FormFactory implements FormFactoryInterface
 
     public function createElement(ElementInterface|string $element, string $name, array $options): ElementInterface
     {
+        $layout = $options['layout'] ?? FormLayout::Horizontal;
+        unset($options['layout']);
+
+        if (empty($options['decorators'])) {
+            $options['decorators'] = DecoratorPreset::forLayout($layout);
+        }
+
         foreach ($options['decorators'] as $key => &$decorator) {
             switch (true) {
                 case $decorator === null:

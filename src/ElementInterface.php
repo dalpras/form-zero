@@ -43,6 +43,8 @@ interface ElementInterface
 
     // Presentation / behavior flags
     public function getLabel(): string;
+    public function layout(FormLayout|string $layout): static;
+    public function setLayout(FormLayout|string $layout): static;
     public function getIgnore(): bool;
     public function isTranslatorDisabled(): bool;
 

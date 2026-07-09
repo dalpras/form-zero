@@ -2,10 +2,7 @@
 
 namespace DalPraS\FormZero;
 
-use DalPraS\FormZero\Decorator\ElementContentDecorator;
-use DalPraS\FormZero\Decorator\ElementLabelDecorator;
 use DalPraS\FormZero\Decorator\ElementsDecorator;
-use DalPraS\FormZero\Decorator\ElementWrapperDecorator;
 use DalPraS\FormZero\Decorator\FormDecorator;
 use DalPraS\FormZero\Element\Intefaces\MultiChoicesInterface;
 use DalPraS\FormZero\Factory\FormFactoryInterface;
@@ -209,15 +206,6 @@ class ZeroForm extends ElementsOrdered
      */
     public function add(ElementInterface|string $element, string $name, array $options = [], ?int $order = null): ElementInterface
     {
-        if (empty($options['decorators'])) {
-            $options['decorators'] = [
-                [ElementContentDecorator::class],
-                [ElementWrapperDecorator::class, ['class' => 'col-12 col-sm-6']],
-                [ElementLabelDecorator::class,   ['class' => 'col-form-label col-12 col-sm-3 col-md-2']],
-                [ElementWrapperDecorator::class, ['class' => 'row mb-3']]
-            ];
-        }
-
         /** @var \DalPraS\FormZero\ElementInterface $element */
         $element = $this->factory->createElement($element, $name, $options);
         $this->addElement($element, $order);
