@@ -3,13 +3,27 @@
 namespace DalPraS\FormZero\Decorator;
 
 use Closure;
-use DalPraS\FormZero\Decorator\AbstractDecorator;
+use DalPraS\SmartTemplate\Collection\RenderCollection;
 use Throwable;
 
 class CallbackDecorator extends AbstractDecorator
 {
     /**
-     * Render element in Bootstrap row style
+     * Render content through a callback.
+     *
+     * Callback arguments are passed by name to keep the contract explicit and
+     * avoid per-render reflection:
+     *
+     * fn(
+     *     string $content,
+     *     RenderCollection $render,
+     *     ElementInterface|ZeroForm $element,
+     *     string $namespace,
+     * ): string
+     *
+     * Callback implementations may omit type declarations, but must keep these
+     * parameter names when they are declared because the invocation uses PHP
+     * named arguments.
      */
     public function render(string $content = ''): string
     {
@@ -19,14 +33,24 @@ class CallbackDecorator extends AbstractDecorator
             return $content . $callback;
         }
 
-        if ($callback instanceof Closure) {
-            $element = $this->getElement();
-            try {
-                return $callback($content, $element);
-            } catch (Throwable $th) {
-                return $th->getMessage() . $th->getTraceAsString();
-            }
+        if (!$callback instanceof Closure) {
+            return $content;
         }
-        return $content;
+
+        $element = $this->getElement();
+        $engine = $element->getFactory()->getTemplate();
+
+        try {
+            return $engine->renderDefault(
+                fn(RenderCollection $render, string $namespace): string => (string) $callback(
+                    content: $content,
+                    render: $render,
+                    element: $element,
+                    namespace: $namespace,
+                )
+            );
+        } catch (Throwable $th) {
+            return $th->getMessage() . $th->getTraceAsString();
+        }
     }
 }

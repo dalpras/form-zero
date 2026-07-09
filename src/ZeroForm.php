@@ -201,15 +201,13 @@ class ZeroForm extends ElementsOrdered
     }
 
     /**
-     * Aggiunge un elemento alla form.
-     * Processo molto più semplificato rispetto a addElement, prefix, decorators, ecc.
-     * non vengono caricati.
-     * Attenzione: ritorna l'elemento inserito.
+     * Aggiunge un elemento alla form e ritorna l'elemento creato.
      *
-     * Acts as a factory for creating elements. Elements created with this
-     * method will not be attached to the form, but will contain element.
+     * Acts as a factory shortcut for creating an element and attaching it to
+     * the form. The returned element is the same instance stored in the form,
+     * after ordering and belongs-to propagation have been applied.
      */
-    public function add(ElementInterface|string $element, string $name, array $options = [], ?int $order = null): void
+    public function add(ElementInterface|string $element, string $name, array $options = [], ?int $order = null): ElementInterface
     {
         if (empty($options['decorators'])) {
             $options['decorators'] = [
@@ -220,9 +218,11 @@ class ZeroForm extends ElementsOrdered
             ];
         }
 
-        /** @var \DalPraS\FormZero\Element $element */
+        /** @var \DalPraS\FormZero\ElementInterface $element */
         $element = $this->factory->createElement($element, $name, $options);
         $this->addElement($element, $order);
+
+        return $element;
     }
 
     public function addElement(ElementInterface $element, ?int $order = null): static
