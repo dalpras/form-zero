@@ -29,7 +29,7 @@ class ElementBaseDecorator extends AbstractDecorator
         /** @var \DalPraS\FormZero\Element $element */
         $element = $this->getElement();
         $factory = $element->getFactory();
-        $engine = $factory->getTemplate();
+        $engine = $factory->template();
         
         return $engine->renderDefault(function(RenderCollection $render) use ($element, $content) {
             try {

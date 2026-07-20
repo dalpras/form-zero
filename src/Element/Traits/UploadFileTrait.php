@@ -20,7 +20,7 @@ trait UploadFileTrait
     public function getUploadedFiles(): array|UploadedFile|null
     {
         // getHttpRequest() must return Symfony\Component\HttpFoundation\Request
-        $request = $this->getFactory()->getHttpRequest();
+        $request = $this->getFactory()->request();
         if ($request === null) {
             return null;
         }

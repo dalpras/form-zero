@@ -26,7 +26,7 @@ class FormDecorator extends AbstractDecorator
     {
         $element = $this->getElement();
         $factory = $element->getFactory();
-        $engine = $factory->getTemplate();
+        $engine = $factory->template();
 
         return $engine->renderDefault(function(RenderCollection $render) use ($element, $content) {
             $attributes       = $element->getAttribs();
@@ -35,7 +35,15 @@ class FormDecorator extends AbstractDecorator
             $attributes['name'] ??= $element->getFullyQualifiedName();
             $attributes['id']   ??= $attributes['name'];
 
-            return $render->at('form.html.form')([
+            $method = $attributes['method'] ?? null;
+            unset($attributes['method']);
+
+            $action = $attributes['action'] ?? null;
+            unset($attributes['action']);
+
+            return $render->at('tag.form')([
+                '{action}' => $action,
+                '{method}' => $method,
                 '{attributes}' => $attributes,
                 '{content}'   => function(RenderCollection $render) use ($content) {
                     $html = $content;

@@ -7,10 +7,13 @@ return function($element, string $name) {
 
     $helpers = $this->getHelpers();    
 
-    return $render->at('form.html.label')([
-        '{class}'    => 'col-form-label',
-        '{for}'      => $element->getId(),
-        '{required}' => $element->isRequired() ? 'required' : '',
-        '{content}'     => $element->isTranslatorDisabled() ? $element->getLabel() : $helpers->translator()->trans($element->getLabel())
+    return $render->at('tag.label')([
+        '{attributes}' => [
+            'class' => 'col-form-label ' . ($element->isRequired() ? 'required' : ''),
+            'for'   => $element->getId(),
+        ],
+        '{content}' => $element->isTranslatorDisabled() 
+            ? $element->getLabel() 
+            : $helpers->translator()->trans($element->getLabel())
     ]);
 };

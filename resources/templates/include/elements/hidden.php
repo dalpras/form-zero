@@ -10,13 +10,13 @@ return function(RenderCollection $render, $element) {
 
     $helpers = $this->getHelpers();
 
-    $html = $render->at('form.html.input')([
+    $html = $render->at('tag.input')([
+        '{type}'    => 'hidden',
+        '{value}'   => $helpers->escaper()->escapeHtml((string) $element->getValue()),
         '{attributes}' => array_replace($attributes, [
             'id'   => $attributes['id'] ?? $attributes['name'] ?? $element->getFullyQualifiedName(),
             'name' => $attributes['name'] ?? $element->getFullyQualifiedName(),
         ]),
-        '{type}'    => 'hidden',
-        '{value}'   => $helpers->escaper()->escapeHtml((string) $element->getValue()),
     ]);
 
     return $html;

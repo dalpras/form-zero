@@ -10,7 +10,7 @@ return function(RenderCollection $render, $element) {
     $attributes = $element->getAttribs();
     $helpers = $this->getHelpers();
 
-    $html = $render->at('form.html.textarea')([
+    $html = $render->at('tag.textarea')([
         '{attributes}' => array_replace($attributes, [
             'class' => implode(' ',  [
                 'form-control',
@@ -24,7 +24,7 @@ return function(RenderCollection $render, $element) {
             'id'    => $attributes['id'] ?? $attributes['name'] ?? $element->getFullyQualifiedName(),
             'name'  => $attributes['name'] ?? $element->getFullyQualifiedName(),
         ]),
-        '{content}'   => $helpers->escaper()->escapeHtml((string) $element->getValue()),
+        '{content}' => $helpers->escaper()->escapeHtml((string) $element->getValue()),
     ]);
     return $html;
 };

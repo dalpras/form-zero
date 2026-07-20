@@ -12,7 +12,7 @@ class ElementDescriptionDecorator extends AbstractDecorator
         /** @var \DalPraS\FormZero\Element $element */
         $element = $this->getElement();
         $factory = $element->getFactory();
-        $engine = $factory->getTemplate();
+        $engine = $factory->template();
 
         return $engine->renderDefault(function(RenderCollection $render, string $name) use ($content, $element) {
             $description = $render->at('form.components.description')($element, $name);

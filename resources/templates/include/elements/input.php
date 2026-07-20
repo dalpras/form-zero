@@ -14,7 +14,15 @@ return function(RenderCollection $render, $element) {
 
     $helpers = $this->getHelpers();
 
-    $html = $render->at('form.html.input')([
+    $html = $render->at('tag.input')([
+        '{type}' => match (get_class($element)) {
+            TextElement::class => 'text',
+            EmailElement::class => 'email',
+            SearchElement::class => 'search',
+            PasswordElement::class => 'password',
+            default => 'text'
+        },
+        '{value}' => $helpers->escaper()->escapeHtml((string) $element->getValue()),
         '{attributes}' => array_replace($attributes, [
             'class' => implode(' ',  [
                 'form-control',
@@ -24,19 +32,6 @@ return function(RenderCollection $render, $element) {
             'id'    => $attributes['id'] ?? $attributes['name'] ?? $element->getFullyQualifiedName(),
             'name'  => $attributes['name'] ?? $element->getFullyQualifiedName(),
         ]),
-        '{type}' => match (get_class($element)) {
-            TextElement::class
-                => 'text',
-            EmailElement::class
-                => 'email',
-            SearchElement::class
-                => 'search',
-            PasswordElement::class
-                => 'password',
-            default
-                => 'text'
-        },
-        '{value}' => $helpers->escaper()->escapeHtml((string) $element->getValue()),
     ]);
     return $html;
 };

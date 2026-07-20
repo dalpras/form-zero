@@ -5,9 +5,8 @@ namespace DalPraS\FormZero\Factory;
 use DalPraS\FormZero\Decorator\AbstractDecorator;
 use DalPraS\FormZero\Decorator\DecoratorPreset;
 use DalPraS\FormZero\ElementInterface;
-use DalPraS\FormZero\FormLayout;
 use DalPraS\FormZero\Exception\FormFactoryException;
-use DalPraS\FormZero\Preset\FormPreset;
+use DalPraS\FormZero\FormLayout;
 use DalPraS\FormZero\ZeroForm;
 use DalPraS\SmartTemplate\TemplateEngine;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,13 +19,13 @@ class FormFactory implements FormFactoryInterface
     private bool $ignoreCsrfToken = false;
 
     public function __construct(
-        private ?TemplateEngine $template = null,
-        private ?Request $request = null,
-        private ?Translator $translator = null
+        private readonly TemplateEngine $template,
+        private readonly Request $request,
+        private readonly ?Translator $translator = null
     ) {
     }
 
-    public function getHttpRequest(): Request
+    public function request(): Request
     {
         return $this->request;
     }
@@ -43,12 +42,12 @@ class FormFactory implements FormFactoryInterface
         return $vb->getValidator();
     }
 
-    public function getTranslator(): ?Translator
+    public function translator(): ?Translator
     {
         return $this->translator;
     }
 
-    public function createForm(string $class, ...$args): ZeroForm
+    public function createForm(string $class, mixed ...$args): ZeroForm
     {
         if (!class_exists($class)) {
             throw new FormFactoryException("Invalid or inexistent class for '{$class}'!");
@@ -137,21 +136,8 @@ class FormFactory implements FormFactoryInterface
         return $element;
     }
 
-    public function getTemplate(): TemplateEngine
+    public function template(): TemplateEngine
     {
-        if ($this->template === null) {
-            $this->template = new TemplateEngine();
-
-            FormPreset::register($this->template);
-
-            $this->template->addCustomParamCallback(
-                '{attributes}',
-                fn($param): string => $param === null
-                    ? ''
-                    : $this->template->attributes($param)
-            );
-        }
-
         return $this->template;
     }
 

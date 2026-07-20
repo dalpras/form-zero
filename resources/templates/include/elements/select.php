@@ -15,7 +15,7 @@ return function(RenderCollection $render, $element) {
         $attributes['name'] .= '[]';
     }
 
-    $html = $render->at('form.html.select')([
+    $html = $render->at('tag.select')([
         '{attributes}' => array_replace($attributes, [
             'class' => implode(' ', [
                 'form-select',
@@ -34,7 +34,7 @@ return function(RenderCollection $render, $element) {
                     ? $label
                     : $helpers->translator()->trans($label);
 
-                $carry .= $render->at('form.html.option')([
+                $carry .= $render->at('tag.option')([
                     '{attributes}' => array_merge($element->getChoiceAttributes($label), in_array((string) $value, $values) ? ['selected' => ''] : []),
                     '{value}'      => $helpers->escaper()->escapeHtml((string) $value),
                     '{content}'       => $helpers->escaper()->escapeHtml($text),

@@ -14,7 +14,7 @@ class AccordionDecorator extends AbstractDecorator
     {
         $element = $this->getElement();
         $factory = $element->getFactory();
-        $engine = $factory->getTemplate();
+        $engine = $factory->template();
 
         return $engine->renderDefault(function(RenderCollection $render) use ($element, $content) {
             return $render->at('form.html.accordion')(

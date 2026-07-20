@@ -1,40 +1,6 @@
 <?php
 /* html.php */
 return [
-    'form' => <<<HTML
-        <form {attributes}>
-            {content}
-        </form>
-        HTML,
-
-    'input' => <<<HTML
-        <input type="{type}" value="{value}" {attributes}/>
-        HTML,
-
-    'button' => <<<HTML
-        <button {attributes}>{content}</button>
-        HTML,
-
-    'textarea' => <<<HTML
-        <textarea {attributes}>{content}</textarea>
-        HTML,
-
-    'select' => <<<HTML
-        <select {attributes}>{content}</select>
-        HTML,
-
-    'option' => <<<HTML
-        <option value="{value}" {attributes}>{content}</option>
-        HTML,
-
-    'fieldset' => <<<HTML
-        <fieldset {attributes}>{content}</fieldset>
-        HTML,
-
-    'legend' => <<<HTML
-        <legend>{content}</legend>
-        HTML,
-
     'datepicker' => <<<HTML
         <div class="input-group mb-3" data-provide="datepicker" data-date-format="Y-m-d">
             <input type="{type}" value="{value}" data-input {attributes}/>
@@ -110,16 +76,6 @@ return [
     'item-mover' => <<<HTML
         <div class="col-auto">
             <span class="fa-solid fa-arrows-alt fa-lg mx-2"></span>
-        </div>
-        HTML,
-
-    'label' => <<<HTML
-        <label class="{class} {required}" for="{for}">{content}</label>
-        HTML,
-
-    'content-wrapper' => <<<HTML
-        <div class="{class}" {attributes}>
-            {content}
         </div>
         HTML,
 ];

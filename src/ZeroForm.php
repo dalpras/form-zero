@@ -44,7 +44,7 @@ class ZeroForm extends ElementsOrdered
     public function __construct(FormFactoryInterface $factory) 
     {
         $this->factory = $factory;
-        $this->helpers = $this->factory->getTemplate()->getHelpers();
+        $this->helpers = $this->factory->template()->getHelpers();
     }
 
     /**

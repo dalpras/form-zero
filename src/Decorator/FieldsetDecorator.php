@@ -80,10 +80,10 @@ class FieldsetDecorator extends AbstractDecorator
         }
 
         $factory = $element->getFactory();
-        $engine = $factory->getTemplate();
+        $engine = $factory->template();
         $helpers = $engine->getHelpers();
 
-        return $engine->renderDefault(fn(RenderCollection $render) => $render->at('form.html.fieldset')([
+        return $engine->renderDefault(fn(RenderCollection $render) => $render->at('tag.fieldset')([
             '{attributes}' => function() use ($attributes, $element) {
                 $attributes['name'] ??= $element->getFullyQualifiedName();
                 $attributes['id']   ??= $attributes['name'];
@@ -91,7 +91,7 @@ class FieldsetDecorator extends AbstractDecorator
             },
             '{content}' => function($render) use ($content, $helpers) {
                 $html = $this->getLegend() !== '' 
-                    ? $render->at('form.html.legend')([
+                    ? $render->at('tag.legend')([
                         '{content}' => $helpers->escaper()->escapeHtml(trim($this->getLegend()))
                     ]) 
                     :  '';

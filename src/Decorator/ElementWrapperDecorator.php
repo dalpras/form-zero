@@ -15,15 +15,18 @@ class ElementWrapperDecorator extends AbstractDecorator
     {
         $element = $this->getElement();
         $factory = $element->getFactory();
-        $engine = $factory->getTemplate();
+        $engine = $factory->template();
 
         return $engine->renderDefault(function(RenderCollection $render) use ($content, $element) {
+            $class = $this->getOption('class') ?? null;
+
             $attributes = $this->getOption('attributes') ?? [];
             $fn = ($attributes instanceof Closure) 
                 ? $attributes 
-                : fn() => $attributes;
-            return $render->at('form.html.content-wrapper')([
-                '{class}'      => $this->getOption('class') ?? '',
+                : fn() => ['class' => $class];
+
+
+            return $render->at('tag.div')([
                 '{attributes}' => $fn($element),
                 '{content}'    => $content
             ]);

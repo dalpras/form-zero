@@ -21,7 +21,7 @@ return function(RenderCollection $render, $element) {
         'name'  => $attributes['name'] ?? $element->getFullyQualifiedName(),
     ]);
 
-    $html = $render->at('form.html.button')([
+    $html = $render->at('tag.button')([
         '{attributes}' => $attributes,
         '{content}' => $element->getText()
     ]);

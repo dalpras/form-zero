@@ -38,7 +38,7 @@ class CallbackDecorator extends AbstractDecorator
         }
 
         $element = $this->getElement();
-        $engine = $element->getFactory()->getTemplate();
+        $engine = $element->getFactory()->template();
 
         try {
             return $engine->renderDefault(

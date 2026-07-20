@@ -10,13 +10,13 @@ return function(RenderCollection $render, $element) {
     $helpers = $this->getHelpers();
 
     // Field hidden with the Unchecked value
-    $html = $render->at('form.html.input')([
+    $html = $render->at('tag.input')([
+        '{type}'       => 'hidden',
+        '{value}'      => $helpers->escaper()->escapeHtml((string) $element->getUncheckedValue()),
         '{attributes}' => array_replace($attributes, [
             'id'   => $attributes['id'] ?? $attributes['name'] ?? $element->getFullyQualifiedName(),
             'name' => $attributes['name'] ?? $element->getFullyQualifiedName()
         ]),
-        '{type}'       => 'hidden',
-        '{value}'      => $helpers->escaper()->escapeHtml((string) $element->getUncheckedValue()),
     ]);
     unset($attributes['id']); // only one element can have a certain ID
 

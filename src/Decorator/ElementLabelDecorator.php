@@ -11,18 +11,20 @@ class ElementLabelDecorator extends AbstractDecorator
     {
         $element = $this->getElement();
         $factory = $element->getFactory();
-        $engine = $factory->getTemplate();
+        $engine = $factory->template();
         $helpers = $engine->getHelpers();
         
         return $engine->renderDefault(function(RenderCollection $render) use ($content, $element, $helpers) {
             if ( $element->getLabel() !== '' ) {
-                return $render->at('form.html.label')([
-                        '{class}'    => $this->getOption('class') ?? 'form-label',
-                        '{for}'      => $this->getOption('for') ?? $element->getId(),
-                        '{required}' => $element->isRequired() ? 'required' : '',
-                        '{content}'     => $element->isTranslatorDisabled() ? $element->getLabel() : $helpers->translator()->trans($element->getLabel())
-                    ]) . 
-                    $content;
+                return $render->at('tag.label')([
+                    '{attributes}' => [
+                        'class'    => $this->getOption('class') ?? 'form-label' . ($element->isRequired() ? 'required' : ''),
+                        'for'      => $this->getOption('for') ?? $element->getId(),
+                    ],
+                    '{content}'     => $element->isTranslatorDisabled() 
+                        ? $element->getLabel() 
+                        : $helpers->translator()->trans($element->getLabel())
+                ]) .  $content;
             }
             return $content;
         });
