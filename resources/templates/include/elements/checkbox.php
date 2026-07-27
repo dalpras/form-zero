@@ -2,9 +2,11 @@
 /* checkbox.php */
 /** @var \DalPraS\SmartTemplate\TemplateEngine $this */
 
+use DalPraS\FormZero\Decorator\AbstractDecorator;
+use DalPraS\FormZero\Element\CheckboxElement;
 use DalPraS\SmartTemplate\Collection\RenderCollection;
 
-return function(RenderCollection $render, $element) {
+return function(RenderCollection $render, CheckboxElement $element, AbstractDecorator $decorator) {
     $attributes = $element->getAttribs();
 
     $helpers = $this->getHelpers();

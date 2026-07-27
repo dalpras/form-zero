@@ -2,13 +2,15 @@
 /* input.php */
 /** @var \DalPraS\SmartTemplate\TemplateEngine $this */
 
+use DalPraS\FormZero\Decorator\AbstractDecorator;
+use DalPraS\FormZero\Element;
 use DalPraS\FormZero\Element\EmailElement;
 use DalPraS\FormZero\Element\PasswordElement;
 use DalPraS\FormZero\Element\SearchElement;
 use DalPraS\FormZero\Element\TextElement;
 use DalPraS\SmartTemplate\Collection\RenderCollection;
 
-return function(RenderCollection $render, $element) {
+return function(RenderCollection $render, Element $element, AbstractDecorator $decorator) {
     /** @var TextElement|EmailElement|SearchElement|PasswordElement $element */
     $attributes = $element->getAttribs();
 
@@ -27,6 +29,7 @@ return function(RenderCollection $render, $element) {
             'class' => implode(' ',  [
                 'form-control',
                 $attributes['class'] ?? '',
+                $decorator->getOption('attributes')['class'] ?? '',
                 $element->isValidated() ? ($element->hasErrors() ? 'is-invalid' : 'is-valid') : ''
             ]),
             'id'    => $attributes['id'] ?? $attributes['name'] ?? $element->getFullyQualifiedName(),

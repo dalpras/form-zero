@@ -50,7 +50,7 @@ class ElementBaseDecorator extends AbstractDecorator
                     $element instanceof RadioElement,
                     $element instanceof SymfileElement,
                     $element instanceof SymfileMultiElement
-                        => $render->at('form.element')($element::class)($render, $element),
+                        => $render->at('form.element')($element::class)($render, $element, $this),
                     default
                         => 'Invalid element type'
                 };

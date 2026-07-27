@@ -2,9 +2,11 @@
 /* submit.php */
 /** @var \DalPraS\SmartTemplate\TemplateEngine $this */
 
+use DalPraS\FormZero\Decorator\AbstractDecorator;
+use DalPraS\FormZero\Element;
 use DalPraS\SmartTemplate\Collection\RenderCollection;
 
-return function(RenderCollection $render, $element) {
+return function(RenderCollection $render, Element $element, AbstractDecorator $decorator) {
     /** @var \DalPraS\FormZero\Element\SubmitElement $element */
     
     $attributes = $element->getAttribs();

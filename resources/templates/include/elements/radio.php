@@ -2,12 +2,14 @@
 /* radio.php */
 /** @var \DalPraS\SmartTemplate\TemplateEngine $this */
 
+use DalPraS\FormZero\Decorator\AbstractDecorator;
+use DalPraS\FormZero\Element;
 use DalPraS\FormZero\Element\CheckboxMultiElement;
 use DalPraS\FormZero\Element\RadioElement;
 use DalPraS\FormZero\Element\RadioPopupElement;
 use DalPraS\SmartTemplate\Collection\RenderCollection;
 
-return function(RenderCollection $render, $element) {
+return function(RenderCollection $render, Element $element, AbstractDecorator $decorator) {
     /** @var \DalPraS\FormZero\Element\RadioElement|\DalPraS\FormZero\Element\RadioPopupElement|\DalPraS\FormZero\Element\CheckboxMultiElement $element */
 
     $helpers = $this->getHelpers();
