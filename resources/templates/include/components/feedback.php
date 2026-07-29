@@ -17,7 +17,7 @@ return function($element, string $name) {
                 foreach ($recursiveIterator as $message) {
                     $feedbacks[] = $element->isTranslatorDisabled() ? $message : $helpers->translator()->trans($message);
                 }
-                return $helpers->escaper()->escapeHtml(implode('. ', $feedbacks));
+                return $helpers->escaper()->escapeHtml(implode(' ', $feedbacks));
             }
         ]);
         return $html;
