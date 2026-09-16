@@ -21,16 +21,19 @@ return function(RenderCollection $render, Element $element, AbstractDecorator $d
             ? $label
             : $helpers->translator()->trans($label);
 
-        $html .= $render->at('form.html.form-element-checkbox')([
-            '{attributes}' => array_replace($attributes, [
-                'class' => implode(' ',  [
-                    $attributes['class'] ?? '',
-                    $element->isValidated()
-                        ? ($element->hasErrors() ? 'is-invalid' : 'is-valid')
-                        : ''
-                ]),
-                'name'  => $attributes['name'] ?? $element->getFullyQualifiedName()
+        $choiceAttributes = array_replace($attributes, [
+            'class' => implode(' ',  [
+                $attributes['class'] ?? '',
+                $element->isValidated()
+                    ? ($element->hasErrors() ? 'is-invalid' : 'is-valid')
+                    : ''
             ]),
+            'name'  => $attributes['name'] ?? $element->getFullyQualifiedName()
+        ]);
+        $choiceAttributes = $element->applyValidationAccessibility($choiceAttributes);
+
+        $html .= $render->at('form.html.form-element-checkbox')([
+            '{attributes}' => $choiceAttributes,
             '{type}'       => match (get_class($element)) {
                 CheckboxMultiElement::class       => 'checkbox',
                 RadioElement::class,

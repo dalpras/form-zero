@@ -17,12 +17,19 @@ return function(RenderCollection $render, Element $element, AbstractDecorator $d
     $helpers = $this->getHelpers();
 
     $isSearch = $element instanceof SearchElement;
+    $validationClass = '';
+    if ($element->isValidated()) {
+        $validationClass = $element->hasErrors()
+            ? 'is-invalid'
+            : ($isSearch ? '' : 'is-valid');
+    }
+
     $inputAttributes = array_replace($attributes, [
         'class' => implode(' ',  [
             'form-control',
             $attributes['class'] ?? '',
             $decorator->getOption('attributes')['class'] ?? '',
-            $element->isValidated() ? ($element->hasErrors() ? 'is-invalid' : 'is-valid') : ''
+            $validationClass
         ]),
         'id'    => $attributes['id'] ?? $attributes['name'] ?? $element->getFullyQualifiedName(),
         'name'  => $attributes['name'] ?? $element->getFullyQualifiedName(),
@@ -31,6 +38,8 @@ return function(RenderCollection $render, Element $element, AbstractDecorator $d
     if ($isSearch) {
         $inputAttributes['data-search-clear-input'] = true;
     }
+
+    $inputAttributes = $element->applyValidationAccessibility($inputAttributes);
 
     $html = $render->at('tag.input')([
         '{type}' => match (get_class($element)) {

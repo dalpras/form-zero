@@ -12,8 +12,7 @@ return function(RenderCollection $render, Element $element, AbstractDecorator $d
     $attributes = $element->getAttribs();
     $helpers = $this->getHelpers();
 
-    $html = $render->at('tag.textarea')([
-        '{attributes}' => array_replace($attributes, [
+    $textareaAttributes = array_replace($attributes, [
             'class' => implode(' ',  [
                 'form-control',
                 $attributes['class'] ?? '',
@@ -25,7 +24,11 @@ return function(RenderCollection $render, Element $element, AbstractDecorator $d
             ]),
             'id'    => $attributes['id'] ?? $attributes['name'] ?? $element->getFullyQualifiedName(),
             'name'  => $attributes['name'] ?? $element->getFullyQualifiedName(),
-        ]),
+        ]);
+    $textareaAttributes = $element->applyValidationAccessibility($textareaAttributes);
+
+    $html = $render->at('tag.textarea')([
+        '{attributes}' => $textareaAttributes,
         '{content}' => $helpers->escaper()->escapeHtml((string) $element->getValue()),
     ]);
     return $html;

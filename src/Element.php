@@ -238,6 +238,57 @@ class Element implements ElementInterface
     }
 
     /**
+     * Set the validation message used by the implicit NotBlank constraint.
+     */
+    public function setRequiredMessage(string $message): static
+    {
+        $this->options['requiredMessage'] = $message;
+        return $this;
+    }
+
+    /**
+     * Retrieve the validation message used by the implicit NotBlank constraint.
+     */
+    public function getRequiredMessage(): ?string
+    {
+        return $this->options['requiredMessage'] ?? null;
+    }
+
+    /**
+     * Return the id used by the validation feedback associated with this field.
+     */
+    public function getValidationFeedbackId(): string
+    {
+        $controlId = (string) ($this->getAttrib('id') ?? $this->getId());
+        return $controlId . '-feedback';
+    }
+
+    /**
+     * Add the ARIA state and relationship required by an invalid field.
+     * Existing aria-describedby references are preserved.
+     */
+    public function applyValidationAccessibility(array $attributes): array
+    {
+        if (!$this->hasErrors()) {
+            return $attributes;
+        }
+
+        $attributes['aria-invalid'] = 'true';
+
+        $describedBy = preg_split(
+            '/\s+/',
+            trim((string) ($attributes['aria-describedby'] ?? '')),
+            -1,
+            PREG_SPLIT_NO_EMPTY
+        ) ?: [];
+
+        $describedBy[] = $this->getValidationFeedbackId();
+        $attributes['aria-describedby'] = implode(' ', array_unique($describedBy));
+
+        return $attributes;
+    }
+
+    /**
      * Set element description
      */
     public function setDescription(string $description): static
@@ -383,9 +434,16 @@ class Element implements ElementInterface
         /** @var SymfonyValidator $symfonyValidator */
         $symfonyValidator = $this->getFactory()->getValidator();
 
-        // If required and not allowEmpty, prepend a NotBlank
-        if ($this->isRequired()) {
-            $this->prependConstraint(new Assert\NotBlank());
+        // Required elements get one implicit NotBlank constraint. Preserve an
+        // explicitly configured NotBlank constraint instead of adding another.
+        if ($this->isRequired() && !$this->hasConstraint(Assert\NotBlank::class)) {
+            $requiredMessage = $this->getRequiredMessage();
+            $this->prependConstraint($requiredMessage === null
+                ? new Assert\NotBlank()
+                : new Assert\NotBlank([
+                    'message' => $this->getRequiredMessage(),
+                ])
+            );
         }
 
         $result = true;

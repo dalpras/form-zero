@@ -17,15 +17,18 @@ return function(RenderCollection $render, Element $element, AbstractDecorator $d
         $attributes['name'] .= '[]';
     }
 
-    $html = $render->at('tag.select')([
-        '{attributes}' => array_replace($attributes, [
+    $selectAttributes = array_replace($attributes, [
             'class' => implode(' ', [
                 'form-select',
                 $attributes['class'] ?? '',
                 $element->isValidated() ? ($element->hasErrors() ? ' is-invalid' : ' is-valid') : '',
             ]),
             'id' => $attributes['id'] ?? $element->getFullyQualifiedName(),
-        ]),
+        ]);
+    $selectAttributes = $element->applyValidationAccessibility($selectAttributes);
+
+    $html = $render->at('tag.select')([
+        '{attributes}' => $selectAttributes,
         '{content}' => function() use ($element, $render, $helpers) {
             // force $value to array so we can compare multiple values to multiple
             // options; also ensure it's a string for comparison purposes.

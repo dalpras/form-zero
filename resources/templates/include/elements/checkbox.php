@@ -25,16 +25,19 @@ return function(RenderCollection $render, CheckboxElement $element, AbstractDeco
     $checkedValue = $element->getCheckedValue();
     $isChecked = $element->isChecked() || ((string) $element->getValue() === $checkedValue);
 
+    $checkboxAttributes = array_replace($attributes, [
+        'class' => implode(' ',  [
+            $attributes['class'] ?? '',
+            $element->isValidated() ? ($element->hasErrors() ? 'is-invalid' : 'is-valid') : ''
+        ]),
+        'id'    => $attributes['id'] ?? $attributes['name'] ?? $element->getFullyQualifiedName(),
+        'name'  => $attributes['name'] ?? $element->getFullyQualifiedName(),
+    ]);
+    $checkboxAttributes = $element->applyValidationAccessibility($checkboxAttributes);
+
     // checkbox
     $html .= $render->at('form.html.form-element-checkbox')([
-        '{attributes}' => array_replace($attributes, [
-            'class' => implode(' ',  [
-                $attributes['class'] ?? '',
-                $element->isValidated() ? ($element->hasErrors() ? 'is-invalid' : 'is-valid') : ''
-            ]),
-            'id'    => $attributes['id'] ?? $attributes['name'] ?? $element->getFullyQualifiedName(),
-            'name'  => $attributes['name'] ?? $element->getFullyQualifiedName(),
-        ]),
+        '{attributes}' => $checkboxAttributes,
         '{type}'    => 'checkbox',
         '{value}'   => $helpers->escaper()->escapeHtml($checkedValue),
         '{content}' => '',

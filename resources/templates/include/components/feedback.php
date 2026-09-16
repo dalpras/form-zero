@@ -9,6 +9,7 @@ return function($element, string $name) {
     if ($element->hasErrors()) {
         $render = $this->renders[$name];
         $html = $render->at('form.html.feedback')([
+            '{id}' => $element->getValidationFeedbackId(),
             '{content}' => function() use ($element, $helpers) {
                 $feedbacks = [];
                 // potrebbe essere recursive

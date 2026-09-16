@@ -12,8 +12,7 @@ return function(RenderCollection $render, Element $element, AbstractDecorator $d
 
     $helpers = $this->getHelpers();
 
-    $html = $render->at('form.html.datepicker')([
-        '{attributes}' => array_replace($attributes, [
+    $inputAttributes = array_replace($attributes, [
             'class' => implode(' ',  [
                 'form-control',
                 $attributes['class'] ?? '',
@@ -21,7 +20,11 @@ return function(RenderCollection $render, Element $element, AbstractDecorator $d
             ]),
             'id'    => $attributes['id'] ?? $attributes['name'] ?? $element->getFullyQualifiedName(),
             'name' => $attributes['name'] ?? $element->getFullyQualifiedName()
-        ]),
+        ]);
+    $inputAttributes = $element->applyValidationAccessibility($inputAttributes);
+
+    $html = $render->at('form.html.datepicker')([
+        '{attributes}' => $inputAttributes,
         '{type}'    => 'text',
         '{value}'   => $helpers->escaper()->escapeHtml((string) $element->getValue()),
     ]);

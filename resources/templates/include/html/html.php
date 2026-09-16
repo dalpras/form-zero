@@ -16,7 +16,7 @@ return [
         HTML,
 
     'feedback' => <<<HTML
-        <div class="invalid-feedback d-block">{content}</div>
+        <div id="{id}" class="invalid-feedback d-block">{content}</div>
         HTML,
 
     'description-collapse' => <<<HTML

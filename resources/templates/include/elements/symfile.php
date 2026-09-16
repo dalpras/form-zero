@@ -12,10 +12,7 @@ return function(RenderCollection $render, Element $element, AbstractDecorator $d
     $attributes = $element->getAttribs();
     $helpers = $this->getHelpers();
 
-    $html = $render->at('tag.input')([
-        '{type}' => 'file',
-        '{value}' => $helpers->escaper()->escapeHtml((string) $element->getValue()),
-        '{attributes}' => array_replace($attributes, [
+    $inputAttributes = array_replace($attributes, [
             'class' => implode(' ',  [
                 'form-control',
                 $attributes['class'] ?? '',
@@ -27,7 +24,13 @@ return function(RenderCollection $render, Element $element, AbstractDecorator $d
             ]),
             'id'    => $attributes['id'] ?? $attributes['name'] ?? $element->getFullyQualifiedName(),
             'name'  => $attributes['name'] ?? $element->getFullyQualifiedName(),
-        ]),
+        ]);
+    $inputAttributes = $element->applyValidationAccessibility($inputAttributes);
+
+    $html = $render->at('tag.input')([
+        '{type}' => 'file',
+        '{value}' => $helpers->escaper()->escapeHtml((string) $element->getValue()),
+        '{attributes}' => $inputAttributes,
     ]);
     return $html;
 };
