@@ -16,6 +16,22 @@ return function(RenderCollection $render, Element $element, AbstractDecorator $d
 
     $helpers = $this->getHelpers();
 
+    $isSearch = $element instanceof SearchElement;
+    $inputAttributes = array_replace($attributes, [
+        'class' => implode(' ',  [
+            'form-control',
+            $attributes['class'] ?? '',
+            $decorator->getOption('attributes')['class'] ?? '',
+            $element->isValidated() ? ($element->hasErrors() ? 'is-invalid' : 'is-valid') : ''
+        ]),
+        'id'    => $attributes['id'] ?? $attributes['name'] ?? $element->getFullyQualifiedName(),
+        'name'  => $attributes['name'] ?? $element->getFullyQualifiedName(),
+    ]);
+
+    if ($isSearch) {
+        $inputAttributes['data-search-clear-input'] = true;
+    }
+
     $html = $render->at('tag.input')([
         '{type}' => match (get_class($element)) {
             TextElement::class => 'text',
@@ -25,16 +41,23 @@ return function(RenderCollection $render, Element $element, AbstractDecorator $d
             default => 'text'
         },
         '{value}' => $helpers->escaper()->escapeHtml((string) $element->getValue()),
-        '{attributes}' => array_replace($attributes, [
-            'class' => implode(' ',  [
-                'form-control',
-                $attributes['class'] ?? '',
-                $decorator->getOption('attributes')['class'] ?? '',
-                $element->isValidated() ? ($element->hasErrors() ? 'is-invalid' : 'is-valid') : ''
-            ]),
-            'id'    => $attributes['id'] ?? $attributes['name'] ?? $element->getFullyQualifiedName(),
-            'name'  => $attributes['name'] ?? $element->getFullyQualifiedName(),
-        ]),
+        '{attributes}' => $inputAttributes,
     ]);
-    return $html;
+
+    if (!$isSearch) {
+        return $html;
+    }
+
+    $html .= $render->at('tag.button')([
+        '{attributes}' => [
+            'type' => 'button',
+            'class' => 'search-clear-button',
+            'data-search-clear-button' => true,
+            'aria-label' => $helpers->trans('Rimuovi testo digitato'),
+            'hidden' => true,
+        ],
+        '{content}' => '<span aria-hidden="true">&times;</span>',
+    ]);
+
+    return '<span class="search-clear-control" data-search-clear>' . $html . '</span>';
 };
