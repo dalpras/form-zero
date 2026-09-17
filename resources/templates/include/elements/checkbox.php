@@ -23,7 +23,7 @@ return function(RenderCollection $render, CheckboxElement $element, AbstractDeco
     unset($attributes['id']); // only one element can have a certain ID
 
     $checkedValue = $element->getCheckedValue();
-    $isChecked = $element->isChecked() || ((string) $element->getValue() === $checkedValue);
+    $isChecked = $element->isChecked() || ((string) $element->getRenderValue() === $checkedValue);
 
     $checkboxAttributes = array_replace($attributes, [
         'class' => implode(' ',  [

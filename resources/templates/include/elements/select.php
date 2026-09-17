@@ -32,7 +32,7 @@ return function(RenderCollection $render, Element $element, AbstractDecorator $d
         '{content}' => function() use ($element, $render, $helpers) {
             // force $value to array so we can compare multiple values to multiple
             // options; also ensure it's a string for comparison purposes.
-            $values = array_map(fn($value) => strval($value), (array) $element->getValue());
+            $values = array_map(fn($value) => strval($value), (array) $element->getRenderValue());
             $carry = '';
             foreach ($element->getMultiChoices() as $label => $value) {
                 $text = $element->isTranslatorDisabled()

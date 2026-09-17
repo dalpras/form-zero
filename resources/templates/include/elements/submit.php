@@ -18,7 +18,7 @@ return function(RenderCollection $render, Element $element, AbstractDecorator $d
             $element->isValidated() ? ($element->hasErrors() ? 'is-invalid' : 'is-valid') : ''
         ]),
         'type'  => 'submit',
-        'value' => $helpers->escaper()->escapeHtml((string) $element->getValue()),
+        'value' => $helpers->escaper()->escapeHtml((string) $element->getRenderValue()),
         'id'    => $attributes['id'] ?? $attributes['name'] ?? $element->getFullyQualifiedName(),
         'name'  => $attributes['name'] ?? $element->getFullyQualifiedName(),
     ]);

@@ -124,7 +124,6 @@ trait RenderTrait
             $decorator->setElement($this);
             $content = $decorator->render($content);
         }
-        $this->setIsRendered();
         return $content;
     }
    

@@ -29,7 +29,7 @@ return function(RenderCollection $render, Element $element, AbstractDecorator $d
 
     $html = $render->at('tag.input')([
         '{type}' => 'file',
-        '{value}' => $helpers->escaper()->escapeHtml((string) $element->getValue()),
+        '{value}' => $helpers->escaper()->escapeHtml((string) $element->getRenderValue()),
         '{attributes}' => $inputAttributes,
     ]);
     return $html;

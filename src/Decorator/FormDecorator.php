@@ -32,6 +32,10 @@ class FormDecorator extends AbstractDecorator
             $attributes       = $element->getAttribs();
             $attributes['id'] = $element->getId();
 
+            if ($element->requiresMultipartEncoding()) {
+                $attributes['enctype'] = 'multipart/form-data';
+            }
+
             $attributes['name'] ??= $element->getFullyQualifiedName();
             $attributes['id']   ??= $attributes['name'];
 

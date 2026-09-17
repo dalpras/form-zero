@@ -26,7 +26,7 @@ return function(RenderCollection $render, Element $element, AbstractDecorator $d
     $html = $render->at('form.html.datepicker')([
         '{attributes}' => $inputAttributes,
         '{type}'    => 'text',
-        '{value}'   => $helpers->escaper()->escapeHtml((string) $element->getValue()),
+        '{value}'   => $helpers->escaper()->escapeHtml((string) $element->getRenderValue()),
     ]);
     return $html;
 };

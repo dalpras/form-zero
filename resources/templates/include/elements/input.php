@@ -49,7 +49,7 @@ return function(RenderCollection $render, Element $element, AbstractDecorator $d
             PasswordElement::class => 'password',
             default => 'text'
         },
-        '{value}' => $helpers->escaper()->escapeHtml((string) $element->getValue()),
+        '{value}' => $helpers->escaper()->escapeHtml((string) $element->getRenderValue()),
         '{attributes}' => $inputAttributes,
     ]);
 

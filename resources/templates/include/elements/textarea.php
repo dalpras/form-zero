@@ -29,7 +29,7 @@ return function(RenderCollection $render, Element $element, AbstractDecorator $d
 
     $html = $render->at('tag.textarea')([
         '{attributes}' => $textareaAttributes,
-        '{content}' => $helpers->escaper()->escapeHtml((string) $element->getValue()),
+        '{content}' => $helpers->escaper()->escapeHtml((string) $element->getRenderValue()),
     ]);
     return $html;
 };

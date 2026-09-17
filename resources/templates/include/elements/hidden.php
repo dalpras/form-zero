@@ -14,7 +14,7 @@ return function(RenderCollection $render, Element $element, AbstractDecorator $d
 
     $html = $render->at('tag.input')([
         '{type}'    => 'hidden',
-        '{value}'   => $helpers->escaper()->escapeHtml((string) $element->getValue()),
+        '{value}'   => $helpers->escaper()->escapeHtml((string) $element->getRenderValue()),
         '{attributes}' => array_replace($attributes, [
             'id'   => $attributes['id'] ?? $attributes['name'] ?? $element->getFullyQualifiedName(),
             'name' => $attributes['name'] ?? $element->getFullyQualifiedName(),

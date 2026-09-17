@@ -142,13 +142,11 @@ final class HashElement extends Element
     }
 
     /**
-     * Injects the current token as the element value and delegates to parent renderer.
-     * Typically renders a hidden input with the token.
+     * Render the current CSRF token without changing the element's data value.
      */
-    public function render(): string
+    public function getRenderValue(): mixed
     {
-        $this->setValue($this->getHash());
-        return parent::render();
+        return $this->getHash();
     }
 
     // ============================

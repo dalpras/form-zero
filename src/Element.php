@@ -35,6 +35,14 @@ class Element implements ElementInterface
     private string $belongsTo = '';
 
     /**
+     * Render-only namespace resolved by the owning form.
+     *
+     * Kept separate from belongsTo because belongsTo is also used by the
+     * data-mapping/validation code and must not be rewritten while rendering.
+     */
+    private ?string $renderBelongsTo = null;
+
+    /**
      * Is the error marked as in an invalid state?
      */
     protected bool $isError = false;
@@ -162,7 +170,7 @@ class Element implements ElementInterface
     public function getFullyQualifiedName(): string
     {
         $name = $this->getName();
-        $belongsTo = $this->getBelongsTo();
+        $belongsTo = $this->renderBelongsTo ?? $this->getBelongsTo();
         if ($belongsTo !== '') {
             $name = $belongsTo . '[' . $name . ']';
         }
@@ -252,6 +260,17 @@ class Element implements ElementInterface
     public function getUnfilteredValue()
     {
         return $this->value;
+    }
+
+    /**
+     * Value used by renderers.
+     *
+     * Most elements render their normalized value; special elements such as
+     * CSRF hashes can override this without mutating the submitted/data value.
+     */
+    public function getRenderValue(): mixed
+    {
+        return $this->getValue();
     }
 
     /**
@@ -418,6 +437,20 @@ class Element implements ElementInterface
     public function getBelongsTo(): string
     {
         return $this->belongsTo;
+    }
+
+    /**
+     * Set the namespace used only for rendering the fully-qualified HTML name.
+     *
+     * @internal Managed by ZeroForm when form/subform structure changes.
+     */
+    public function setRenderBelongsTo(?string $array): static
+    {
+        $this->renderBelongsTo = $array === null
+            ? null
+            : $this->filterName($array, true);
+
+        return $this;
     }
 
     /**

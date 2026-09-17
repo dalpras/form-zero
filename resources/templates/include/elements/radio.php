@@ -42,7 +42,7 @@ return function(RenderCollection $render, Element $element, AbstractDecorator $d
             },
             '{value}'   => $helpers->escaper()->escapeHtml((string) $value),
             '{content}' => $label,
-            '{checked}' => in_array((string) $value, (array) $element->getValue()) ? 'checked' : '',
+            '{checked}' => in_array((string) $value, (array) $element->getRenderValue()) ? 'checked' : '',
             '{class}'   => $element->isInline() ? 'form-check-inline' : '',
         ]);
     }

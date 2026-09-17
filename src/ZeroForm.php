@@ -27,6 +27,9 @@ class ZeroForm extends ElementsOrdered
 
     private string $elementsBelongTo = '';
 
+    /** Parent namespace used only to resolve fully-qualified HTML field names. */
+    private string $renderParentBelongsTo = '';
+
     private int $order = 0;
 
     private string $legend = '';
@@ -227,6 +230,7 @@ class ZeroForm extends ElementsOrdered
         }
 
         $this->applyBelongsTo($name);
+        $this->refreshRenderContext();
         return $this;
     }
 
@@ -407,7 +411,7 @@ class ZeroForm extends ElementsOrdered
             $values = array_replace_recursive($values, $merge);
         }
 
-        if (!$suppressArrayNotation && $this->isArray() && !$this->getIsRendered()) {
+        if (!$suppressArrayNotation && $this->isArray()) {
             $values = $this->attachToArray($values, $this->getElementsBelongTo());
         }
 
@@ -468,7 +472,7 @@ class ZeroForm extends ElementsOrdered
             }
             $values = array_replace_recursive($values, $merge);
         }
-        if (!$suppressArrayNotation && $this->isArray() && !empty($values) && !$this->getIsRendered()) {
+        if (!$suppressArrayNotation && $this->isArray() && !empty($values)) {
             $values = $this->attachToArray($values, $this->getElementsBelongTo());
         }
 
@@ -497,15 +501,16 @@ class ZeroForm extends ElementsOrdered
         $this->elementsBelongTo = $belongsTo;
 
         if ($belongsTo === '') {
-            $this->setIsArray(false);
+            $this->isArray = false;
             if ($origName !== '') {
                 $this->applyBelongsTo();
             }
         } else {
-            $this->setIsArray(true);
+            $this->isArray = true;
             $this->applyBelongsTo();
         }
 
+        $this->refreshRenderContext();
         return $this;
     }
 
@@ -536,6 +541,54 @@ class ZeroForm extends ElementsOrdered
     }
 
     /**
+     * Resolve render-only namespaces without changing the logical data mapping.
+     *
+     * A subform keeps its local elementsBelongTo (for values/validation), while
+     * its elements receive the fully-qualified parent path used for HTML names.
+     */
+    private function refreshRenderContext(?string $parentBelongsTo = null): void
+    {
+        if ($parentBelongsTo !== null) {
+            $this->renderParentBelongsTo = $parentBelongsTo;
+        }
+
+        $localBelongsTo = $this->isArray() ? $this->getElementsBelongTo() : '';
+        $effectiveBelongsTo = $localBelongsTo;
+
+        if ($this->renderParentBelongsTo !== '') {
+            $effectiveBelongsTo = $localBelongsTo === ''
+                ? $this->renderParentBelongsTo
+                : $this->mergeBelongsTo($this->renderParentBelongsTo, $localBelongsTo);
+        }
+
+        foreach ($this->getElements() as $element) {
+            if ($element instanceof Element) {
+                $element->setRenderBelongsTo($effectiveBelongsTo !== '' ? $effectiveBelongsTo : null);
+            }
+        }
+
+        foreach ($this->getSubForms() as $subForm) {
+            $subForm->refreshRenderContext($effectiveBelongsTo);
+        }
+    }
+
+    /**
+     * Merge two PHP array-notation paths.
+     */
+    private function mergeBelongsTo(string $baseBelongsTo, string $belongsTo): string
+    {
+        $endOfArrayName = strpos($belongsTo, '[');
+
+        if ($endOfArrayName === false) {
+            return $baseBelongsTo . '[' . $belongsTo . ']';
+        }
+
+        $arrayName = substr($belongsTo, 0, $endOfArrayName);
+
+        return $baseBelongsTo . '[' . $arrayName . ']' . substr($belongsTo, $endOfArrayName);
+    }
+
+    /**
      * Get name of array elements belong to
      */
     public function getElementsBelongTo(): string
@@ -555,6 +608,7 @@ class ZeroForm extends ElementsOrdered
     public function setIsArray(bool $flag): static
     {
         $this->isArray = $flag;
+        $this->refreshRenderContext();
         return $this;
     }
 
@@ -597,6 +651,7 @@ class ZeroForm extends ElementsOrdered
         if ($order !== null) {
             $this->sort();
         }
+        $this->refreshRenderContext();
         return $this;
     }
 
@@ -903,7 +958,7 @@ class ZeroForm extends ElementsOrdered
             }
         }
 
-        if ($this->isArray() && !$this->getIsRendered()) {
+        if ($this->isArray()) {
             $messages = $this->attachToArray($messages, $this->getElementsBelongTo());
         }
 
@@ -961,13 +1016,31 @@ class ZeroForm extends ElementsOrdered
             }
         }
 
-        if (!$suppress &&
-            $this->isArray() &&
-            !$this->getIsRendered()) {
+        if (!$suppress && $this->isArray()) {
             $messages = $this->attachToArray($messages, $this->getElementsBelongTo());
         }
 
         return $messages;
+    }
+
+    /**
+     * Whether this form tree contains at least one file-upload element.
+     */
+    public function requiresMultipartEncoding(): bool
+    {
+        foreach ($this->getElements() as $element) {
+            if ($element instanceof \DalPraS\FormZero\Element\SymfileElement) {
+                return true;
+            }
+        }
+
+        foreach ($this->getSubForms() as $subForm) {
+            if ($subForm->requiresMultipartEncoding()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
