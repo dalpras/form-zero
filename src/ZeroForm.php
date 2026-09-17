@@ -594,6 +594,9 @@ class ZeroForm extends ElementsOrdered
         $subForm->setName((string) $name);
         $this->subForms[$name] = $subForm;
         $this->set($name, $order ?? ($this->last() + 1));
+        if ($order !== null) {
+            $this->sort();
+        }
         return $this;
     }
 

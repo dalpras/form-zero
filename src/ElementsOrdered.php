@@ -3,11 +3,10 @@
 namespace DalPraS\FormZero;
 
 use Countable;
-use DalPraS\FormZero\Element;
-use DalPraS\FormZero\ZeroForm;
-use Iterator;
+use IteratorAggregate;
+use Traversable;
 
-abstract class ElementsOrdered implements Iterator, Countable
+abstract class ElementsOrdered implements IteratorAggregate, Countable
 {
     /**
      * Order in which to display and iterate elements and forms
@@ -17,34 +16,34 @@ abstract class ElementsOrdered implements Iterator, Countable
 
     /**
      * Ritorna l'ultimo valore di ordinamento inserito.
-     *
-     * @return integer
      */
     public function last(): int
     {
-        return empty($this->ordered) ? 0 : end($this->ordered);
+        if ($this->ordered === []) {
+            return 0;
+        }
+
+        $key = array_key_last($this->ordered);
+        return $this->ordered[$key];
     }
 
     /**
      * Returns a one dimensional numerical indexed array with the
      * Elements, SubZeroForms Values.
      *
-     * Subitems are inserted based on their order Setting if set,
-     * otherwise they are appended, the resulting numerical index
-     * may differ from the order value.
+     * The canonical iterator order is reused here so ordering logic lives in
+     * one place and no repeated array_splice() operations are required.
      */
     public function getElementsAndSubFormsOrdered(): array
     {
         $ordered = [];
-        foreach ($this->ordered as $name => $order) {
-            $element = $this->getElementOrSubform($name);
-            switch (true) {
-                case $element instanceof Element:
-                case $element instanceof ZeroForm:
-                    // aggiungo i vari pezzi a partire da quelli ordinati
-                    array_splice($ordered, $order, 0, array($element));
+
+        foreach ($this as $element) {
+            if ($element instanceof Element || $element instanceof ZeroForm) {
+                $ordered[] = $element;
             }
         }
+
         return $ordered;
     }
 
@@ -82,45 +81,13 @@ abstract class ElementsOrdered implements Iterator, Countable
     }
 
     /**
-     * Current element/subform/display group
+     * Iterate elements/subforms without mutable internal cursor state.
      */
-    public function current(): mixed
+    public function getIterator(): Traversable
     {
-        current($this->ordered);
-        $key = key($this->ordered);
-        return $this->getElementOrSubform($key);
-    }
-
-    /**
-     * Current element/subform name
-     */
-    public function key(): string|int|null
-    {
-        return key($this->ordered);
-    }
-
-    /**
-     * Move pointer to next element/subform/display group
-     */
-    public function next(): void
-    {
-        next($this->ordered);
-    }
-
-    /**
-     * Move pointer to beginning of element/subform/display group loop
-     */
-    public function rewind(): void
-    {
-        reset($this->ordered);
-    }
-
-    /**
-     * Determine if current element/subform/display group is valid
-     */
-    public function valid(): bool
-    {
-        return (current($this->ordered) !== false);
+        foreach ($this->ordered as $name => $order) {
+            yield $name => $this->getElementOrSubform($name);
+        }
     }
 
     /**
@@ -132,37 +99,24 @@ abstract class ElementsOrdered implements Iterator, Countable
     }
 
     /**
-     * Sort items according to their order
+     * Sort items according to their order.
      */
     protected function sort(): void
     {
-        $items = [];
-        $index = 0;
+        $orders = [];
+
         foreach ($this->ordered as $key => $order) {
-            if (null === $order) {
-                // $order = $this->getElementOrSubform($key)->getOrder();
-                $order = $this->get($key);
-                if ($order === null) {
-                    while (array_search($index, $this->ordered, true)) {
-                        ++$index;
-                    }
-                    $items[$index] = $key;
-                    ++$index;
-                } else {
-                    $items[$order] = $key;
-                }
-            } elseif (isset($items[$order]) && $items[$order] !== $key) {
-                throw new \LogicException('Form elements ' .
-                    $items[$order] . ' and ' . $key . ' have the same order (' . $order . ') - ' . 'this would result in only the last added element to be rendered'
+            if (isset($orders[$order]) && $orders[$order] !== $key) {
+                throw new \LogicException(
+                    'Form elements ' . $orders[$order] . ' and ' . $key .
+                    ' have the same order (' . $order . ') - ' .
+                    'this would result in only the last added element to be rendered'
                 );
-            } else {
-                $items[$order] = $key;
             }
+
+            $orders[$order] = $key;
         }
 
-        $items = array_flip($items);
-        asort($items);
-        $this->ordered = $items;
+        asort($this->ordered, SORT_NUMERIC);
     }
-
 }
