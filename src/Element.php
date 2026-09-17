@@ -14,7 +14,6 @@ use DalPraS\FormZero\Traits\FormElementTrait;
 use DalPraS\FormZero\Traits\RenderTrait;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface as SymfonyValidator;
-use Throwable;
 
 class Element implements ElementInterface
 {
@@ -619,15 +618,9 @@ class Element implements ElementInterface
      *
      * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
-        try {
-            $return = $this->render();
-            return $return;
-        } catch (Throwable $th) {
-            trigger_error($th->getMessage(), E_USER_WARNING);
-            return '';
-        }
+        return $this->render();
     }
 
     /**

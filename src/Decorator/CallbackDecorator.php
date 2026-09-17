@@ -4,7 +4,6 @@ namespace DalPraS\FormZero\Decorator;
 
 use Closure;
 use DalPraS\SmartTemplate\Collection\RenderCollection;
-use Throwable;
 
 class CallbackDecorator extends AbstractDecorator
 {
@@ -40,17 +39,13 @@ class CallbackDecorator extends AbstractDecorator
         $element = $this->getElement();
         $engine = $element->getFactory()->template();
 
-        try {
-            return $engine->renderDefault(
-                fn(RenderCollection $render, string $namespace): string => (string) $callback(
-                    content: $content,
-                    render: $render,
-                    element: $element,
-                    namespace: $namespace,
-                )
-            );
-        } catch (Throwable $th) {
-            return $th->getMessage() . $th->getTraceAsString();
-        }
+        return $engine->renderDefault(
+            fn(RenderCollection $render, string $namespace): string => (string) $callback(
+                content: $content,
+                render: $render,
+                element: $element,
+                namespace: $namespace,
+            )
+        );
     }
 }

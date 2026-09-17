@@ -20,7 +20,7 @@ use DalPraS\FormZero\Element\SymfileMultiElement;
 use DalPraS\FormZero\Element\TextareaElement;
 use DalPraS\FormZero\Element\TextElement;
 use DalPraS\SmartTemplate\Collection\RenderCollection;
-use Throwable;
+use LogicException;
 
 class ElementBaseDecorator extends AbstractDecorator
 {
@@ -32,32 +32,32 @@ class ElementBaseDecorator extends AbstractDecorator
         $engine = $factory->template();
         
         return $engine->renderDefault(function(RenderCollection $render) use ($element, $content) {
-            try {
-                $html = match (true) {
-                    $element instanceof HashElement,
-                    $element instanceof HiddenElement,
-                    $element instanceof TextElement,
-                    $element instanceof EmailElement,
-                    $element instanceof PasswordElement,
-                    $element instanceof SearchElement,
-                    $element instanceof TextareaElement,
-                    $element instanceof DatePickerElement,
-                    $element instanceof SubmitElement,
-                    $element instanceof CheckboxElement,
-                    $element instanceof CheckboxMultiElement,
-                    $element instanceof SelectElement,
-                    $element instanceof SelectMultiElement,
-                    $element instanceof RadioElement,
-                    $element instanceof SymfileElement,
-                    $element instanceof SymfileMultiElement
-                        => $render->at('form.element')($element::class)($render, $element, $this),
-                    default
-                        => 'Invalid element type'
-                };
-                return $content . $html;
-            } catch (Throwable $th) {
-                return $content . $th->getMessage() . $th->getTraceAsString();
-            }
+            $html = match (true) {
+                $element instanceof HashElement,
+                $element instanceof HiddenElement,
+                $element instanceof TextElement,
+                $element instanceof EmailElement,
+                $element instanceof PasswordElement,
+                $element instanceof SearchElement,
+                $element instanceof TextareaElement,
+                $element instanceof DatePickerElement,
+                $element instanceof SubmitElement,
+                $element instanceof CheckboxElement,
+                $element instanceof CheckboxMultiElement,
+                $element instanceof SelectElement,
+                $element instanceof SelectMultiElement,
+                $element instanceof RadioElement,
+                $element instanceof SymfileElement,
+                $element instanceof SymfileMultiElement
+                    => $render->at('form.element')($element::class)($render, $element, $this),
+                default
+                    => throw new LogicException(sprintf(
+                        'Unsupported form element type "%s"',
+                        $element::class,
+                    )),
+            };
+
+            return $content . $html;
         });
     }
 }
