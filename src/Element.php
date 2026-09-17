@@ -42,6 +42,11 @@ class Element implements ElementInterface
      */
     private ?string $renderBelongsTo = null;
 
+    /** Compiled HTML field path, name and id; rebuilt only after structural changes. */
+    private ?FieldPath $compiledFieldPath = null;
+    private ?string $compiledFullyQualifiedName = null;
+    private ?string $compiledId = null;
+
     /**
      * Is the error marked as in an invalid state?
      */
@@ -164,20 +169,28 @@ class Element implements ElementInterface
     }
 
     /**
+     * Set element name and invalidate the compiled field path.
+     */
+    public function setName(string $name): static
+    {
+        $name = $this->filterName($name);
+        if ($name === '') {
+            throw new \InvalidArgumentException('Invalid name provided; must contain only valid variable characters and be non-empty');
+        }
+
+        $this->name = $name;
+        $this->invalidateCompiledFieldPath();
+        return $this;
+    }
+
+    /**
      * Get fully qualified name
      * Places name as subitem of array and/or appends brackets.
      */
     public function getFullyQualifiedName(): string
     {
-        $name = $this->getName();
-        $belongsTo = $this->renderBelongsTo ?? $this->getBelongsTo();
-        if ($belongsTo !== '') {
-            $name = $belongsTo . '[' . $name . ']';
-        }
-        if ($this->isArray()) {
-            $name .= '[]';
-        }
-        return $name;
+        $this->compileFieldPath();
+        return $this->compiledFullyQualifiedName;
     }
 
     /**
@@ -185,22 +198,27 @@ class Element implements ElementInterface
      */
     public function getId(): string
     {
-        $id = $this->getFullyQualifiedName();
+        $this->compileFieldPath();
+        return $this->compiledId;
+    }
 
-        // Bail early if no array notation detected
-        if (!strstr($id, '[')) {
-            return $id;
+    private function compileFieldPath(): void
+    {
+        if ($this->compiledFieldPath !== null) {
+            return;
         }
 
-        // Strip array notation
-        if ('[]' == substr($id, -2)) {
-            $id = substr($id, 0, strlen($id) - 2);
-        }
-        $id = str_replace('][', '-', $id);
-        $id = str_replace(array(']', '['), '-', $id);
-        $id = trim($id, '-');
+        $belongsTo = $this->renderBelongsTo ?? $this->getBelongsTo();
+        $this->compiledFieldPath = FieldPath::fromString($belongsTo)->append($this->getName());
+        $this->compiledFullyQualifiedName = $this->compiledFieldPath->toString() . ($this->isArray() ? '[]' : '');
+        $this->compiledId = $this->compiledFieldPath->toId();
+    }
 
-        return $id;
+    private function invalidateCompiledFieldPath(): void
+    {
+        $this->compiledFieldPath = null;
+        $this->compiledFullyQualifiedName = null;
+        $this->compiledId = null;
     }
 
     /**
@@ -400,6 +418,7 @@ class Element implements ElementInterface
     public function setIsArray(bool $isArray): static
     {
         $this->options['isArray'] = $isArray;
+        $this->invalidateCompiledFieldPath();
         return $this;
     }
 
@@ -427,6 +446,7 @@ class Element implements ElementInterface
         $array = $this->filterName($array, true);
         if ($array !== '') {
             $this->belongsTo = $array;
+            $this->invalidateCompiledFieldPath();
         }
         return $this;
     }
@@ -449,6 +469,7 @@ class Element implements ElementInterface
         $this->renderBelongsTo = $array === null
             ? null
             : $this->filterName($array, true);
+        $this->invalidateCompiledFieldPath();
 
         return $this;
     }

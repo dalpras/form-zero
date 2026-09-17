@@ -27,8 +27,14 @@ class ZeroForm extends ElementsOrdered
 
     private string $elementsBelongTo = '';
 
-    /** Parent namespace used only to resolve fully-qualified HTML field names. */
-    private string $renderParentBelongsTo = '';
+    /** Compiled local path used for data mapping. */
+    private ?FieldPath $elementsBelongToPath = null;
+
+    /** Compiled parent namespace used only to resolve HTML field names. */
+    private ?FieldPath $renderParentBelongsToPath = null;
+
+    /** @var array<string, FieldPath> Parsed paths reused by data-mapping helpers. */
+    private array $fieldPaths = [];
 
     private int $order = 0;
 
@@ -56,6 +62,23 @@ class ZeroForm extends ElementsOrdered
     public function init(): void
     {
 
+    }
+
+    /**
+     * Set form name and invalidate a name-derived array path.
+     */
+    public function setName(string $name): static
+    {
+        $name = $this->filterName($name);
+        if ($name === '') {
+            throw new \InvalidArgumentException('Invalid name provided; must contain only valid variable characters and be non-empty');
+        }
+
+        $this->name = $name;
+        if ($this->elementsBelongTo === '') {
+            $this->elementsBelongToPath = null;
+        }
+        return $this;
     }
 
     /**
@@ -499,6 +522,7 @@ class ZeroForm extends ElementsOrdered
         $origName = $this->getElementsBelongTo();
         $belongsTo = $this->filterName($array, true);
         $this->elementsBelongTo = $belongsTo;
+        $this->elementsBelongToPath = $this->fieldPath($belongsTo);
 
         if ($belongsTo === '') {
             $this->isArray = false;
@@ -546,24 +570,26 @@ class ZeroForm extends ElementsOrdered
      * A subform keeps its local elementsBelongTo (for values/validation), while
      * its elements receive the fully-qualified parent path used for HTML names.
      */
-    private function refreshRenderContext(?string $parentBelongsTo = null): void
+    private function refreshRenderContext(?FieldPath $parentBelongsTo = null): void
     {
         if ($parentBelongsTo !== null) {
-            $this->renderParentBelongsTo = $parentBelongsTo;
+            $this->renderParentBelongsToPath = $parentBelongsTo;
         }
 
-        $localBelongsTo = $this->isArray() ? $this->getElementsBelongTo() : '';
+        $localBelongsTo = $this->isArray() ? $this->getElementsBelongToPath() : $this->fieldPath('');
         $effectiveBelongsTo = $localBelongsTo;
 
-        if ($this->renderParentBelongsTo !== '') {
-            $effectiveBelongsTo = $localBelongsTo === ''
-                ? $this->renderParentBelongsTo
-                : $this->mergeBelongsTo($this->renderParentBelongsTo, $localBelongsTo);
+        if ($this->renderParentBelongsToPath !== null && !$this->renderParentBelongsToPath->isEmpty()) {
+            $effectiveBelongsTo = $localBelongsTo->isEmpty()
+                ? $this->renderParentBelongsToPath
+                : $this->renderParentBelongsToPath->append($localBelongsTo);
         }
+
+        $renderBelongsTo = $effectiveBelongsTo->isEmpty() ? null : $effectiveBelongsTo->toString();
 
         foreach ($this->getElements() as $element) {
             if ($element instanceof Element) {
-                $element->setRenderBelongsTo($effectiveBelongsTo !== '' ? $effectiveBelongsTo : null);
+                $element->setRenderBelongsTo($renderBelongsTo);
             }
         }
 
@@ -572,20 +598,14 @@ class ZeroForm extends ElementsOrdered
         }
     }
 
-    /**
-     * Merge two PHP array-notation paths.
-     */
-    private function mergeBelongsTo(string $baseBelongsTo, string $belongsTo): string
+    private function getElementsBelongToPath(): FieldPath
     {
-        $endOfArrayName = strpos($belongsTo, '[');
+        return $this->elementsBelongToPath ??= $this->fieldPath($this->getElementsBelongTo());
+    }
 
-        if ($endOfArrayName === false) {
-            return $baseBelongsTo . '[' . $belongsTo . ']';
-        }
-
-        $arrayName = substr($belongsTo, 0, $endOfArrayName);
-
-        return $baseBelongsTo . '[' . $arrayName . ']' . substr($belongsTo, $endOfArrayName);
+    private function fieldPath(string $path): FieldPath
+    {
+        return $this->fieldPaths[$path] ??= FieldPath::fromString($path);
     }
 
     /**
@@ -608,6 +628,9 @@ class ZeroForm extends ElementsOrdered
     public function setIsArray(bool $flag): static
     {
         $this->isArray = $flag;
+        if ($this->elementsBelongTo === '') {
+            $this->elementsBelongToPath = null;
+        }
         $this->refreshRenderContext();
         return $this;
     }
@@ -707,27 +730,9 @@ class ZeroForm extends ElementsOrdered
      */
     private function getArrayName(string $value): string
     {
-        // if (!is_string($value) || '' === $value) {
-        //     return $value;
-        // }
-
-        if ($value === '') {
-            return $value;
-        }
-
-        if (!strstr($value, '[')) {
-            return $value;
-        }
-
-        $endPos = strlen($value) - 1;
-        if (']' != $value[$endPos]) {
-            return $value;
-        }
-
-        $start = strrpos($value, '[') + 1;
-        $name = substr($value, $start, $endPos - $start);
-        return $name;
+        return $this->fieldPath($value)->leaf();
     }
+
 
     /**
      * Extract the value by walking the array using given array path.
@@ -740,26 +745,9 @@ class ZeroForm extends ElementsOrdered
      */
     private function dissolveArrayValue(array $value, string $arrayPath)
     {
-        // As long as we have more levels
-        while ($arrayPos = strpos($arrayPath, '[')) {
-            // Get the next key in the path
-            $arrayKey = trim(substr($arrayPath, 0, $arrayPos), ']');
-
-            // Set the potentially final value or the next search point in the array
-            if (isset($value[$arrayKey])) {
-                $value = $value[$arrayKey];
-            }
-
-            // Set the next search point in the path
-            $arrayPath = trim(substr($arrayPath, $arrayPos + 1), ']');
-        }
-
-        if (isset($value[$arrayPath])) {
-            $value = $value[$arrayPath];
-        }
-
-        return $value;
+        return $this->fieldPath($arrayPath)->read($value);
     }
+
 
     /**
      * Given an array, an optional arrayPath and a key this method
@@ -768,21 +756,9 @@ class ZeroForm extends ElementsOrdered
      */
     private function dissolveArrayUnsetKey(array $array, ?string $arrayPath, string $key): array
     {
-        $unset = &$array;
-        $path  = trim(strtr((string) $arrayPath, array('[' => '/', ']' => '')), '/');
-        $segs  = ('' !== $path) ? explode('/', $path) : [];
-
-        foreach ($segs as $seg) {
-            if (!array_key_exists($seg, (array)$unset)) {
-                return $array;
-            }
-            $unset = &$unset[$seg];
-        }
-        if (array_key_exists($key, (array) $unset)) {
-            unset($unset[$key]);
-        }
-        return $array;
+        return $this->fieldPath((string) $arrayPath)->remove($array, $key);
     }
+
 
     /**
      * Converts given arrayPath to an array and attaches given value at the end of it.
@@ -793,18 +769,9 @@ class ZeroForm extends ElementsOrdered
      */
     private function attachToArray($value, $arrayPath)
     {
-        // As long as we have more levels
-        while ($arrayPos = strrpos($arrayPath, '[')) {
-            // Get the next key in the path
-            $arrayKey = trim(substr($arrayPath, $arrayPos + 1), ']');
-            // Attach
-            $value = [$arrayKey => $value];
-            // Set the next search point in the path
-            $arrayPath = trim(substr($arrayPath, 0, $arrayPos), ']');
-        }
-        $value = [$arrayPath => $value];
-        return $value;
+        return $this->fieldPath((string) $arrayPath)->wrap($value);
     }
+
 
     /**
      * Validate the form
