@@ -36,6 +36,8 @@ class ZeroForm extends ElementsOrdered
     /** @var array<string, FieldPath> Parsed paths reused by data-mapping helpers. */
     private array $fieldPaths = [];
 
+    private ?FormDataMapper $formDataMapper = null;
+
     private int $order = 0;
 
     private string $legend = '';
@@ -326,31 +328,7 @@ class ZeroForm extends ElementsOrdered
      */
     public function setDefaults(array $defaults): static
     {
-        $eBelongTo = null;
-
-        if ($this->isArray()) {
-            $eBelongTo = $this->getElementsBelongTo();
-            $defaults = $this->dissolveArrayValue($defaults, $eBelongTo);
-        }
-        /** @var \DalPraS\FormZero\Element $element */
-        foreach ($this->getElements() as $name => $element) {
-            $check = $defaults;
-            if (($belongsTo = $element->getBelongsTo()) !== $eBelongTo) {
-                $check = $this->dissolveArrayValue($defaults, $belongsTo);
-            }
-            if (array_key_exists($name, (array) $check)) {
-                $this->setDefault($name, $check[$name]);
-                $defaults = $this->dissolveArrayUnsetKey($defaults, $belongsTo, $name);
-            }
-        }
-        /** @var \DalPraS\FormZero\SubZeroForm $form */
-        foreach ($this->getSubForms() as $name => $form) {
-            if (!$form->isArray() && array_key_exists($name, $defaults)) {
-                $form->setDefaults($defaults[$name]);
-            } else {
-                $form->setDefaults($defaults);
-            }
-        }
+        $this->dataMapper()->setDefaults($this, $defaults);
         return $this;
     }
 
@@ -403,42 +381,7 @@ class ZeroForm extends ElementsOrdered
      */
     public function getValues(bool $suppressArrayNotation = false): array
     {
-        $values = [];
-        $eBelongTo = null;
-
-        if ($this->isArray()) {
-            $eBelongTo = $this->getElementsBelongTo();
-        }
-        /** @var \DalPraS\FormZero\Element $element */
-        foreach ($this->getElements() as $key => $element) {
-            if ($element->getIgnore()) {
-                continue;
-            }
-            $merge = [];
-            if (($belongsTo = $element->getBelongsTo()) !== $eBelongTo) {
-                if ('' !== (string) $belongsTo) {
-                    $key = $belongsTo . '[' . $key . ']';
-                }
-            }
-            $merge = $this->attachToArray($element->getValue(), $key);
-            $values = array_replace_recursive($values, $merge);
-        }
-        /** @var \DalPraS\FormZero\SubZeroForm $subForm */
-        foreach ($this->getSubForms() as $key => $subForm) {
-            $merge = [];
-            if (!$subForm->isArray()) {
-                $merge[$key] = $subForm->getValues();
-            } else {
-                $merge = $this->attachToArray($subForm->getValues(true), $subForm->getElementsBelongTo());
-            }
-            $values = array_replace_recursive($values, $merge);
-        }
-
-        if (!$suppressArrayNotation && $this->isArray()) {
-            $values = $this->attachToArray($values, $this->getElementsBelongTo());
-        }
-
-        return $values;
+        return $this->dataMapper()->getValues($this, $suppressArrayNotation);
     }
 
     /**
@@ -450,56 +393,7 @@ class ZeroForm extends ElementsOrdered
      */
     public function getValidValues(array $data, $suppressArrayNotation = false): array
     {
-        $values = [];
-        $eBelongTo = null;
-
-        if ($this->isArray()) {
-            $eBelongTo = $this->getElementsBelongTo();
-            $data = $this->dissolveArrayValue($data, $eBelongTo);
-        }
-        $context = $data;
-        /** @var \DalPraS\FormZero\Element $element */
-        foreach ($this->getElements() as $key => $element) {
-            if ($element->getIgnore()) {
-                continue;
-            }
-            $check = $data;
-            if (($belongsTo = $element->getBelongsTo()) !== $eBelongTo) {
-                $check = $this->dissolveArrayValue($data, $belongsTo);
-            }
-            if (isset($check[$key])) {
-                if ($element->isValid($check[$key], $context)) {
-                    $merge = [];
-                    if ($belongsTo !== $eBelongTo && '' !== (string)$belongsTo) {
-                        $key = $belongsTo . '[' . $key . ']';
-                    }
-                    $merge = $this->attachToArray($element->getValue(), $key);
-                    $values = array_replace_recursive($values, $merge);
-                }
-                $data = $this->dissolveArrayUnsetKey($data, $belongsTo, $key);
-            }
-        }
-        /** @var \DalPraS\FormZero\SubZeroForm $form */
-        foreach ($this->getSubForms() as $key => $form) {
-            $merge = [];
-            if (isset($data[$key]) && !$form->isArray()) {
-                $tmp = $form->getValidValues($data[$key]);
-                if (!empty($tmp)) {
-                    $merge[$key] = $tmp;
-                }
-            } else {
-                $tmp = $form->getValidValues($data, true);
-                if (!empty($tmp)) {
-                    $merge = $this->attachToArray($tmp, $form->getElementsBelongTo());
-                }
-            }
-            $values = array_replace_recursive($values, $merge);
-        }
-        if (!$suppressArrayNotation && $this->isArray() && !empty($values)) {
-            $values = $this->attachToArray($values, $this->getElementsBelongTo());
-        }
-
-        return $values;
+        return $this->dataMapper()->getValidValues($this, $data, (bool) $suppressArrayNotation);
     }
 
     /**
@@ -601,6 +495,11 @@ class ZeroForm extends ElementsOrdered
     private function getElementsBelongToPath(): FieldPath
     {
         return $this->elementsBelongToPath ??= $this->fieldPath($this->getElementsBelongTo());
+    }
+
+    private function dataMapper(): FormDataMapper
+    {
+        return $this->formDataMapper ??= new FormDataMapper();
     }
 
     private function fieldPath(string $path): FieldPath
