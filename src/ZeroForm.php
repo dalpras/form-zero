@@ -38,6 +38,8 @@ class ZeroForm extends ElementsOrdered
 
     private ?FormDataMapper $formDataMapper = null;
 
+    private ?FormValidator $formValidator = null;
+
     private int $order = 0;
 
     private string $legend = '';
@@ -502,6 +504,11 @@ class ZeroForm extends ElementsOrdered
         return $this->formDataMapper ??= new FormDataMapper();
     }
 
+    private function validator(): FormValidator
+    {
+        return $this->formValidator ??= new FormValidator();
+    }
+
     private function fieldPath(string $path): FieldPath
     {
         return $this->fieldPaths[$path] ??= FieldPath::fromString($path);
@@ -624,128 +631,35 @@ class ZeroForm extends ElementsOrdered
     // Processing
 
     /**
-     * Extract the value by walking the array using given array path.
-     * Given an array path such as foo[bar][baz], returns the value of the last
-     * element (in this case, 'baz').
-     *
-     * @param array $value Array to walk
-     * @param string $arrayPath Array notation path of the part to extract
-     * @return string|array
-     */
-    private function dissolveArrayValue(array $value, string $arrayPath)
-    {
-        return $this->fieldPath($arrayPath)->read($value);
-    }
-
-
-    /**
-     * Given an array, an optional arrayPath and a key this method
-     * dissolves the arrayPath and unsets the key within the array
-     * if it exists.
-     */
-    private function dissolveArrayUnsetKey(array $array, ?string $arrayPath, string $key): array
-    {
-        return $this->fieldPath((string) $arrayPath)->remove($array, $key);
-    }
-
-
-    /**
-     * Converts given arrayPath to an array and attaches given value at the end of it.
-     *
-     * @param mixed $value The value to attach
-     * @param string $arrayPath Given array path to convert and attach to.
-     * @return array
-     */
-    private function attachToArray($value, $arrayPath)
-    {
-        return $this->fieldPath((string) $arrayPath)->wrap($value);
-    }
-
-
-    /**
-     * Validate the form
+     * Validate the form.
      *
      * @param array $data
-     * @return bool
      */
     public function isValid($data): bool
     {
         if (!is_array($data)) {
             throw new \InvalidArgumentException(__METHOD__ . ' expects an array');
         }
-        $valid      = true;
-        $eBelongTo  = null;
 
-        if ($this->isArray()) {
-            $eBelongTo = $this->getElementsBelongTo();
-            $data = $this->dissolveArrayValue($data, $eBelongTo);
-        }
-        $context = $data;
-
-        /** @var \DalPraS\FormZero\Element $element */
-        foreach ($this->getElements() as $key => $element) {
-            $check = $data;
-            if (($belongsTo = $element->getBelongsTo()) !== $eBelongTo) {
-                $check = $this->dissolveArrayValue($data, $belongsTo);
-            }
-            if (!isset($check[$key])) {
-                $valid = $element->isValid(null, $context) && $valid;
-            } else {
-                $valid = $element->isValid($check[$key], $context) && $valid;
-                $data = $this->dissolveArrayUnsetKey($data, $belongsTo, $key);
-            }
-        }
-        /** @var \DalPraS\FormZero\SubZeroForm $form */
-        foreach ($this->getSubForms() as $key => $form) {
-            if (isset($data[$key]) && !$form->isArray()) {
-                $valid = $form->isValid($data[$key]) && $valid;
-            } else {
-                $valid = $form->isValid($data) && $valid;
-            }
-        }
-
-        $this->errorsExist = !$valid;
-        return $valid;
+        return $this->validator()->isValid($this, $data);
     }
 
     /**
-     * Validate a partial form
-     * Does not check for required flags.
+     * Validate a partial form without checking absent required elements.
      */
     public function isValidPartial(array $data): bool
     {
-        $eBelongTo  = null;
+        return $this->validator()->isValidPartial($this, $data);
+    }
 
-        if ($this->isArray()) {
-            $eBelongTo = $this->getElementsBelongTo();
-            $data = $this->dissolveArrayValue($data, $eBelongTo);
-        }
-
-        $valid      = true;
-        $context    = $data;
-
-        /** @var \DalPraS\FormZero\Element $element */
-        foreach ($this->getElements() as $key => $element) {
-            $check = $data;
-            if (($belongsTo = $element->getBelongsTo()) !== $eBelongTo) {
-                $check = $this->dissolveArrayValue($data, $belongsTo);
-            }
-            if (isset($check[$key])) {
-                $valid = $element->isValid($check[$key], $context) && $valid;
-                $data = $this->dissolveArrayUnsetKey($data, $belongsTo, $key);
-            }
-        }
-        /** @var \DalPraS\FormZero\SubZeroForm $form */
-        foreach ($this->getSubForms() as $key => $form) {
-            if (isset($data[$key]) && !$form->isArray()) {
-                $valid = $form->isValidPartial($data[$key]) && $valid;
-            } else {
-                $valid = $form->isValidPartial($data) && $valid;
-            }
-        }
-
+    /**
+     * Update the current form-level validation state.
+     *
+     * @internal Used by FormValidator; element errors remain on the elements.
+     */
+    public function setValidationResult(bool $valid): void
+    {
         $this->errorsExist = !$valid;
-        return $valid;
     }
 
     /**
@@ -753,7 +667,7 @@ class ZeroForm extends ElementsOrdered
      */
     public function markAsError(): void
     {
-        $this->errorsExist  = true;
+        $this->errorsExist = true;
     }
 
     /**
@@ -784,41 +698,7 @@ class ZeroForm extends ElementsOrdered
 
     public function getMessages(): array
     {
-        // Returns global form-level error messages only
-        $customMessages = $this->getErrorMessages();
-        if ($this->hasErrors() && !empty($customMessages)) {
-            return $customMessages;
-        }
-
-        $messages = [];
-
-        /** @var \DalPraS\FormZero\Element $element */
-        foreach ($this->getElements() as $name => $element) {
-            $eMessages = $element->getMessages();
-            if (!empty($eMessages)) {
-                $messages[$name] = $eMessages;
-            }
-        }
-
-        /** @var \DalPraS\FormZero\SubZeroForm $subForm */
-        foreach ($this->getSubForms() as $key => $subForm) {
-            $merge = $subForm->getMessagesForElement(null, true);
-            if (!empty($merge)) {
-                if (!$subForm->isArray()) {
-                    $merge = array($key => $merge);
-                } else {
-                    $merge = $this->attachToArray($merge,
-                    $subForm->getElementsBelongTo());
-                }
-                $messages = array_replace_recursive($messages, $merge);
-            }
-        }
-
-        if ($this->isArray()) {
-            $messages = $this->attachToArray($messages, $this->getElementsBelongTo());
-        }
-
-        return $messages;
+        return $this->validator()->messages($this);
     }
 
     /**
@@ -826,57 +706,7 @@ class ZeroForm extends ElementsOrdered
      */
     public function getMessagesForElement(?string $name = null, bool $suppress = false): array
     {
-        if (null !== $name) {
-            if (isset($this->elements[$name])) {
-                return $this->elements[$name]->getMessages();
-            } else if (isset($this->subForms[$name])) {
-                return $this->subForms[$name]->getMessagesForElement(null, true);
-            }
-            /** @var \DalPraS\FormZero\SubZeroForm $subForm */
-            foreach ($this->getSubForms() as $key => $subForm) {
-                if ($subForm->isArray()) {
-                    $belongTo = $subForm->getElementsBelongTo();
-                    if ($name == $this->fieldPath($belongTo)->leaf()) {
-                        return $subForm->getMessagesForElement(null, true);
-                    }
-                }
-            }
-        }
-
-        $customMessages = $this->getErrorMessages();
-        if ($this->hasErrors() && !empty($customMessages)) {
-            return $customMessages;
-        }
-
-        $messages = [];
-
-        /** @var \DalPraS\FormZero\Element $element */
-        foreach ($this->getElements() as $name => $element) {
-            $eMessages = $element->getMessages();
-            if (!empty($eMessages)) {
-                $messages[$name] = $eMessages;
-            }
-        }
-
-        /** @var \DalPraS\FormZero\SubZeroForm $subForm */
-        foreach ($this->getSubForms() as $key => $subForm) {
-            $merge = $subForm->getMessagesForElement(null, true);
-            if (!empty($merge)) {
-                if (!$subForm->isArray()) {
-                    $merge = array($key => $merge);
-                } else {
-                    $merge = $this->attachToArray($merge,
-                    $subForm->getElementsBelongTo());
-                }
-                $messages = array_replace_recursive($messages, $merge);
-            }
-        }
-
-        if (!$suppress && $this->isArray()) {
-            $messages = $this->attachToArray($messages, $this->getElementsBelongTo());
-        }
-
-        return $messages;
+        return $this->validator()->messagesForElement($this, $name, $suppress);
     }
 
     /**
