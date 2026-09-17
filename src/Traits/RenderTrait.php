@@ -9,32 +9,12 @@ use InvalidArgumentException;
 
 trait RenderTrait
 {
-    private bool $isRendered = false;
-
     /**
      * Decorators for rendering
      *
      * @var \DalPraS\FormZero\Decorator\AbstractDecorator[]
      */
     private array $decorators = [];
-
-    /**
-     * When render this method, is used to set $isRendered member to prevent repeatedly
-     * merging belongsTo setting
-     */
-    public function setIsRendered(): static
-    {
-        $this->isRendered = true;
-        return $this;
-    }
-
-    /**
-     * Get the value of $isRendered member
-     */
-    public function getIsRendered(): bool
-    {
-        return $this->isRendered;
-    }
 
     /**
      * Add many decorators at once

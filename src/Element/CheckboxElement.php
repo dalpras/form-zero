@@ -11,14 +11,6 @@ final class CheckboxElement extends Element implements ChoicesAlignmentInterface
     use ChoicesAlignmentTrait;
     
     /**
-     * Options that will be passed to the view helper
-     */
-    // public array $options = [
-    //     'checkedValue'   => "true",
-    //     'uncheckedValue' => "false",
-    // ];
-
-    /**
      * Is the checkbox checked?
      */
     public bool $checked = false;
@@ -89,7 +81,6 @@ final class CheckboxElement extends Element implements ChoicesAlignmentInterface
     public function setCheckedValue(string $value): static
     {
         $this->checkedValue = $value;
-        // $this->options['checkedValue'] = $value;
         return $this;
     }
 
@@ -107,7 +98,6 @@ final class CheckboxElement extends Element implements ChoicesAlignmentInterface
     public function setUncheckedValue(string $value): static
     {
         $this->uncheckedValue = $value;
-        // $this->options['uncheckedValue'] = $value;
         return $this;
     }
 

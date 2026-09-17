@@ -653,19 +653,4 @@ class Element implements ElementInterface
         return $messages;
     }
 
-    // Rendering
-
-    /**
-     * Render form
-     */
-    // public function render(): string
-    // {
-    //     $content = '';
-    //     /** @var \DalPraS\FormZero\Decorator\AbstractDecorator $decorator */
-    //     foreach ($this->getDecorators() as $decorator) {
-    //         $decorator->setElement($this);
-    //         $content = $decorator->render($content);
-    //     }
-    //     return $content;
-    // }
 }

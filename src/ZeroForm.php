@@ -725,16 +725,6 @@ class ZeroForm extends ElementsOrdered
     // Processing
 
     /**
-     * Determine array key name from given value
-     * Given a value such as foo[bar][baz], returns the last element (in this case, 'baz').
-     */
-    private function getArrayName(string $value): string
-    {
-        return $this->fieldPath($value)->leaf();
-    }
-
-
-    /**
      * Extract the value by walking the array using given array path.
      * Given an array path such as foo[bar][baz], returns the value of the last
      * element (in this case, 'baz').
@@ -947,7 +937,7 @@ class ZeroForm extends ElementsOrdered
             foreach ($this->getSubForms() as $key => $subForm) {
                 if ($subForm->isArray()) {
                     $belongTo = $subForm->getElementsBelongTo();
-                    if ($name == $this->getArrayName($belongTo)) {
+                    if ($name == $this->fieldPath($belongTo)->leaf()) {
                         return $subForm->getMessagesForElement(null, true);
                     }
                 }
@@ -1041,17 +1031,6 @@ class ZeroForm extends ElementsOrdered
     /**
      * Renders the form.
      */
-    // public function render(): string
-    // {
-    //     $content = '';
-    //     /** @var \DalPraS\FormZero\Decorator\AbstractDecorator $decorator */
-    //     foreach ($this->getDecorators() as $decorator) {
-    //         $decorator->setElement($this);
-    //         $content = $decorator->render($content);
-    //     }
-    //     $this->setIsRendered();
-    //     return $content;
-    // }
 
     public function getFactory(): FormFactoryInterface
     {

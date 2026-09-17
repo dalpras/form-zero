@@ -7,10 +7,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 final class SubmitElement extends Element
 {
-    // public array $options = [
-    //     'text' => '',
-    // ];
-
     private string $text = '';
 
     public function setText(string $text): static

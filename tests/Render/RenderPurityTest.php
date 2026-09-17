@@ -30,7 +30,7 @@ final class RenderPurityTest extends TestCase
             $metaTitle->getBelongsTo(),
         ];
 
-        $root->render();
+        $firstHtml = $root->render();
 
         self::assertSame($valuesBefore, $root->getValues());
         self::assertSame($messagesBefore, $root->getMessages());
@@ -39,7 +39,11 @@ final class RenderPurityTest extends TestCase
             $metadata->getElementsBelongTo(),
             $metaTitle->getBelongsTo(),
         ]);
-        self::assertFalse($root->getIsRendered());
+
+        $secondHtml = $root->render();
+        self::assertSame($firstHtml, $secondHtml);
+        self::assertSame($valuesBefore, $root->getValues());
+        self::assertSame($messagesBefore, $root->getMessages());
     }
 
     public function testRepeatedRenderKeepsFullyQualifiedNestedNamesStable(): void
