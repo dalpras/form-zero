@@ -21,7 +21,7 @@ class ElementContentDecorator extends AbstractDecorator
                 $html = '';
                 if ($prefix !== '') {
                     $html .= $render->at('tag.div')([
-                        '{attributes}' => ['class' => 'input-group'],
+                        '{attributes}' => ['class' => 'input-group form-zero-control-group'],
                         '{content}'    => $render->at('tag.span')([
                             '{attributes}' => ['class' => 'input-group-text bg-transparent border-end-0'],
                             '{content}' => $prefix
