@@ -11,7 +11,6 @@ use DalPraS\FormZero\ZeroForm;
 use DalPraS\SmartTemplate\TemplateEngine;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Translation\Translator;
-use Symfony\Component\Validator\Validation;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class FormFactory implements FormFactoryInterface
@@ -21,6 +20,7 @@ class FormFactory implements FormFactoryInterface
     public function __construct(
         private readonly TemplateEngine $template,
         private readonly Request $request,
+        private readonly ValidatorInterface $validator,
         private readonly ?Translator $translator = null
     ) {
     }
@@ -32,14 +32,7 @@ class FormFactory implements FormFactoryInterface
 
     public function getValidator(): ValidatorInterface
     {
-        $vb = Validation::createValidatorBuilder();
-
-        if ($this->translator !== null) {
-            $vb->setTranslationDomain('validators')
-                ->setTranslator($this->translator);
-        }
-
-        return $vb->getValidator();
+        return $this->validator;
     }
 
     public function translator(): ?Translator
