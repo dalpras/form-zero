@@ -23,10 +23,22 @@ final class FilterChain implements IteratorAggregate
     /** @var list<FilterInterface> */
     private array $filters = [];
 
+    /**
+     * Monotonic revision used by elements to invalidate cached filtered values
+     * when the public filter chain is mutated directly.
+     */
+    private int $revision = 0;
+
     public function attach(FilterInterface $filter): static
     {
         $this->filters[] = $filter;
+        ++$this->revision;
         return $this;
+    }
+
+    public function getRevision(): int
+    {
+        return $this->revision;
     }
 
     /**

@@ -6,6 +6,7 @@ use DalPraS\FormZero\Decorator\AbstractDecorator;
 use DalPraS\FormZero\Decorator\DecoratorPreset;
 use DalPraS\FormZero\Element\Traits\FiltersTrait;
 use DalPraS\FormZero\Factory\FormFactoryInterface;
+use DalPraS\FormZero\Filter\FilterChain;
 use DalPraS\FormZero\Traits\AttributesTrait;
 use DalPraS\FormZero\Traits\ConstraintsTrait;
 use DalPraS\FormZero\Traits\ErrorsTrait;
@@ -52,6 +53,18 @@ class Element implements ElementInterface
      * Element value
      */
     protected $value;
+
+    /**
+     * Cached normalized/filtered value.
+     *
+     * The cache remains valid while the raw value, array mode and filter-chain
+     * revision are unchanged.
+     */
+    private mixed $filteredValue = null;
+    private bool $filteredValueCached = false;
+    private ?FilterChain $filteredValueFilterChain = null;
+    private int $filteredValueFilterRevision = -1;
+    private bool $filteredValueIsArray = false;
 
     public function setFactory(FormFactoryInterface $factory): static
     {
@@ -188,6 +201,7 @@ class Element implements ElementInterface
     public function setValue($value): static
     {
         $this->value = $value;
+        $this->filteredValueCached = false;
         return $this;
     }
 
@@ -198,15 +212,35 @@ class Element implements ElementInterface
      */
     public function getValue()
     {
+        $filterChain = $this->getFilterChain();
+        $filterRevision = $filterChain->getRevision();
+        $isArray = $this->isArray();
+
+        if (
+            $this->filteredValueCached
+            && $this->filteredValueFilterChain === $filterChain
+            && $this->filteredValueFilterRevision === $filterRevision
+            && $this->filteredValueIsArray === $isArray
+        ) {
+            return $this->filteredValue;
+        }
+
         $values = $this->value;
 
-        if ($this->isArray() && is_array($values)) {
-            array_walk_recursive($values, function (&$value) {
-                $value = $this->getFilterChain()->filter($value);
+        if ($isArray && is_array($values)) {
+            array_walk_recursive($values, static function (&$value) use ($filterChain): void {
+                $value = $filterChain->filter($value);
             });
         } else {
-            $values = $this->getFilterChain()->filter($values);
+            $values = $filterChain->filter($values);
         }
+
+        $this->filteredValue = $values;
+        $this->filteredValueCached = true;
+        $this->filteredValueFilterChain = $filterChain;
+        $this->filteredValueFilterRevision = $filterRevision;
+        $this->filteredValueIsArray = $isArray;
+
         return $values;
     }
 
