@@ -201,6 +201,17 @@ class Element implements ElementInterface
         return $this->compiledId;
     }
 
+    /**
+     * Return the compiled structural field path used by rendering and uploads.
+     *
+     * @internal
+     */
+    public function getFieldPath(): FieldPath
+    {
+        $this->compileFieldPath();
+        return $this->compiledFieldPath;
+    }
+
     private function compileFieldPath(): void
     {
         if ($this->compiledFieldPath !== null) {

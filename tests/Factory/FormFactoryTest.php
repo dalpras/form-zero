@@ -6,9 +6,11 @@ namespace DalPraS\UnitTests\Factory;
 
 use ArgumentCountError;
 use DalPraS\FormZero\Factory\FormFactory;
+use DalPraS\FormZero\FieldPath;
+use DalPraS\FormZero\Upload\UploadedFileProviderInterface;
 use DalPraS\SmartTemplate\TemplateEngine;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Validator\Validation;
 
 final class FormFactoryTest extends TestCase
@@ -19,7 +21,7 @@ final class FormFactoryTest extends TestCase
 
         new FormFactory(
             new TemplateEngine(),
-            new Request(),
+            $this->uploadedFileProvider(),
         );
     }
 
@@ -28,10 +30,32 @@ final class FormFactoryTest extends TestCase
         $validator = Validation::createValidator();
         $factory = new FormFactory(
             template: new TemplateEngine(),
-            request: new Request(),
+            uploadedFileProvider: $this->uploadedFileProvider(),
             validator: $validator,
         );
 
         self::assertSame($validator, $factory->getValidator());
+    }
+
+    public function testItUsesTheInjectedUploadedFileProviderInstance(): void
+    {
+        $uploadedFileProvider = $this->uploadedFileProvider();
+        $factory = new FormFactory(
+            template: new TemplateEngine(),
+            uploadedFileProvider: $uploadedFileProvider,
+            validator: Validation::createValidator(),
+        );
+
+        self::assertSame($uploadedFileProvider, $factory->getUploadedFileProvider());
+    }
+
+    private function uploadedFileProvider(): UploadedFileProviderInterface
+    {
+        return new class implements UploadedFileProviderInterface {
+            public function get(FieldPath $fieldPath): array|UploadedFile|null
+            {
+                return null;
+            }
+        };
     }
 }

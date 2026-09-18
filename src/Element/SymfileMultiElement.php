@@ -9,11 +9,7 @@ use DalPraS\FormZero\Element\Traits\MultiChoicesTrait;
 use DalPraS\FormZero\Element\Traits\UploadFileTrait;
 
 /**
- * Il processo per l'upload dei files è il seguente:
- *
- * isValid() -> applica i validatori
- * receive() -> applica i filtri per spostare i files, carica FileUploaded nel value
- * getValue() -> ritorna il FileUploaded
+ * Multiple file upload element.
  */
 final class SymfileMultiElement extends SymfileElement implements MultiChoicesInterface, UploadFileInterface
 {

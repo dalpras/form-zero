@@ -4,8 +4,8 @@ namespace DalPraS\FormZero\Factory;
 
 use DalPraS\FormZero\ElementInterface;
 use DalPraS\FormZero\ZeroForm;
+use DalPraS\FormZero\Upload\UploadedFileProviderInterface;
 use DalPraS\SmartTemplate\TemplateEngine;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Translation\Translator;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -13,7 +13,7 @@ interface FormFactoryInterface
 {
     public function template(): TemplateEngine;
 
-    public function request(): Request;
+    public function getUploadedFileProvider(): UploadedFileProviderInterface;
 
     public function translator(): ?Translator;
 

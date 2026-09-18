@@ -85,6 +85,22 @@ final readonly class FieldPath
         return $value;
     }
 
+    /**
+     * Resolve this path exactly, returning null when any segment is missing.
+     */
+    public function find(array $value): mixed
+    {
+        foreach ($this->segments as $segment) {
+            if (!is_array($value) || !array_key_exists($segment, $value)) {
+                return null;
+            }
+
+            $value = $value[$segment];
+        }
+
+        return $value;
+    }
+
     public function remove(array $array, string $key): array
     {
         $target = &$array;

@@ -12,24 +12,13 @@ trait UploadFileTrait
     /**
      * Return the UploadedFile or array of UploadedFile for the current element.
      *
-     * In Symfony, files are stored in the Request::$files bag and mapped as
-     * Symfony\Component\HttpFoundation\File\UploadedFile instances.
-     *
      * @return UploadedFile|UploadedFile[]|null
      */
     public function getUploadedFiles(): array|UploadedFile|null
     {
-        // getHttpRequest() must return Symfony\Component\HttpFoundation\Request
-        $request = $this->getFactory()->request();
-        if ($request === null) {
-            return null;
-        }
-
-        // This returns either:
-        // - UploadedFile
-        // - UploadedFile[]
-        // - null
-        $uploadedFile = $request->files->get($this->getName());
+        $uploadedFile = $this->getFactory()
+            ->getUploadedFileProvider()
+            ->get($this->getFieldPath());
 
         if ($uploadedFile === null) {
             return null;

@@ -11,12 +11,14 @@ use DalPraS\FormZero\Decorator\ElementBaseDecorator;
 use DalPraS\FormZero\Element;
 use DalPraS\FormZero\Element\TextElement;
 use DalPraS\FormZero\Factory\FormFactory;
+use DalPraS\FormZero\FieldPath;
+use DalPraS\FormZero\Upload\UploadedFileProviderInterface;
 use DalPraS\SmartTemplate\Collection\RenderCollection;
 use DalPraS\SmartTemplate\TemplateEngine;
 use LogicException;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Validator\Validation;
 
 final class RenderExceptionTest extends TestCase
@@ -145,7 +147,12 @@ final class RenderExceptionTest extends TestCase
     {
         return new FormFactory(
             $engine,
-            new Request(),
+            new class implements UploadedFileProviderInterface {
+                public function get(FieldPath $fieldPath): array|UploadedFile|null
+                {
+                    return null;
+                }
+            },
             Validation::createValidator(),
         );
     }

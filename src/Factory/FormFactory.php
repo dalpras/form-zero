@@ -7,9 +7,9 @@ use DalPraS\FormZero\Decorator\DecoratorPreset;
 use DalPraS\FormZero\ElementInterface;
 use DalPraS\FormZero\Exception\FormFactoryException;
 use DalPraS\FormZero\FormLayout;
+use DalPraS\FormZero\Upload\UploadedFileProviderInterface;
 use DalPraS\FormZero\ZeroForm;
 use DalPraS\SmartTemplate\TemplateEngine;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Translation\Translator;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -19,15 +19,15 @@ class FormFactory implements FormFactoryInterface
 
     public function __construct(
         private readonly TemplateEngine $template,
-        private readonly Request $request,
+        private readonly UploadedFileProviderInterface $uploadedFileProvider,
         private readonly ValidatorInterface $validator,
         private readonly ?Translator $translator = null
     ) {
     }
 
-    public function request(): Request
+    public function getUploadedFileProvider(): UploadedFileProviderInterface
     {
-        return $this->request;
+        return $this->uploadedFileProvider;
     }
 
     public function getValidator(): ValidatorInterface

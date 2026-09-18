@@ -40,6 +40,20 @@ final class FieldPathTest extends TestCase
         self::assertSame('value', FieldPath::fromString('foo[bar][baz]')->read($data));
     }
 
+    public function testFindResolvesExactlyAndReturnsNullForMissingSegments(): void
+    {
+        $data = [
+            'foo' => [
+                'bar' => [
+                    'baz' => 'value',
+                ],
+            ],
+        ];
+
+        self::assertSame('value', FieldPath::fromString('foo[bar][baz]')->find($data));
+        self::assertNull(FieldPath::fromString('foo[missing][baz]')->find($data));
+    }
+
     public function testWrapCreatesNestedArrayStructure(): void
     {
         self::assertSame(

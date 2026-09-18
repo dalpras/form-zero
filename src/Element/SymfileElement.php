@@ -9,20 +9,15 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
- * The process for file uploads is as follows:
- *
- * isValid()  -> Apply Symfony Validator constraints
- * receive()  -> Store UploadedFile(s) in value (optionally after filters)
- * getValue() -> Return the uploaded file(s) after receive()
+ * File upload element. Uploads are read through the configured provider while
+ * the element value remains independent form data.
  */
 class SymfileElement extends Element implements UploadFileInterface
 {
     use UploadFileTrait;
 
     /**
-     * Receive UploadedFile or array of UploadedFile.
-     *
-     * @return UploadedFile|UploadedFile[]|null
+     * Return the element's stored form value.
      */
     public function getValue()
     {
@@ -32,7 +27,7 @@ class SymfileElement extends Element implements UploadFileInterface
     /**
      * Validate the element using Symfony Validator.
      *
-     * @param mixed $value   Ignored (we always read from Request)
+     * @param mixed $value   Ignored (the upload provider supplies files)
      * @param mixed $context Full POST data (if needed)
      */
     public function isValid($value, $context = null): bool
