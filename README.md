@@ -533,6 +533,30 @@ $this->add(new TextElement(), 'name', [
 ]);
 ```
 
+### Required-field marker and legend
+
+Required elements with a non-empty label receive the `required` CSS class on their rendered label. The application theme can use that class to display an asterisk, for example:
+
+```css
+label.required::before {
+    content: '* ';
+}
+```
+
+`FormDecorator` also renders the translated mandatory-fields legend automatically when the form, or one of its nested subforms, contains at least one required labeled element.
+
+You can override that automatic behavior per form:
+
+```php
+// Always hide the mandatory-fields legend.
+[FormDecorator::class, ['mandatory' => false]]
+
+// Always show the mandatory-fields legend.
+[FormDecorator::class, ['mandatory' => true]]
+```
+
+When the `mandatory` option is omitted, automatic detection is used.
+
 ## Full validation
 
 ```php

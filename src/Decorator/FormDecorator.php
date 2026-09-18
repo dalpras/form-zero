@@ -3,6 +3,7 @@
 namespace DalPraS\FormZero\Decorator;
 
 use DalPraS\FormZero\Decorator\AbstractDecorator;
+use DalPraS\FormZero\ZeroForm;
 use DalPraS\SmartTemplate\Collection\RenderCollection;
 
 /**
@@ -12,6 +13,8 @@ use DalPraS\SmartTemplate\Collection\RenderCollection;
  * - separator: Separator to use between elements
  * - helper: which view helper to use when rendering form. Should accept three
  *   arguments, string content, a name, and an array of attributes.
+ * - mandatory: true forces the mandatory-fields legend, false suppresses it,
+ *   null/omitted renders it automatically when a required labeled element exists.
  *
  * Any other options passed will be used as HTML attributes of the form tag.
  */
@@ -49,15 +52,36 @@ class FormDecorator extends AbstractDecorator
                 '{action}' => $action,
                 '{method}' => $method,
                 '{attributes}' => $attributes,
-                '{content}'   => function(RenderCollection $render) use ($content) {
+                '{content}'   => function(RenderCollection $render) use ($content, $element) {
                     $html = $content;
-                    $mandatory = (bool) ($this->getOption('mandatory') ?? false);
-                    if ($mandatory === true) {
+                    $mandatory = $this->getOption('mandatory');
+                    $showMandatory = $mandatory === null
+                        ? $this->hasRequiredLabeledElement($element)
+                        : (bool) $mandatory;
+
+                    if ($showMandatory) {
                         $html .= $render->at('form.components.mandatory')($render);
                     }
                     return $html;
                 }
             ]);
         });
+    }
+
+    private function hasRequiredLabeledElement(ZeroForm $form): bool
+    {
+        foreach ($form->getElements() as $element) {
+            if ($element->isRequired() && trim($element->getLabel()) !== '') {
+                return true;
+            }
+        }
+
+        foreach ($form->getSubForms() as $subForm) {
+            if ($this->hasRequiredLabeledElement($subForm)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
