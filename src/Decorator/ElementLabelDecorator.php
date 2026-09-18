@@ -16,9 +16,15 @@ class ElementLabelDecorator extends AbstractDecorator
         
         return $engine->renderDefault(function(RenderCollection $render) use ($content, $element, $helpers) {
             if ( $element->getLabel() !== '' ) {
+                $class = (string) ($this->getOption('class') ?? 'form-label');
+
+                if ($element->isRequired()) {
+                    $class = trim($class . ' required');
+                }
+
                 return $render->at('tag.label')([
                     '{attributes}' => [
-                        'class'    => $this->getOption('class') ?? 'form-label' . ($element->isRequired() ? 'required' : ''),
+                        'class'    => $class,
                         'for'      => $this->getOption('for') ?? $element->getId(),
                     ],
                     '{content}'     => $element->isTranslatorDisabled() 
