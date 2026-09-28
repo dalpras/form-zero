@@ -46,6 +46,9 @@
             "canonical": false
 		}
 	],    
+    "scripts": {
+        "test": "phpunit tests"
+    },    
 	"minimum-stability" : "dev",
 	"prefer-stable" : true
 }
