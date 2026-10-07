@@ -690,6 +690,38 @@ FormZero compiles these paths and reuses them for rendering, data mapping, valid
 
 Rendering does not rewrite the logical `belongsTo` data structure.
 
+### Subform legends
+
+A subform has one legend rule and one renderer for it. The legend value belongs to the form:
+
+```php
+$metadata = $this->createSubZeroForm();
+$metadata->setLegend('Metadata');
+$this->addSubForm($metadata, 'metadata');
+```
+
+`SubZeroForm` uses this default decorator pipeline:
+
+```text
+ElementsDecorator -> FieldsetDecorator
+```
+
+`FieldsetDecorator` renders both the semantic `<fieldset>` wrapper and, when `getLegend()` is not empty, its `<legend>`. There is no separate legend decorator and no independent legend value on the fieldset decorator: `setLegend()` on the form/subform is the single source of truth.
+
+For the uncommon case where a fieldset is required but its legend must not be rendered, suppress only the rendering:
+
+```php
+use DalPraS\FormZero\Decorator\ElementsDecorator;
+use DalPraS\FormZero\Decorator\FieldsetDecorator;
+
+$metadata->setDecorators([
+    ElementsDecorator::class,
+    [FieldsetDecorator::class, ['renderLegend' => false]],
+]);
+```
+
+Do not pass a second `legend` option to `FieldsetDecorator`; change the legend through `$metadata->setLegend(...)`.
+
 ---
 
 # 11. File uploads

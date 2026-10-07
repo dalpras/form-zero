@@ -4,7 +4,6 @@ namespace DalPraS\FormZero;
 
 use DalPraS\FormZero\Decorator\ElementsDecorator;
 use DalPraS\FormZero\Decorator\FieldsetDecorator;
-use DalPraS\FormZero\ZeroForm;
 
 class SubZeroForm extends ZeroForm 
 {
@@ -19,7 +18,7 @@ class SubZeroForm extends ZeroForm
         if (empty($decorators)) {
             $this->addDecorators([
                 ElementsDecorator::class,
-                FieldsetDecorator::class
+                FieldsetDecorator::class,
             ]);
         }
         return $this;

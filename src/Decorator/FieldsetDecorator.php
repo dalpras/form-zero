@@ -2,76 +2,61 @@
 
 namespace DalPraS\FormZero\Decorator;
 
-use DalPraS\FormZero\Decorator\AbstractDecorator;
 use DalPraS\SmartTemplate\Collection\RenderCollection;
 
 /**
- * Fieldset
+ * Render a form/subform as a semantic HTML fieldset.
  *
- * Questo decoratore aggiunge la parte html fieldset ai campi della form.
- * Utilizza anche l'helper fieldset per renderizzare il tutto.
+ * Legend rule:
+ * - the form/subform legend is configured only through ZeroForm::setLegend();
+ * - this decorator is the only component responsible for rendering <legend>;
+ * - renderLegend=false may be used only to suppress the legend while keeping
+ *   the fieldset wrapper.
  *
- * Any options passed will be used as HTML attributes of the fieldset tag.
+ * Any remaining decorator options are used as HTML attributes of <fieldset>.
  */
 class FieldsetDecorator extends AbstractDecorator
 {
     /**
-     * Fieldset legend
-     */
-    private string $legend = '';
-
-    /**
-     * Get options
-     * Merges in element attributes as well.
+     * Get fieldset HTML attributes.
+     *
+     * Decorator-only options must never leak into the generated HTML.
      */
     public function getOptions(): array
     {
         $options = parent::getOptions();
-        if (null !== ($element = $this->getElement())) {
-            $attributes = $element->getAttribs();
-            $options = array_merge($attributes, $options);
-            $this->setOptions($options);
-        }
-        return $options;
+        unset($options['legend'], $options['renderLegend']);
+
+        return array_merge($this->getElement()->getAttribs(), $options);
     }
 
     /**
-     * Set legend
+     * Read the legend from the form/subform itself.
+     *
+     * There is deliberately no independent legend state on this decorator:
+     * ZeroForm::setLegend() is the single source of truth.
      */
-    public function setLegend(string $value): static
+    private function resolveLegend(): string
     {
-        $this->legend = (string) $value;
-        return $this;
+        $element = $this->getElement();
+
+        if (!method_exists($element, 'getLegend')) {
+            return '';
+        }
+
+        return trim((string) $element->getLegend());
     }
 
     /**
-     * Get legend
-     */
-    public function getLegend(): string
-    {
-        $legend = $this->legend;
-        if ((null === $legend) && (null !== ($element = $this->getElement()))) {
-            if (method_exists($element, 'getLegend')) {
-                $legend = $element->getLegend();
-                $this->setLegend($legend);
-            }
-        }
-        if ((null === $legend) && (null !== ($legend = $this->getOption('legend')))) {
-            $this->setLegend($legend);
-            $this->removeOption('legend');
-        }
-
-        return $legend;
-    }
-
-    /**
-     * Render a fieldset
+     * Render a fieldset and, when configured, its semantic legend.
      */
     public function render(string $content = ''): string
     {
-        /** @var \DalPraS\FormZero\Element $element */
+        /** @var \DalPraS\FormZero\Element|\DalPraS\FormZero\ZeroForm $element */
         $element = $this->getElement();
 
+        $renderLegend = $this->getOption('renderLegend') !== false;
+        $legend = $this->resolveLegend();
         $attributes = $this->getOptions();
         $id = (string) $element->getId();
 
@@ -89,15 +74,15 @@ class FieldsetDecorator extends AbstractDecorator
                 $attributes['id']   ??= $attributes['name'];
                 return $attributes;
             },
-            '{content}' => function($render) use ($content, $helpers) {
-                $html = $this->getLegend() !== '' 
-                    ? $render->at('tag.legend')([
-                        '{content}' => $helpers->escaper()->escapeHtml(trim($this->getLegend()))
-                    ]) 
-                    :  '';
-                $html .= $content;
-                return $html;
-            }
+            '{content}' => function($render) use ($content, $renderLegend, $legend, $helpers) {
+                if (!$renderLegend || $legend === '') {
+                    return $content;
+                }
+
+                return $render->at('tag.legend')([
+                    '{content}' => $helpers->escaper()->escapeHtml($legend),
+                ]) . $content;
+            },
         ]));
     }
 }
