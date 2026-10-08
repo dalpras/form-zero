@@ -21,14 +21,9 @@ class ZeroForm extends ElementsOrdered
     use ErrorsTrait;
     use RenderTrait;
 
-    private string $description = '';
-
     private array $elements = [];
 
     private string $elementsBelongTo = '';
-
-    /** Compiled local path used for data mapping. */
-    private ?FieldPath $elementsBelongToPath = null;
 
     /** Compiled parent namespace used only to resolve HTML field names. */
     private ?FieldPath $renderParentBelongsToPath = null;
@@ -39,8 +34,6 @@ class ZeroForm extends ElementsOrdered
     private ?FormDataMapper $formDataMapper = null;
 
     private ?FormValidator $formValidator = null;
-
-    private int $order = 0;
 
     private string $legend = '';
 
@@ -73,7 +66,7 @@ class ZeroForm extends ElementsOrdered
     }
 
     /**
-     * Set form name and invalidate a name-derived array path.
+     * Set form name.
      */
     public function setName(string $name): static
     {
@@ -86,9 +79,6 @@ class ZeroForm extends ElementsOrdered
         }
 
         $this->name = $name;
-        if ($this->elementsBelongTo === '') {
-            $this->elementsBelongToPath = null;
-        }
         return $this;
     }
 
@@ -186,40 +176,6 @@ class ZeroForm extends ElementsOrdered
     public function getLegend(): string
     {
         return $this->legend;
-    }
-
-    /**
-     * Set form description
-     */
-    public function setDescription(string $value): static
-    {
-        $this->description = $value;
-        return $this;
-    }
-
-    /**
-     * Retrieve form description
-     */
-    public function getDescription(): string
-    {
-        return $this->description;
-    }
-
-    /**
-     * Set visualization order
-     */
-    public function setOrder(int $index): static
-    {
-        $this->order = $index;
-        return $this;
-    }
-
-    /**
-     * Get form order
-     */
-    public function getOrder(): int
-    {
-        return $this->order;
     }
 
 
@@ -431,7 +387,6 @@ class ZeroForm extends ElementsOrdered
     {
         $belongsTo = $this->filterName($array, true);
         $this->elementsBelongTo = $belongsTo;
-        $this->elementsBelongToPath = $this->fieldPath($belongsTo);
         $this->applyBelongsTo();
 
         $this->refreshRenderContext();
@@ -513,7 +468,7 @@ class ZeroForm extends ElementsOrdered
 
     private function getElementsBelongToPath(): FieldPath
     {
-        return $this->elementsBelongToPath ??= $this->fieldPath($this->getElementsBelongTo());
+        return $this->fieldPath($this->getElementsBelongTo());
     }
 
     private function dataMapper(): FormDataMapper
@@ -643,7 +598,6 @@ class ZeroForm extends ElementsOrdered
             // The parent's alias must never leak into later standalone use.
             $this->name = $state['name'];
             $this->elementsBelongTo = $state['belongsTo'];
-            $this->elementsBelongToPath = null;
             foreach ($state['elementBelongsTo'] as $key => $belongsTo) {
                 if (isset($this->elements[$key])) {
                     $this->elements[$key]->setBelongsTo($belongsTo);

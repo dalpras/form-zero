@@ -347,6 +347,8 @@ $element = $this->add(new TextElement(), 'title', [
 $element->setDescription('Displayed below the field.');
 ```
 
+Descriptions belong to individual elements, not to the form. Likewise, use the `order` argument of `addElement()` or `addSubForm()` to control the order of children; the form does not have its own `setOrder()` property.
+
 The most commonly used option keys are:
 
 | Option | Meaning |
