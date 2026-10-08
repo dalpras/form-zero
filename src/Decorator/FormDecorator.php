@@ -28,6 +28,15 @@ class FormDecorator extends AbstractDecorator
     public function render(string $content = ''): string
     {
         $element = $this->getElement();
+
+        // A regular form becomes a fieldset only while nested. Keep its
+        // configured decorators untouched so it renders normally after detach.
+        if ($element instanceof ZeroForm && $element->isNested()) {
+            $options = $this->getOptions();
+            unset($options['mandatory'], $options['helper'], $options['separator']);
+            return (new FieldsetDecorator($options))->setElement($element)->render($content);
+        }
+
         $factory = $element->getFactory();
         $engine = $factory->template();
 
@@ -60,7 +69,7 @@ class FormDecorator extends AbstractDecorator
                         : (bool) $mandatory;
 
                     if ($showMandatory) {
-                        $html .= $render->at('form.components.mandatory')($render);
+                        $html .= $render->at('form.components.mandatory')();
                     }
                     return $html;
                 }

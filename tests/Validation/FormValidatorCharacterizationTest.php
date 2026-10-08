@@ -6,7 +6,6 @@ namespace DalPraS\UnitTests\Validation;
 
 use DalPraS\FormZero\Element;
 use DalPraS\FormZero\FormValidator;
-use DalPraS\FormZero\SubZeroForm;
 use DalPraS\FormZero\ZeroForm;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -151,15 +150,15 @@ final class FormValidatorCharacterizationTest extends TestCase
     }
 
     /**
-     * @return array{ZeroForm, SubZeroForm, SubZeroForm, ValidationElement}
+     * @return array{ZeroForm, ZeroForm, ZeroForm, ValidationElement}
      */
     private function createNestedForm(): array
     {
         $root = $this->newForm(ZeroForm::class);
         $root->setName('root');
 
-        $basedata = $this->newForm(SubZeroForm::class);
-        $metadata = $this->newForm(SubZeroForm::class);
+        $basedata = $this->newForm(ZeroForm::class);
+        $metadata = $this->newForm(ZeroForm::class);
         $metaTitle = (new ValidationElement(required: true))->setName('metaTitle');
         $metadata->addElement($metaTitle);
 

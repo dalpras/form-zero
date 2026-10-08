@@ -1,9 +1,7 @@
 <?php
 /* mandatory.php */
 
-use DalPraS\SmartTemplate\Collection\RenderCollection;
-
-return function(RenderCollection $render) {
+return function(): string {
     $helpers = $this->getHelpers();    
 
     return '<p>' . 

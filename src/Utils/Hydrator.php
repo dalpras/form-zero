@@ -5,9 +5,9 @@ namespace DalPraS\FormZero\Utils;
 use Closure;
 use DalPraS\FormZero\Element;
 use DalPraS\FormZero\ElementInterface;
+use DalPraS\FormZero\FieldPath;
 use DalPraS\FormZero\Exception\HydratorIgnoreFieldException;
 use DalPraS\FormZero\Exception\HydratorInvalidFieldException;
-use DalPraS\FormZero\SubZeroForm;
 use DalPraS\FormZero\ZeroForm;
 use Throwable;
 use TypeError;
@@ -23,7 +23,7 @@ class Hydrator
     public static function hydrateForm(ZeroForm &$form, Closure $hydrate): void
     {
         $data = [];
-        /** @var \DalPraS\FormZero\Element|\DalPraS\FormZero\SubZeroForm $element */
+        /** @var \DalPraS\FormZero\Element|\DalPraS\FormZero\ZeroForm $element */
         foreach ($form->getElementsAndSubFormsOrdered() as $element) {
             if ($element instanceof Element && $element->getIgnore()) {
                 continue;
@@ -47,6 +47,13 @@ class Hydrator
             } catch (Throwable $th) {
                 throw $th;
             }
+        }
+        // hydrateForm() is always given *local* field values, even when called
+        // directly on a child inside an Article-style form hierarchy. Wrap
+        // the payload explicitly so nested setDefaults() can enforce strict
+        // branch isolation for actual parent POST/default input.
+        if ($form->isNested() && $form->isArray()) {
+            $data = FieldPath::fromString($form->getElementsBelongTo())->wrap($data);
         }
         $form->setDefaults($data);
     }
@@ -78,7 +85,7 @@ class Hydrator
             $value = match (true) {
                 $element instanceof ElementInterface 
                     => $element->getValue(),
-                $element instanceof SubZeroForm 
+                $element instanceof ZeroForm
                     => $element->getValues(),
                 default 
                     => null

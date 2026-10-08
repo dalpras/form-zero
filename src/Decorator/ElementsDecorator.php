@@ -2,9 +2,7 @@
 
 namespace DalPraS\FormZero\Decorator;
 
-use DalPraS\FormZero\SubZeroForm;
 use DalPraS\FormZero\ZeroForm;
-use InvalidArgumentException;
 
 /**
  * Render all form elements registered with current form.
@@ -20,10 +18,6 @@ class ElementsDecorator extends AbstractDecorator
         $items = [];
 
         foreach ($form as $item) {
-            if ($item instanceof ZeroForm && !$item instanceof SubZeroForm) {
-                throw new InvalidArgumentException('Cannot add Forms to Form use SubZeroForms');
-            }
-
             $items[] = $item->render();
         }
 

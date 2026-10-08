@@ -10,7 +10,6 @@ use DalPraS\FormZero\Element\HashElement;
 use DalPraS\FormZero\Element\SymfileElement;
 use DalPraS\FormZero\Element\TextElement;
 use DalPraS\FormZero\Session\SessionAdapterInterface;
-use DalPraS\FormZero\SubZeroForm;
 use DalPraS\FormZero\ZeroForm;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -82,7 +81,7 @@ final class RenderPurityTest extends TestCase
         $root = $this->newForm(ZeroForm::class);
         $root->setName('root');
 
-        $uploadGroup = $this->newForm(SubZeroForm::class);
+        $uploadGroup = $this->newForm(ZeroForm::class);
         $file = (new SymfileElement())->setName('attachment');
         $uploadGroup->addElement($file);
         $root->addSubForm($uploadGroup, 'uploads');
@@ -105,7 +104,7 @@ final class RenderPurityTest extends TestCase
     }
 
     /**
-     * @return array{ZeroForm, SubZeroForm, SubZeroForm, TextElement}
+     * @return array{ZeroForm, ZeroForm, ZeroForm, TextElement}
      */
     private function createNestedForm(): array
     {
@@ -113,13 +112,13 @@ final class RenderPurityTest extends TestCase
         $root->setName('root');
         $root->setDecorators([new ElementsDecorator()]);
 
-        $basedata = $this->newForm(SubZeroForm::class);
+        $basedata = $this->newForm(ZeroForm::class);
         $basedata->setDecorators([new ElementsDecorator()]);
         $title = (new TextElement())->setName('title')->setValue('Title');
         $title->setDecorators([new RenderPurityNoopDecorator()]);
         $basedata->addElement($title);
 
-        $metadata = $this->newForm(SubZeroForm::class);
+        $metadata = $this->newForm(ZeroForm::class);
         $metadata->setDecorators([new ElementsDecorator()]);
         $metaTitle = (new TextElement())->setName('metaTitle')->setValue('Meta title');
         $metaTitle->setDecorators([new RenderPurityNoopDecorator()]);

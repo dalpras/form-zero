@@ -27,7 +27,18 @@ class FieldsetDecorator extends AbstractDecorator
         $options = parent::getOptions();
         unset($options['legend'], $options['renderLegend']);
 
-        return array_merge($this->getElement()->getAttribs(), $options);
+        $attributes = array_merge($this->getElement()->getAttribs(), $options);
+        if ($this->getElement() instanceof \DalPraS\FormZero\ZeroForm && $this->getElement()->isNested()) {
+            // A standalone form's submission attributes do not belong on
+            // its nested <fieldset>. Names/IDs are derived from the new path.
+            unset(
+                $attributes['action'], $attributes['method'], $attributes['enctype'],
+                $attributes['novalidate'], $attributes['accept-charset'],
+                $attributes['target'], $attributes['autocomplete'], $attributes['name']
+            );
+        }
+
+        return $attributes;
     }
 
     /**

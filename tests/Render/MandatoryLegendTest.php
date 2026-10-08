@@ -8,7 +8,6 @@ use DalPraS\FormZero\Decorator\FormDecorator;
 use DalPraS\FormZero\Element\TextElement;
 use DalPraS\FormZero\Factory\FormFactory;
 use DalPraS\FormZero\FieldPath;
-use DalPraS\FormZero\SubZeroForm;
 use DalPraS\FormZero\Upload\UploadedFileProviderInterface;
 use DalPraS\FormZero\ZeroForm;
 use DalPraS\SmartTemplate\Plugins\HelpersInterface;
@@ -59,7 +58,7 @@ final class MandatoryLegendTest extends TestCase
     {
         [$factory, $form] = $this->form();
 
-        $subForm = $factory->createForm(SubZeroForm::class);
+        $subForm = $factory->createForm(ZeroForm::class);
         $subForm->add(new TextElement(), 'city', [
             'label' => 'City',
             'required' => true,

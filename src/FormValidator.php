@@ -21,7 +21,7 @@ final class FormValidator
 
         if ($form->isArray()) {
             $elementsBelongTo = $form->getElementsBelongTo();
-            $data = $this->read($data, $elementsBelongTo);
+            $data = $this->readFormData($form, $data, $elementsBelongTo);
         }
 
         $valid = true;
@@ -44,7 +44,7 @@ final class FormValidator
             }
         }
 
-        /** @var SubZeroForm $subForm */
+        /** @var ZeroForm $subForm */
         foreach ($form->getSubForms() as $key => $subForm) {
             if (isset($data[$key]) && !$subForm->isArray()) {
                 $valid = $this->isValid($subForm, $data[$key]) && $valid;
@@ -64,7 +64,7 @@ final class FormValidator
 
         if ($form->isArray()) {
             $elementsBelongTo = $form->getElementsBelongTo();
-            $data = $this->read($data, $elementsBelongTo);
+            $data = $this->readFormData($form, $data, $elementsBelongTo);
         }
 
         $valid = true;
@@ -85,7 +85,7 @@ final class FormValidator
             }
         }
 
-        /** @var SubZeroForm $subForm */
+        /** @var ZeroForm $subForm */
         foreach ($form->getSubForms() as $key => $subForm) {
             if (isset($data[$key]) && !$subForm->isArray()) {
                 $valid = $this->isValidPartial($subForm, $data[$key]) && $valid;
@@ -129,7 +129,7 @@ final class FormValidator
                 return $this->messagesForElement($subForm, null, true);
             }
 
-            /** @var SubZeroForm $subForm */
+            /** @var ZeroForm $subForm */
             foreach ($form->getSubForms() as $subForm) {
                 if ($subForm->isArray()) {
                     $belongsTo = $subForm->getElementsBelongTo();
@@ -166,7 +166,7 @@ final class FormValidator
             }
         }
 
-        /** @var SubZeroForm $subForm */
+        /** @var ZeroForm $subForm */
         foreach ($form->getSubForms() as $key => $subForm) {
             $merge = $this->messagesForElement($subForm, null, true);
             if ($merge === []) {
@@ -183,6 +183,16 @@ final class FormValidator
         }
 
         return $messages;
+    }
+
+    /** Do not validate unrelated input as if it belonged to a missing child. */
+    private function readFormData(ZeroForm $form, array $data, string $belongsTo): array
+    {
+        $value = $form->isNested()
+            ? $this->path($belongsTo)->find($data)
+            : $this->read($data, $belongsTo);
+
+        return is_array($value) ? $value : [];
     }
 
     private function path(?string $path): FieldPath

@@ -46,6 +46,15 @@ class ZeroForm extends ElementsOrdered
 
     private array $subForms = [];
 
+    /** A form acquires nesting behavior only while attached to a parent. */
+    private ?ZeroForm $parentForm = null;
+
+    /** Original state to restore when a nested form is detached. */
+    private ?array $standaloneState = null;
+
+    /** Explicit setIsArray()/setElementsBelongTo() always wins over automatic nesting. */
+    private ?bool $arrayModeOverride = null;
+
     protected bool $isArray = false;
 
     protected bool $errorsExist = false;
@@ -73,9 +82,12 @@ class ZeroForm extends ElementsOrdered
      */
     public function setName(string $name): static
     {
-        $name = $this->filterName($name);
-        if ($name === '') {
+        if ($name === '' || preg_match('/[^a-zA-Z0-9_\x7f-\xff-]/', $name)) {
             throw new \InvalidArgumentException('Invalid name provided; must contain only valid variable characters and be non-empty');
+        }
+
+        if ($this->parentForm !== null && $this->name !== $name) {
+            throw new LogicException('Cannot rename an attached form; detach it first');
         }
 
         $this->name = $name;
@@ -92,6 +104,13 @@ class ZeroForm extends ElementsOrdered
      */
     public function getFullyQualifiedName(): string
     {
+        // Nested forms use their complete field path for names and IDs.
+        // An explicit 'id' attribute can preserve selectors used by UI widgets.
+        if ($this->parentForm !== null && $this->isArray()) {
+            $local = $this->getElementsBelongToPath();
+            return ($this->renderParentBelongsToPath?->append($local) ?? $local)->toString();
+        }
+
         return $this->getName();
     }
 
@@ -121,7 +140,7 @@ class ZeroForm extends ElementsOrdered
         foreach ($this->getElements() as $element) {
             $element->setValue(null);
         }
-        /** @var \DalPraS\FormZero\SubZeroForm $subForm */
+        /** @var \DalPraS\FormZero\ZeroForm $subForm */
         foreach ($this->getSubForms() as $subForm) {
             $subForm->reset();
         }
@@ -343,7 +362,7 @@ class ZeroForm extends ElementsOrdered
             $element->setValue($value);
         } else {
             if (is_scalar($value)) {
-                /** @var \DalPraS\FormZero\SubZeroForm $subForm */
+                /** @var \DalPraS\FormZero\ZeroForm $subForm */
                 foreach ($this->getSubForms() as $subForm) {
                     $subForm->setDefault($name, $value);
                 }
@@ -369,7 +388,7 @@ class ZeroForm extends ElementsOrdered
             return $subForm->getValues(true);
         }
 
-        /** @var \DalPraS\FormZero\SubZeroForm $subForm */
+        /** @var \DalPraS\FormZero\ZeroForm $subForm */
         foreach ($this->getSubForms() as $subForm) {
             if ($name == $subForm->getElementsBelongTo()) {
                 return $subForm->getValues(true);
@@ -419,6 +438,7 @@ class ZeroForm extends ElementsOrdered
         $belongsTo = $this->filterName($array, true);
         $this->elementsBelongTo = $belongsTo;
         $this->elementsBelongToPath = $this->fieldPath($belongsTo);
+        $this->arrayModeOverride = $belongsTo !== '';
 
         if ($belongsTo === '') {
             $this->isArray = false;
@@ -439,6 +459,12 @@ class ZeroForm extends ElementsOrdered
      */
     private function applyBelongsTo(string $name = ''): void
     {
+        // Contextual nesting must not permanently rewrite the logical
+        // belongsTo of fields added to an ordinary form while attached.
+        if ($this->parentForm !== null && $this->arrayModeOverride === null && !$this->isArray) {
+            return;
+        }
+
         // carica il nome dell'array cui appartengono gli elementi di questa form
         $array = $this->getElementsBelongTo();
 
@@ -481,11 +507,18 @@ class ZeroForm extends ElementsOrdered
                 : $this->renderParentBelongsToPath->append($localBelongsTo);
         }
 
-        $renderBelongsTo = $effectiveBelongsTo->isEmpty() ? null : $effectiveBelongsTo->toString();
-
+        $localNamespace = $this->isArray() ? $this->getElementsBelongTo() : '';
         foreach ($this->getElements() as $element) {
             if ($element instanceof Element) {
-                $element->setRenderBelongsTo($renderBelongsTo);
+                // An element may have its own belongsTo path (e.g. seo[title]).
+                // Preserve that local mapping under the nested form prefix;
+                // otherwise the posted HTML path would disagree with getValues().
+                $renderPath = $effectiveBelongsTo;
+                $elementBelongsTo = $element->getBelongsTo();
+                if ($elementBelongsTo !== '' && $elementBelongsTo !== $localNamespace) {
+                    $renderPath = $renderPath->append($this->fieldPath($elementBelongsTo));
+                }
+                $element->setRenderBelongsTo($renderPath->isEmpty() ? null : $renderPath->toString());
             }
         }
 
@@ -533,6 +566,7 @@ class ZeroForm extends ElementsOrdered
      */
     public function setIsArray(bool $flag): static
     {
+        $this->arrayModeOverride = $flag;
         $this->isArray = $flag;
         if ($this->elementsBelongTo === '') {
             $this->elementsBelongToPath = null;
@@ -546,35 +580,59 @@ class ZeroForm extends ElementsOrdered
      */
     public function isArray(): bool
     {
-        return $this->isArray;
+        return $this->arrayModeOverride ?? ($this->parentForm !== null || $this->isArray);
     }
 
     // Element groups:
 
     /**
-     * Crea una subform
-     */
-    public function createSubZeroForm(): SubZeroForm
-    {
-        return $this->factory->createForm(SubZeroForm::class);
-    }
-
-    /**
      * Add a form group/subform
      */
-    public function addSubForm(SubZeroForm $subForm, $name, ?int $order = null): static
+    public function addSubForm(ZeroForm $subForm, $name, ?int $order = null): static
     {
-        $oldName = $subForm->getName();
-
-        if ( $oldName && $oldName !== $name && $oldName === $subForm->getElementsBelongTo()) {
-            $subForm->setElementsBelongTo($name);
+        $name = (string) $name;
+        if ($name === '' || preg_match('/[^a-zA-Z0-9_\x7f-\xff-]/', $name)) {
+            throw new InvalidArgumentException('Invalid subform name');
         }
-
         if (isset($this->elements[$name]) || isset($this->subForms[$name])) {
             throw new InvalidArgumentException("Impossible to add \"{$name}\" element that already exists");
         }
+        if ($subForm === $this || $subForm->containsForm($this)) {
+            throw new InvalidArgumentException('Cannot create a cyclic form hierarchy');
+        }
+        if ($subForm->parentForm !== null) {
+            throw new InvalidArgumentException('Form is already attached to a parent');
+        }
+        // Check order before mutating either form. ElementsOrdered::sort() throws
+        // on a collision, which would otherwise leave a partly attached child.
+        if ($order !== null) {
+            foreach ($this as $existingName => $unused) {
+                if ($this->get($existingName) === $order) {
+                    throw new LogicException("Form order {$order} is already used");
+                }
+            }
+        }
 
-        $subForm->setName((string) $name);
+        $oldName = $subForm->getName();
+        $subForm->standaloneState = [
+            'name' => $oldName,
+            'belongsTo' => $subForm->elementsBelongTo,
+            'isArray' => $subForm->isArray,
+            'arrayModeOverride' => $subForm->arrayModeOverride,
+            'elementBelongsTo' => array_map(
+                static fn(ElementInterface $element): string => $element->getBelongsTo(),
+                $subForm->getElements()
+            ),
+        ];
+
+        // An explicit form name can also define its local array namespace.
+        // Follow a new alias temporarily, restoring the original on detach.
+        if ($oldName !== '' && $oldName !== $name && $oldName === $subForm->getElementsBelongTo()) {
+            $subForm->setElementsBelongTo($name);
+        }
+
+        $subForm->setName($name);
+        $subForm->parentForm = $this;
         $this->subForms[$name] = $subForm;
         $this->set($name, $order ?? ($this->last() + 1));
         if ($order !== null) {
@@ -584,10 +642,51 @@ class ZeroForm extends ElementsOrdered
         return $this;
     }
 
+    /** Whether this form is currently owned by another form. */
+    public function isNested(): bool
+    {
+        return $this->parentForm !== null;
+    }
+
+    private function containsForm(ZeroForm $target): bool
+    {
+        foreach ($this->subForms as $child) {
+            if ($child === $target || $child->containsForm($target)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private function detachFromParent(): void
+    {
+        $state = $this->standaloneState;
+        $this->parentForm = null;
+        $this->standaloneState = null;
+        $this->renderParentBelongsToPath = null;
+
+        if ($state !== null) {
+            // Restore the original identity, array mode, and logical namespaces.
+            // The parent's alias must never leak into later standalone use.
+            $this->name = $state['name'];
+            $this->elementsBelongTo = $state['belongsTo'];
+            $this->elementsBelongToPath = null;
+            $this->isArray = $state['isArray'];
+            $this->arrayModeOverride = $state['arrayModeOverride'];
+            foreach ($state['elementBelongsTo'] as $key => $belongsTo) {
+                if (isset($this->elements[$key])) {
+                    $this->elements[$key]->setBelongsTo($belongsTo);
+                }
+            }
+        }
+
+        $this->refreshRenderContext();
+    }
+
     /**
      * Retrieve a form subForm/subform
      */
-    public function getSubForm(string $name): ?SubZeroForm
+    public function getSubForm(string $name): ?ZeroForm
     {
         if (isset($this->subForms[$name])) {
             return $this->subForms[$name];
@@ -609,8 +708,10 @@ class ZeroForm extends ElementsOrdered
     public function removeSubForm(string $name): bool
     {
         if (array_key_exists($name, $this->subForms)) {
+            $subForm = $this->subForms[$name];
             unset($this->subForms[$name]);
             $this->del($name);
+            $subForm->detachFromParent();
             return true;
         }
         return false;
@@ -622,9 +723,8 @@ class ZeroForm extends ElementsOrdered
     public function clearSubForms(): static
     {
         foreach (array_keys($this->subForms) as $key) {
-            $this->del($key);
+            $this->removeSubForm((string) $key);
         }
-        $this->subForms = [];
         return $this;
     }
 
@@ -685,7 +785,7 @@ class ZeroForm extends ElementsOrdered
                 }
             }
 
-            /** @var \DalPraS\FormZero\SubZeroForm $subForm */
+            /** @var \DalPraS\FormZero\ZeroForm $subForm */
             foreach ($this->getSubForms() as $subForm) {
                 if ($subForm->hasErrors()) {
                     $errors = true;

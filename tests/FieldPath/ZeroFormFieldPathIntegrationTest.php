@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace DalPraS\UnitTests\FieldPath;
 
 use DalPraS\FormZero\Element\TextElement;
-use DalPraS\FormZero\SubZeroForm;
 use DalPraS\FormZero\ZeroForm;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -37,8 +36,8 @@ final class ZeroFormFieldPathIntegrationTest extends TestCase
         $root = $this->newForm(ZeroForm::class);
         $root->setName('root');
 
-        $basedata = $this->newForm(SubZeroForm::class);
-        $metadata = $this->newForm(SubZeroForm::class);
+        $basedata = $this->newForm(ZeroForm::class);
+        $metadata = $this->newForm(ZeroForm::class);
         $metaTitle = (new TextElement())->setName('metaTitle');
         $metadata->addElement($metaTitle);
         $basedata->addSubForm($metadata, 'metadata');

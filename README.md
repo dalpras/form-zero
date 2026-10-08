@@ -49,7 +49,7 @@ Application/controller
         v
      ZeroForm
         |
-        +-- Elements / SubZeroForms
+        +-- Elements / nested ZeroForms
         +-- FormDataMapper
         +-- FormValidator
         +-- Decorators
@@ -646,65 +646,127 @@ $validValues = $form->getValidValues($data);
 
 # 10. Nested forms and array notation
 
-Use `SubZeroForm` to group data or model nested arrays.
+A regular `ZeroForm` is **reusable**: it operates as a standalone HTML form and
+becomes a nested group only while attached to a parent through `addSubForm()`.
+The same field definitions, filters and validation rules are used in both modes.
+
+For example, define the reusable form once:
 
 ```php
-$metadata = $this->createSubZeroForm();
-$metadata->setElementsBelongTo('metadata');
+use DalPraS\FormZero\ZeroForm;
+use DalPraS\FormZero\Element\TextElement;
 
+final class MetadataForm extends ZeroForm
+{
+    public function init(): void
+    {
+        $this->setName('MetadataForm');
+        $this->add(new TextElement(), 'metaTitle', ['label' => 'Meta title']);
+    }
+}
+```
+
+Use it independently to edit metadata:
+
+```php
+$metadata = $formFactory->createForm(MetadataForm::class);
+// $metadata->render() produces its own <form> element.
+// $metadata->isValid($post) and $metadata->getValues() use flat keys.
+```
+
+Or create a **new instance of exactly the same class** for a larger form, as in
+Article's `basedata -> metadata` tree:
+
+```php
+$article = $formFactory->createForm(ZeroForm::class);
+$basedata = $formFactory->createForm(ZeroForm::class);
+$metadata = $formFactory->createForm(MetadataForm::class);
+
+$basedata->addSubForm($metadata, 'metadata');
+$article->addSubForm($basedata, 'basedata');
+// The metadata field is now basedata[metadata][metaTitle].
+// The nested metadata form renders as <fieldset>, NOT another <form>.
+// The parent validates and collects the complete data tree.
+```
+
+`$metadata->getValues(true)` returns its local values in nested mode;
+`$article->getValues()` returns `['basedata' => ['metadata' => [...]]]`.
+Calling `removeSubForm('metadata')` restores the child's original name,
+standalone mapping and form rendering without modifying its decorators.
+An attached instance cannot simultaneously belong to a second parent; use a
+fresh factory-created instance wherever the same form appears twice.
+
+`setIsArray(false)` is an explicit override and retains the legacy non-array
+mapping even when a form is attached. An explicit `setElementsBelongTo()` also
+retains its custom logical namespace. Custom decorators, such as Article's
+accordion/card renderers, are left untouched. A normal FormDecorator is
+contextually rendered as a fieldset when nested.
+
+All nested groups are ordinary `ZeroForm` instances constructed through the
+form factory; no separate nested-form class or creator method is needed. The
+Article accordion/card decorators retain their existing `data-row-for` IDs
+using explicit `id` attributes on the few groups that need stable UI selectors.
+The same approach applies to Contact accordion groups.
+
+PHP-style array keys containing hyphens, such as the Article image locale
+`localized[x-default][title]`, are preserved in names, mapping, validation
+and HTML field paths. A nested form's key must still be a single field-name
+segment (bracket characters are not allowed in an `addSubForm()` key).
+
+`Hydrator::hydrateForm($metadata, $callback)` continues to accept local
+metadata fields when called directly on a child already nested under
+`basedata[metadata]`, as in `ArticleForm::hydrateDefaults()`. For ordinary
+`setDefaults()`/`isValid()` calls, use the child's named input branch when
+it is nested, or call these methods on the parent with the full data tree.
+
+### Building nested groups with ZeroForm
+
+Create a normal form through the factory and attach it under the desired key:
+
+```php
+$metadata = $this->factory->createForm(ZeroForm::class);
 $metadata->add(new TextElement(), 'metaTitle', [
     'label' => 'Meta title',
 ]);
-
 $this->addSubForm($metadata, 'metadata');
 ```
 
-A parent array form can nest it further:
+For deeper structures, nest additional ordinary forms:
 
 ```php
-$baseData = $this->createSubZeroForm();
-$baseData->setElementsBelongTo('basedata');
-
-$metadata = $baseData->createSubZeroForm();
-$metadata->setElementsBelongTo('metadata');
-
+$baseData = $this->factory->createForm(ZeroForm::class);
+$metadata = $this->factory->createForm(ZeroForm::class);
 $metadata->add(new TextElement(), 'metaTitle');
 $baseData->addSubForm($metadata, 'metadata');
-
 $this->addSubForm($baseData, 'basedata');
 ```
 
-The resulting HTML field name is:
+The nested field is named `basedata[metadata][metaTitle]` with HTML ID
+`basedata-metadata-metaTitle`. Data extraction, validation, defaults and uploads
+use the same hierarchical path. The standalone form keeps its normal field names
+and HTML `<form>` rendering until attached.
 
-```text
-basedata[metadata][metaTitle]
+Set an explicit `id` on a nested form when an accordion or external JavaScript
+selector must stay fixed while field names use the hierarchical structure:
+
+```php
+$metadata->setAttrib('id', 'metadata');
 ```
-
-and its generated ID is:
-
-```text
-basedata-metadata-metaTitle
-```
-
-FormZero compiles these paths and reuses them for rendering, data mapping, validation, and uploaded-file lookup.
-
-Rendering does not rewrite the logical `belongsTo` data structure.
 
 ### Subform legends
 
 A subform has one legend rule and one renderer for it. The legend value belongs to the form:
 
 ```php
-$metadata = $this->createSubZeroForm();
+$metadata = $this->factory->createForm(ZeroForm::class);
 $metadata->setLegend('Metadata');
 $this->addSubForm($metadata, 'metadata');
 ```
 
-`SubZeroForm` uses this default decorator pipeline:
-
-```text
-ElementsDecorator -> FieldsetDecorator
-```
+A standalone `ZeroForm` defaults to `ElementsDecorator -> FormDecorator`.
+When attached to a parent, `FormDecorator` renders a `FieldsetDecorator`
+instead of creating a nested HTML `<form>` tag. Its original decorators remain
+unchanged so the form can be detached and reused standalone.
 
 `FieldsetDecorator` renders both the semantic `<fieldset>` wrapper and, when `getLegend()` is not empty, its `<legend>`. There is no separate legend decorator and no independent legend value on the fieldset decorator: `setLegend()` on the form/subform is the single source of truth.
 

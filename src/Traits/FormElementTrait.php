@@ -19,7 +19,7 @@ trait FormElementTrait
     private function filterName(string $value, bool $allowBrackets = false): string
     {
         $pattern = $allowBrackets
-            ? '/[^a-zA-Z0-9_\x7f-\xff\[\]]/'
+            ? '/[^a-zA-Z0-9_\x7f-\xff\[\]-]/'
             : '/[^a-zA-Z0-9_\x7f-\xff]/';
         return preg_replace($pattern, '', $value);
     }

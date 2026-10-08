@@ -29,7 +29,7 @@ abstract class ElementsOrdered implements IteratorAggregate, Countable
 
     /**
      * Returns a one dimensional numerical indexed array with the
-     * Elements, SubZeroForms Values.
+     * Elements and nested ZeroForms.
      *
      * The canonical iterator order is reused here so ordering logic lives in
      * one place and no repeated array_splice() operations are required.

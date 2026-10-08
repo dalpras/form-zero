@@ -6,7 +6,6 @@ namespace DalPraS\UnitTests;
 
 use DalPraS\FormZero\Element\TextElement;
 use DalPraS\FormZero\ElementsOrdered;
-use DalPraS\FormZero\SubZeroForm;
 use DalPraS\FormZero\ZeroForm;
 use IteratorAggregate;
 use LogicException;
@@ -71,8 +70,8 @@ final class ElementsOrderedTest extends TestCase
         $form->addElement((new TextElement())->setName('a'));
         $form->addElement((new TextElement())->setName('b'));
 
-        /** @var SubZeroForm $subForm */
-        $subForm = (new ReflectionClass(SubZeroForm::class))->newInstanceWithoutConstructor();
+        /** @var ZeroForm $subForm */
+        $subForm = (new ReflectionClass(ZeroForm::class))->newInstanceWithoutConstructor();
         $form->addSubForm($subForm, 'group', 0);
 
         self::assertSame(['group', 'a', 'b'], array_keys(iterator_to_array($form)));

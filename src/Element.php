@@ -454,10 +454,8 @@ class Element implements ElementInterface
     public function setBelongsTo(string $array): static
     {
         $array = $this->filterName($array, true);
-        if ($array !== '') {
-            $this->belongsTo = $array;
-            $this->invalidateCompiledFieldPath();
-        }
+        $this->belongsTo = $array;
+        $this->invalidateCompiledFieldPath();
         return $this;
     }
 

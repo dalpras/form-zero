@@ -8,7 +8,7 @@ use DalPraS\FormZero\Decorator\ElementsDecorator;
 use DalPraS\FormZero\Decorator\FieldsetDecorator;
 use DalPraS\FormZero\Factory\FormFactory;
 use DalPraS\FormZero\FieldPath;
-use DalPraS\FormZero\SubZeroForm;
+use DalPraS\FormZero\ZeroForm;
 use DalPraS\FormZero\Upload\UploadedFileProviderInterface;
 use DalPraS\SmartTemplate\Plugins\EscaperInterface;
 use DalPraS\SmartTemplate\Plugins\HelpersInterface;
@@ -22,7 +22,7 @@ final class SubFormFieldsetLegendTest extends TestCase
 {
     public function testDefaultSubFormDecoratorsRenderConfiguredLegend(): void
     {
-        $form = $this->subForm();
+        $form = $this->formGroup();
         $form->setName('metadata');
         $form->setLegend('Localized metadata');
 
@@ -33,9 +33,30 @@ final class SubFormFieldsetLegendTest extends TestCase
         self::assertMatchesRegularExpression('/<fieldset[^>]*>.*<legend[^>]*>Localized metadata<\/legend>/s', $html);
     }
 
+    public function testTheSameFormRendersAsFormStandaloneAndFieldsetWhenNested(): void
+    {
+        $form = $this->formGroup(false);
+        $form->setName('metadata');
+        $form->setLegend('Metadata');
+
+        $standalone = $form->render();
+        self::assertStringContainsString('<form', $standalone);
+        self::assertStringNotContainsString('<fieldset', $standalone);
+
+        $parent = $form->getFactory()->createForm(ZeroForm::class);
+        $parent->addSubForm($form, 'metadata');
+        $nested = $form->render();
+        self::assertStringContainsString('<fieldset', $nested);
+        self::assertStringNotContainsString('<form', $nested);
+        self::assertSame(1, substr_count($nested, '<legend'));
+
+        $parent->removeSubForm('metadata');
+        self::assertSame($standalone, $form->render());
+    }
+
     public function testLegendIsEscaped(): void
     {
-        $form = $this->subForm();
+        $form = $this->formGroup();
         $form->setName('metadata');
         $form->setLegend('<script>alert(1)</script>');
 
@@ -47,7 +68,7 @@ final class SubFormFieldsetLegendTest extends TestCase
 
     public function testFieldsetDecoratorCanSuppressLegendExplicitly(): void
     {
-        $form = $this->subForm();
+        $form = $this->formGroup();
         $form->setName('metadata');
         $form->setLegend('Hidden legend');
         $form->setDecorators([
@@ -64,7 +85,7 @@ final class SubFormFieldsetLegendTest extends TestCase
 
     public function testFieldsetDecoratorUsesFormLegendAsSingleSourceOfTruth(): void
     {
-        $form = $this->subForm();
+        $form = $this->formGroup();
         $form->setName('metadata');
         $form->setLegend('Visible legend');
         $form->setDecorators([
@@ -80,13 +101,13 @@ final class SubFormFieldsetLegendTest extends TestCase
 
     public function testEmptyFormLegendDoesNotRenderEmptyLegendTag(): void
     {
-        $form = $this->subForm();
+        $form = $this->formGroup();
         $form->setName('metadata');
 
         self::assertStringNotContainsString('<legend', $form->render());
     }
 
-    private function subForm(): SubZeroForm
+    private function formGroup(bool $nested = true): ZeroForm
     {
         $helpers = $this->createStub(HelpersInterface::class);
         $helpers->method('escaper')->willReturn(new class implements EscaperInterface {
@@ -116,6 +137,7 @@ final class SubFormFieldsetLegendTest extends TestCase
             ->setHelpers($helpers)
             ->register('test', [
                 'tag' => [
+                    'form' => '<form {attributes}>{content}</form>',
                     'fieldset' => '<fieldset {attributes}>{content}</fieldset>',
                     'legend' => '<legend {attributes}>{content}</legend>',
                 ],
@@ -132,6 +154,11 @@ final class SubFormFieldsetLegendTest extends TestCase
             $this->createStub(ValidatorInterface::class),
         );
 
-        return $factory->createForm(SubZeroForm::class);
+        $group = $factory->createForm(ZeroForm::class);
+        if ($nested) {
+            $parent = $factory->createForm(ZeroForm::class);
+            $parent->addSubForm($group, 'metadata');
+        }
+        return $group;
     }
 }

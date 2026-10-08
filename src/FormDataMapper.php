@@ -21,7 +21,7 @@ final class FormDataMapper
 
         if ($form->isArray()) {
             $elementsBelongTo = $form->getElementsBelongTo();
-            $defaults = $this->read($defaults, $elementsBelongTo);
+            $defaults = $this->readFormData($form, $defaults, $elementsBelongTo);
         }
 
         /** @var Element $element */
@@ -37,7 +37,7 @@ final class FormDataMapper
             }
         }
 
-        /** @var SubZeroForm $subForm */
+        /** @var ZeroForm $subForm */
         foreach ($form->getSubForms() as $name => $subForm) {
             if (!$subForm->isArray() && array_key_exists($name, $defaults)) {
                 $subForm->setDefaults($defaults[$name]);
@@ -68,7 +68,7 @@ final class FormDataMapper
             );
         }
 
-        /** @var SubZeroForm $subForm */
+        /** @var ZeroForm $subForm */
         foreach ($form->getSubForms() as $key => $subForm) {
             if (!$subForm->isArray()) {
                 $merge = [(string) $key => $subForm->getValues()];
@@ -96,7 +96,7 @@ final class FormDataMapper
 
         if ($form->isArray()) {
             $elementsBelongTo = $form->getElementsBelongTo();
-            $data = $this->read($data, $elementsBelongTo);
+            $data = $this->readFormData($form, $data, $elementsBelongTo);
         }
 
         $context = $data;
@@ -129,7 +129,7 @@ final class FormDataMapper
             }
         }
 
-        /** @var SubZeroForm $subForm */
+        /** @var ZeroForm $subForm */
         foreach ($form->getSubForms() as $key => $subForm) {
             if (isset($data[$key]) && !$subForm->isArray()) {
                 $tmp = $subForm->getValidValues($data[$key]);
@@ -149,6 +149,20 @@ final class FormDataMapper
         }
 
         return $values;
+    }
+
+    /**
+     * A nested form may only consume its own submitted branch. The historical
+     * FieldPath::read() fallback is preserved for standalone array forms,
+     * which may be initialized with already-unwrapped defaults.
+     */
+    private function readFormData(ZeroForm $form, array $data, string $belongsTo): array
+    {
+        $value = $form->isNested()
+            ? $this->path($belongsTo)->find($data)
+            : $this->read($data, $belongsTo);
+
+        return is_array($value) ? $value : [];
     }
 
     private function elementPath(string $key, ?string $belongsTo, ?string $elementsBelongTo): FieldPath

@@ -7,7 +7,6 @@ namespace DalPraS\UnitTests\Data;
 use DalPraS\FormZero\Element;
 use DalPraS\FormZero\Element\TextElement;
 use DalPraS\FormZero\FormDataMapper;
-use DalPraS\FormZero\SubZeroForm;
 use DalPraS\FormZero\ZeroForm;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -86,7 +85,7 @@ final class FormDataMapperCharacterizationTest extends TestCase
         $seoTitle = (new TextElement())->setName('seoTitle')->setBelongsTo('seo');
         $root->addElement($seoTitle);
 
-        $plain = $this->newForm(SubZeroForm::class);
+        $plain = $this->newForm(ZeroForm::class);
         $plain->setIsArray(false);
         $note = (new TextElement())->setName('note');
         $plain->addElement($note);
@@ -110,8 +109,8 @@ final class FormDataMapperCharacterizationTest extends TestCase
         $root = $this->newForm(ZeroForm::class);
         $root->setName('root');
 
-        $basedata = $this->newForm(SubZeroForm::class);
-        $metadata = $this->newForm(SubZeroForm::class);
+        $basedata = $this->newForm(ZeroForm::class);
+        $metadata = $this->newForm(ZeroForm::class);
 
         $metaTitle = (new CharacterizationElement())->setName('metaTitle');
         $metaDescription = (new CharacterizationElement())->setName('metaDescription');
@@ -178,18 +177,18 @@ final class FormDataMapperCharacterizationTest extends TestCase
     }
 
     /**
-     * @return array{ZeroForm, SubZeroForm, SubZeroForm, TextElement}
+     * @return array{ZeroForm, ZeroForm, ZeroForm, TextElement}
      */
     private function createRepresentativeNestedForm(): array
     {
         $root = $this->newForm(ZeroForm::class);
         $root->setName('root');
 
-        $basedata = $this->newForm(SubZeroForm::class);
+        $basedata = $this->newForm(ZeroForm::class);
         $title = (new TextElement())->setName('title');
         $basedata->addElement($title);
 
-        $metadata = $this->newForm(SubZeroForm::class);
+        $metadata = $this->newForm(ZeroForm::class);
         $metaTitle = (new TextElement())->setName('metaTitle');
         $metadata->addElement($metaTitle);
 
