@@ -31,6 +31,7 @@ interface ElementInterface
     public function getAllowEmpty(): bool;
     public function setAllowEmpty(bool $flag): static;
     public function hasErrors(): bool;
+    public function getMessages(): array;
     public function addError(string $message): static;
 
     // Attributes
