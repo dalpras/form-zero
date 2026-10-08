@@ -52,11 +52,6 @@ class ZeroForm extends ElementsOrdered
     /** Original state to restore when a nested form is detached. */
     private ?array $standaloneState = null;
 
-    /** Explicit setIsArray()/setElementsBelongTo() always wins over automatic nesting. */
-    private ?bool $arrayModeOverride = null;
-
-    protected bool $isArray = false;
-
     protected bool $errorsExist = false;
 
     protected HelpersInterface $helpers;
@@ -434,21 +429,10 @@ class ZeroForm extends ElementsOrdered
      */
     public function setElementsBelongTo(string $array): static
     {
-        $origName = $this->getElementsBelongTo();
         $belongsTo = $this->filterName($array, true);
         $this->elementsBelongTo = $belongsTo;
         $this->elementsBelongToPath = $this->fieldPath($belongsTo);
-        $this->arrayModeOverride = $belongsTo !== '';
-
-        if ($belongsTo === '') {
-            $this->isArray = false;
-            if ($origName !== '') {
-                $this->applyBelongsTo();
-            }
-        } else {
-            $this->isArray = true;
-            $this->applyBelongsTo();
-        }
+        $this->applyBelongsTo();
 
         $this->refreshRenderContext();
         return $this;
@@ -461,7 +445,7 @@ class ZeroForm extends ElementsOrdered
     {
         // Contextual nesting must not permanently rewrite the logical
         // belongsTo of fields added to an ordinary form while attached.
-        if ($this->parentForm !== null && $this->arrayModeOverride === null && !$this->isArray) {
+        if ($this->parentForm !== null && $this->elementsBelongTo === '') {
             return;
         }
 
@@ -562,25 +546,16 @@ class ZeroForm extends ElementsOrdered
     }
 
     /**
-     * Set flag indicating elements belong to array
-     */
-    public function setIsArray(bool $flag): static
-    {
-        $this->arrayModeOverride = $flag;
-        $this->isArray = $flag;
-        if ($this->elementsBelongTo === '') {
-            $this->elementsBelongToPath = null;
-        }
-        $this->refreshRenderContext();
-        return $this;
-    }
-
-    /**
-     * Get flag indicating if elements belong to an array
+     * Whether the form has a field namespace, either from its parent or an
+     * explicitly configured standalone namespace.
+     *
+     * The nesting decision is derived from the form tree rather than being
+     * independently mutable. This is different from Element::isArray(), which
+     * controls the value shape of an individual field.
      */
     public function isArray(): bool
     {
-        return $this->arrayModeOverride ?? ($this->parentForm !== null || $this->isArray);
+        return $this->parentForm !== null || $this->elementsBelongTo !== '';
     }
 
     // Element groups:
@@ -617,8 +592,6 @@ class ZeroForm extends ElementsOrdered
         $subForm->standaloneState = [
             'name' => $oldName,
             'belongsTo' => $subForm->elementsBelongTo,
-            'isArray' => $subForm->isArray,
-            'arrayModeOverride' => $subForm->arrayModeOverride,
             'elementBelongsTo' => array_map(
                 static fn(ElementInterface $element): string => $element->getBelongsTo(),
                 $subForm->getElements()
@@ -671,8 +644,6 @@ class ZeroForm extends ElementsOrdered
             $this->name = $state['name'];
             $this->elementsBelongTo = $state['belongsTo'];
             $this->elementsBelongToPath = null;
-            $this->isArray = $state['isArray'];
-            $this->arrayModeOverride = $state['arrayModeOverride'];
             foreach ($state['elementBelongsTo'] as $key => $belongsTo) {
                 if (isset($this->elements[$key])) {
                     $this->elements[$key]->setBelongsTo($belongsTo);

@@ -77,7 +77,7 @@ final class FormDataMapperCharacterizationTest extends TestCase
         self::assertSame($expected, $root->getValues());
     }
 
-    public function testExplicitBelongsToAndNonArraySubformKeepExistingShape(): void
+    public function testExplicitBelongsToAndNestedFormKeepExistingShape(): void
     {
         $root = $this->newForm(ZeroForm::class);
         $root->setName('root');
@@ -86,7 +86,6 @@ final class FormDataMapperCharacterizationTest extends TestCase
         $root->addElement($seoTitle);
 
         $plain = $this->newForm(ZeroForm::class);
-        $plain->setIsArray(false);
         $note = (new TextElement())->setName('note');
         $plain->addElement($note);
         $root->addSubForm($plain, 'plain');

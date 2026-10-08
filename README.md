@@ -696,11 +696,15 @@ standalone mapping and form rendering without modifying its decorators.
 An attached instance cannot simultaneously belong to a second parent; use a
 fresh factory-created instance wherever the same form appears twice.
 
-`setIsArray(false)` is an explicit override and retains the legacy non-array
-mapping even when a form is attached. An explicit `setElementsBelongTo()` also
-retains its custom logical namespace. Custom decorators, such as Article's
-accordion/card renderers, are left untouched. A normal FormDecorator is
-contextually rendered as a fieldset when nested.
+All forms attached through `addSubForm()` are automatically namespaced under
+that child key: no `ZeroForm::setIsArray()` is necessary or available. The
+`isArray()` getter remains for internal namespace handling and reflects the
+current nesting context. For a standalone form that intentionally uses a
+namespaced payload, call `setElementsBelongTo('address')` explicitly. This does
+not affect `Element::setIsArray()`, which is still required for individual
+multiple-value fields. Custom decorators, such as Article's accordion/card
+renderers, are left untouched. A normal FormDecorator is contextually
+rendered as a fieldset when nested.
 
 All nested groups are ordinary `ZeroForm` instances constructed through the
 form factory; no separate nested-form class or creator method is needed. The

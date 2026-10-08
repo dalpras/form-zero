@@ -131,17 +131,16 @@ final class ReusableNestedFormTest extends TestCase
         self::assertSame('sections[7][contents][42][body]', $text->getFullyQualifiedName());
     }
 
-    public function testExplicitNonArrayModeAndAccordionSelectorsArePreserved(): void
+    public function testNestedFormsAlwaysNamespaceFieldsAndAccordionSelectorsArePreserved(): void
     {
         $root = $this->form('root');
         $plain = $this->form();
-        $plain->setIsArray(false);
         $note = (new TextElement())->setName('note')->setValue('Note');
         $plain->addElement($note);
         $root->addSubForm($plain, 'plain');
 
-        self::assertFalse($plain->isArray());
-        self::assertSame('note', $note->getFullyQualifiedName());
+        self::assertTrue($plain->isArray());
+        self::assertSame('plain[note]', $note->getFullyQualifiedName());
         self::assertSame(['plain' => ['note' => 'Note']], $root->getValues());
 
         $sections = $this->form();
@@ -154,11 +153,29 @@ final class ReusableNestedFormTest extends TestCase
         self::assertSame('sections[42]', $section->getFullyQualifiedName());
     }
 
+    public function testStandaloneExplicitNamespaceDoesNotDependOnArrayFlag(): void
+    {
+        $form = $this->form('AddressForm');
+        $city = (new TextElement())->setName('city')->setValue('Vicenza');
+        $form->addElement($city);
+
+        $form->setElementsBelongTo('address');
+        self::assertFalse($form->isNested());
+        self::assertTrue($form->isArray());
+        self::assertSame('address[city]', $city->getFullyQualifiedName());
+        self::assertSame(['address' => ['city' => 'Vicenza']], $form->getValues());
+
+        $form->setDefaults(['address' => ['city' => 'Padova']]);
+        self::assertSame('Padova', $city->getValue());
+        self::assertFalse(method_exists(ZeroForm::class, 'setIsArray'));
+        self::assertTrue(method_exists(Element::class, 'setIsArray'));
+    }
+
     public function testDetachingRestoresExplicitArrayNamespaces(): void
     {
         $root = $this->form('root');
         $child = $this->form('Original');
-        $child->setIsArray(true);
+        $child->setElementsBelongTo('Original');
         $name = (new TextElement())->setName('field');
         $child->addElement($name);
         $originalBelongsTo = $name->getBelongsTo();
