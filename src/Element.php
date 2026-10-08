@@ -499,7 +499,7 @@ class Element implements ElementInterface
     // Validation
     protected function isEmpty($value): bool
     {
-        return $value === '' || $value === null;
+        return $value === '' || $value === null || $value === [];
     }
 
     /**
@@ -530,33 +530,35 @@ class Element implements ElementInterface
         /** @var SymfonyValidator $symfonyValidator */
         $symfonyValidator = $this->getFactory()->getValidator();
 
-        // Required elements get one implicit NotBlank constraint. Preserve an
-        // explicitly configured NotBlank constraint instead of adding another.
+        // Build effective constraints per validation. Neither the implicit
+        // required rule nor generated choice constraints should permanently
+        // change the element configuration (especially when it is reused).
+        $constraints = $this->validationConstraints();
         if ($this->isRequired() && !$this->hasConstraint(Assert\NotBlank::class)) {
             $requiredMessage = $this->getRequiredMessage();
-            $this->prependConstraint($requiredMessage === null
+            array_unshift($constraints, $requiredMessage === null
                 ? new Assert\NotBlank()
-                : new Assert\NotBlank([
-                    'message' => $this->getRequiredMessage(),
-                ])
-            );
+                : new Assert\NotBlank(['message' => $requiredMessage]));
         }
 
         $result = true;
 
-        // Validate array vs scalar
-        if ($this->isArray() && is_array($value)) {
-            foreach ($value as $val) {
-                $violations = $symfonyValidator->validate($val, $this->getConstraints());
-                if (count($violations) > 0) {
-                    $result = false;
-                    foreach ($violations as $violation) {
-                        $this->messages[] = $violation->getMessage();
-                    }
-                }
-            }
-        } else {
-            $violations = $symfonyValidator->validate($value, $this->getConstraints());
+        // For multi-valued inputs, validate each value against the existing
+        // scalar constraints. A required empty list must still be validated
+        // (NotBlank([]) fails); iterating an empty list previously skipped it.
+        $values = $this->isArray() && is_array($value)
+            ? ($value === [] ? [[]] : $value)
+            : [$value];
+        if ($this->isArray() && $value === []) {
+            // These are normally per-item constraints (e.g. Choice): passing
+            // [] to a scalar ChoiceValidator can throw UnexpectedTypeException.
+            // Only requiredness constraints apply to an empty collection.
+            $constraints = array_values(array_filter($constraints,
+                static fn($constraint): bool => $constraint instanceof Assert\NotBlank));
+        }
+
+        foreach ($values as $val) {
+            $violations = $symfonyValidator->validate($val, $constraints);
             if (count($violations) > 0) {
                 $result = false;
                 foreach ($violations as $violation) {
@@ -570,6 +572,17 @@ class Element implements ElementInterface
         }
 
         return $result;
+    }
+
+    /**
+     * Effective constraints for a single validation. Choice elements extend
+     * these dynamically without changing the persistent constraint list.
+     *
+     * @return array<\Symfony\Component\Validator\Constraint>
+     */
+    protected function validationConstraints(): array
+    {
+        return $this->getConstraints();
     }
 
     /**

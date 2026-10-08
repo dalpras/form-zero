@@ -13,9 +13,4 @@ final class RadioElement extends Element implements MultiChoicesInterface, Choic
     use MultiChoicesTrait;
     use ChoicesAlignmentTrait;
 
-    public function isValid($value, $context = null): bool
-    {
-        $this->appendChoicesToConstraints(); // same logic as MultiElement
-        return parent::isValid($value, $context);
-    }    
 }

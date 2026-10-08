@@ -16,10 +16,4 @@ class MultiElement extends Element implements MultiChoicesInterface
         $this->setIsArray(true);
         $this->setAttrib('multiple', true);
     }
-
-    public function isValid($value, $context = null): bool
-    {
-        $this->appendChoicesToConstraints();
-        return parent::isValid($value, $context);
-    }
 }

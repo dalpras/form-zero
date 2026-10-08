@@ -64,7 +64,7 @@ class SymfileElement extends Element implements UploadFileInterface
                     continue;
                 }
 
-                $violations = $validator->validate($file, $this->getConstraints());
+                $violations = $validator->validate($file, $this->validationConstraints());
                 if (count($violations) > 0) {
                     $result = false;
                     foreach ($violations as $violation) {
@@ -73,7 +73,7 @@ class SymfileElement extends Element implements UploadFileInterface
                 }
             }
         } elseif ($files instanceof UploadedFile) {
-            $violations = $validator->validate($files, $this->getConstraints());
+            $violations = $validator->validate($files, $this->validationConstraints());
             if (count($violations) > 0) {
                 $result = false;
                 foreach ($violations as $violation) {

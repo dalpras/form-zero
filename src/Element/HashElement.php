@@ -10,11 +10,12 @@ use DalPraS\FormZero\Session\SessionAdapterInterface;
  * CSRF protection form element (Symfony-like Session, no external Clock)
  *
  * Key points:
- * - Each form instance (scope) is identified by getId(); multiple forms on the same page
+ * - Each form field scope is identified by its current getId(); multiple forms on the same page
  *   are supported because token/expiry/rotation flags are namespaced by that id.
- * - A token is stored in the session alongside its expiry timestamp.
+ * - A token is stored in the session alongside its expiry timestamp. After
+ *   nesting changes the field ID, rendering switches to the matching scope.
  * - Validation checks that the incoming token matches the stored one and hasn't expired.
- * - Token rotation happens on validation to reduce token re-use; optionally it can be limited
+ * - Token rotation happens after successful CSRF checks to reduce token re-use; optionally it can be limited
  *   to "rotate at most once per user session per form id".
  *
  * Security notes:
@@ -44,6 +45,9 @@ final class HashElement extends Element
 
     /** The current token to render inside the form (cached per request). */
     private ?string $hash = null;
+
+    /** The field ID for which the cached token was issued. */
+    private ?string $hashScopeId = null;
 
     /**
      * When true, rotate at most once per user session (per form id).
@@ -86,7 +90,7 @@ final class HashElement extends Element
         }
 
         // Ensure a token is present and valid; create one if missing/expired.
-        $this->hash = $this->ensureValidToken();
+        $this->getHash();
 
         // If CSRF is not being ignored by the form factory, make the field required.
         if (!$this->getFactory()->getIgnoreCsrfToken()) {
@@ -111,8 +115,16 @@ final class HashElement extends Element
      */
     public function getHash(): string
     {
-        if ($this->hash === null) {
+        // Forms are created and initialized before they are attached to a
+        // parent. Attachment changes the field ID and therefore its CSRF
+        // session scope. Never render a token cached under the old scope.
+        $scopeId = $this->getId();
+        if ($this->hash === null || $this->hashScopeId !== $scopeId) {
+            if (!$this->session->isStarted()) {
+                $this->session->start();
+            }
             $this->hash = $this->ensureValidToken();
+            $this->hashScopeId = $scopeId;
         }
         return $this->hash;
     }
@@ -127,17 +139,22 @@ final class HashElement extends Element
     public function isValid($value, $context = null): bool
     {
         if ($this->getFactory()->getIgnoreCsrfToken() !== true) {
-            $okCsrf = $this->validateIncomingToken((string)$value);
-
-            // Always rotate (legacy behavior) or at most once per session (if enabled).
-            $this->rotateToken();
-
-            if (!$okCsrf) {
+            // Reject malformed inputs as well as missing/expired/mismatched
+            // tokens. Errors must be exposed by ElementInterface::getMessages().
+            if (!is_string($value) || !$this->validateIncomingToken($value)) {
+                $this->isValidated = true;
+                $this->setValue($value);
+                $this->messages = ['Invalid or expired form security token.'];
+                $this->isError = true;
                 return false;
             }
+
+            // Only a valid token can trigger rotation. Invalid submissions
+            // must not invalidate a legitimate token in another browser tab.
+            $this->rotateToken();
         }
 
-        // Defer to parent for any additional validation behavior.
+        // Parent validation resets any previous CSRF error state.
         return parent::isValid($value, $context);
     }
 
@@ -260,6 +277,7 @@ final class HashElement extends Element
         $this->session->set($this->tokenKey(), $new);
         $this->session->set($this->expKey(), $now + $this->ttlSeconds);
         $this->hash = $new;
+        $this->hashScopeId = $this->getId();
     }
 
     /**

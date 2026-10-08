@@ -98,6 +98,20 @@ abstract class ElementsOrdered implements IteratorAggregate, Countable
         return count($this->ordered);
     }
 
+    /** Reject an explicit order collision before callers mutate their tree. */
+    protected function assertOrderAvailable(string|int $name, int $order): void
+    {
+        foreach ($this->ordered as $existingName => $existingOrder) {
+            if ($existingOrder === $order && $existingName !== $name) {
+                throw new \LogicException(
+                    'Form elements ' . $existingName . ' and ' . $name .
+                    ' have the same order (' . $order . ') - ' .
+                    'this would result in only the last added element to be rendered'
+                );
+            }
+        }
+    }
+
     /**
      * Sort items according to their order.
      */

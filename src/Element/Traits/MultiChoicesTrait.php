@@ -16,10 +16,11 @@ trait MultiChoicesTrait
 
     private array $choicesAttributes = [];
 
-    abstract public function addConstraint(Constraint $constraint): void;
+    abstract public function getConstraints(): array;
     abstract public function isRequired(): bool;
 
-    protected function appendChoicesToConstraints(): void
+    /** @return Constraint[] */
+    protected function validationConstraints(): array
     {
         $multiChoices = $this->getMultiChoices();
         $choices      = [];
@@ -37,13 +38,15 @@ trait MultiChoicesTrait
             }
         }
 
-        if (!empty($choices)) {
-            // When NOT required, '' must be a valid submitted value.
+        $constraints = $this->getConstraints();
+        if ($choices !== []) {
+            // Optional single-choice elements accept an empty placeholder.
             if (!$this->isRequired() && !in_array('', $choices, true)) {
                 $choices[] = '';
-            }            
-            $this->addConstraint(new Assert\Choice(['choices' => $choices]));
+            }
+            $constraints[] = new Assert\Choice(['choices' => $choices]);
         }
+        return $constraints;
     }
 
 

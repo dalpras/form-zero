@@ -194,7 +194,8 @@ class ZeroForm extends ElementsOrdered
 
     public function getMultiElement(string $name): MultiChoicesInterface|null
     {
-        return $this->getElement($name);
+        $element = $this->getElement($name);
+        return $element instanceof MultiChoicesInterface ? $element : null;
     }
 
     /**
@@ -218,6 +219,9 @@ class ZeroForm extends ElementsOrdered
         $name = $element->getName();
         if (isset($this->elements[$name]) || isset($this->subForms[$name])) {
             throw new InvalidArgumentException("Impossible to add \"{$name}\" element that already exists");
+        }
+        if ($order !== null) {
+            $this->assertOrderAvailable($name, $order);
         }
         $this->elements[$name] = $element;
 
@@ -258,12 +262,13 @@ class ZeroForm extends ElementsOrdered
                 sprintf('SubForm with name "%s" exists; cannot replace with an element.', $name)
             );
         }
+        // Construct the replacement first: a factory error must not erase
+        // the existing element or its place in the rendering order.
+        $replacement = $this->factory->createElement($element, $name, $options);
         $order = $this->get($name);
-        // Remove the existing element if present
         $this->removeElement($name);
-
-        $element = $this->factory->createElement($element, $name, $options);
-        $this->addElement($element, $order);
+        $this->addElement($replacement, $order);
+        $element = $replacement;
         return $element;
     }
 
@@ -536,11 +541,7 @@ class ZeroForm extends ElementsOrdered
         // Check order before mutating either form. ElementsOrdered::sort() throws
         // on a collision, which would otherwise leave a partly attached child.
         if ($order !== null) {
-            foreach ($this as $existingName => $unused) {
-                if ($this->get($existingName) === $order) {
-                    throw new LogicException("Form order {$order} is already used");
-                }
-            }
+            $this->assertOrderAvailable($name, $order);
         }
 
         $oldName = $subForm->getName();

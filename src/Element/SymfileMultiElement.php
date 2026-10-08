@@ -22,11 +22,4 @@ final class SymfileMultiElement extends SymfileElement implements MultiChoicesIn
         $this->setIsArray(true);
         $this->setAttrib('multiple', true);
     }
-
-    public function isValid($value, $context = null): bool
-    {
-        $this->appendChoicesToConstraints();
-        return parent::isValid($value, $context);
-    }
-
 }

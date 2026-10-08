@@ -1508,6 +1508,36 @@ $multipart = $form->requiresMultipartEncoding();
 
 ---
 
+# 27. Validation and nested-form hardening
+
+- **CSRF identity follows the rendered field path.** A `HashElement` created in a
+  standalone form automatically switches to the nested session scope when its
+  form is attached. Always obtain the token to submit from the **final rendered
+  form**, rather than caching `getHash()` before nesting. Invalid, missing, or
+  expired tokens return `false` and appear in `getMessages()`; they do not rotate
+  the valid token. Successful validation rotates it as configured.
+- **Submitted field paths must match their declared namespace.** For instance,
+  `profile[account][preferences][nickname]` cannot be supplied as
+  `profile[nickname]`. Standalone forms can still use `setElementsBelongTo()` to
+  namespace the entire form, and their established unwrapped-default behavior
+  remains supported.
+- **A required multi-value field rejects `[]`.** Optional multi-value elements
+  still accept an empty selection when `allowEmpty` is enabled.
+- **Generated validation constraints are temporary.** Requiredness and choice
+  constraints are assembled per validation, so repeated validation or changes
+  to `setMultiChoices()` do not leave stale constraints in `getConstraints()`.
+- **Element insertion is atomic for order collisions.** If the requested order
+  is already taken, `addElement()` raises `LogicException` without inserting
+  the new element. `replaceElement()` creates the replacement before deleting
+  the old one, retaining the old element if construction fails.
+- `getMultiElement()` returns `null` when the name is missing or belongs to an
+  element that does not implement `MultiChoicesInterface`.
+- Checkbox hidden fallback inputs have **no ID**; only the visible control owns
+  the corresponding ID. Radio choice labels are HTML-escaped by default; use a
+  dedicated trusted-content renderer instead of embedding markup into labels.
+
+---
+
 # License
 
 See `composer.json` for the package license and metadata.

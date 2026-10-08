@@ -28,7 +28,9 @@ final class FormDataMapper
         foreach ($form->getElements() as $name => $element) {
             $check = $defaults;
             if (($belongsTo = $element->getBelongsTo()) !== $elementsBelongTo) {
-                $check = $this->read($defaults, $belongsTo);
+                $check = $form->isNested()
+                    ? $this->path($belongsTo)->find($defaults)
+                    : $this->read($defaults, $belongsTo);
             }
 
             if (array_key_exists($name, (array) $check)) {
@@ -110,7 +112,7 @@ final class FormDataMapper
             $check = $data;
             $belongsTo = $element->getBelongsTo();
             if ($belongsTo !== $elementsBelongTo) {
-                $check = $this->read($data, $belongsTo);
+                $check = $this->path($belongsTo)->find($data);
             }
 
             if (isset($check[$key])) {

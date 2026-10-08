@@ -33,7 +33,7 @@ final class FormValidator
             $belongsTo = $element->getBelongsTo();
 
             if ($belongsTo !== $elementsBelongTo) {
-                $check = $this->read($data, $belongsTo);
+                $check = $this->path($belongsTo)->find($data);
             }
 
             if (!isset($check[$key])) {
@@ -76,7 +76,7 @@ final class FormValidator
             $belongsTo = $element->getBelongsTo();
 
             if ($belongsTo !== $elementsBelongTo) {
-                $check = $this->read($data, $belongsTo);
+                $check = $this->path($belongsTo)->find($data);
             }
 
             if (isset($check[$key])) {
