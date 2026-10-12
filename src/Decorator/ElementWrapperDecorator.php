@@ -27,7 +27,7 @@ class ElementWrapperDecorator extends AbstractDecorator
 
 
             return $render->at('tag.div')([
-                '{attributes}' => $fn($element),
+                '{attributes}|join' => $fn($element),
                 '{content}'    => $content
             ]);
         });

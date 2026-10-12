@@ -24,7 +24,7 @@ return function(RenderCollection $render, Element $element, AbstractDecorator $d
     ]);
 
     $html = $render->at('tag.button')([
-        '{attributes}' => $attributes,
+        '{attributes}|join' => $attributes,
         '{content}' => $element->getText()
     ]);
     return $html;

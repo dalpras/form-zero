@@ -17,6 +17,7 @@ use DalPraS\SmartTemplate\Plugins\EscaperInterface;
 use DalPraS\SmartTemplate\Plugins\HelpersInterface;
 use DalPraS\SmartTemplate\Plugins\TranslatorInterface;
 use DalPraS\SmartTemplate\TemplateEngine;
+use DalPraS\SmartTemplate\HtmlAttributes;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -118,6 +119,7 @@ final class ReusableNestedFormRenderTest extends TestCase
                 'components' => ['mandatory' => '<small>Required</small>'],
             ],
         ], true);
+        (new HtmlAttributes())->register($engine);
 
         return new FormFactory(
             $engine,

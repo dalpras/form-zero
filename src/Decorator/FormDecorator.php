@@ -60,7 +60,7 @@ class FormDecorator extends AbstractDecorator
             return $render->at('tag.form')([
                 '{action}' => $action,
                 '{method}' => $method,
-                '{attributes}' => $attributes,
+                '{attributes}|join' => $attributes,
                 '{content}'   => function(RenderCollection $render) use ($content, $element) {
                     $html = $content;
                     $mandatory = $this->getOption('mandatory');

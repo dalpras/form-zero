@@ -80,7 +80,7 @@ class FieldsetDecorator extends AbstractDecorator
         $helpers = $engine->getHelpers();
 
         return $engine->renderDefault(fn(RenderCollection $render) => $render->at('tag.fieldset')([
-            '{attributes}' => function() use ($attributes, $element) {
+            '{attributes}|join' => function() use ($attributes, $element) {
                 $attributes['name'] ??= $element->getFullyQualifiedName();
                 $attributes['id']   ??= $attributes['name'];
                 return $attributes;

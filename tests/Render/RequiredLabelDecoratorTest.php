@@ -9,6 +9,7 @@ use DalPraS\FormZero\Element\TextElement;
 use DalPraS\FormZero\Factory\FormFactory;
 use DalPraS\FormZero\Upload\UploadedFileProviderInterface;
 use DalPraS\SmartTemplate\TemplateEngine;
+use DalPraS\SmartTemplate\HtmlAttributes;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -64,12 +65,7 @@ final class RequiredLabelDecoratorTest extends TestCase
             ],
         ], true);
 
-        $engine->addCustomParamCallback(
-            '{attributes}',
-            static fn(mixed $value): string => $value === null
-                ? ''
-                : $engine->attributes((array) $value)
-        );
+        (new HtmlAttributes())->register($engine);
 
         $factory = new FormFactory(
             $engine,

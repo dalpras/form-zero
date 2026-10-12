@@ -21,7 +21,7 @@ return function(RenderCollection $render, CheckboxElement $element, AbstractDeco
     $html = $render->at('tag.input')([
         '{type}'       => 'hidden',
         '{value}'      => $helpers->escaper()->escapeHtml((string) $element->getUncheckedValue()),
-        '{attributes}' => $hiddenAttributes,
+        '{attributes}|join' => $hiddenAttributes,
     ]);
 
     $checkedValue = $element->getCheckedValue();
@@ -39,7 +39,7 @@ return function(RenderCollection $render, CheckboxElement $element, AbstractDeco
 
     // checkbox
     $html .= $render->at('form.html.form-element-checkbox')([
-        '{attributes}' => $checkboxAttributes,
+        '{attributes}|join' => $checkboxAttributes,
         '{type}'    => 'checkbox',
         '{value}'   => $helpers->escaper()->escapeHtml($checkedValue),
         '{content}' => '',

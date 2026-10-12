@@ -19,7 +19,7 @@ class AccordionDecorator extends AbstractDecorator
         return $engine->renderDefault(function(RenderCollection $render) use ($element, $content) {
             return $render->at('form.html.accordion')(
                 array_replace_recursive($this->getOption('options'), [
-                    '{attributes}' => [
+                    '{attributes}|join' => [
                         'data-row-for' => $element->getId()
                     ],
                     '{pid}' => $this->getOption('pid'),

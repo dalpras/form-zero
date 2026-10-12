@@ -24,7 +24,7 @@ return function(RenderCollection $render, Element $element, AbstractDecorator $d
     $inputAttributes = $element->applyValidationAccessibility($inputAttributes);
 
     $html = $render->at('form.html.datepicker')([
-        '{attributes}' => $inputAttributes,
+        '{attributes}|join' => $inputAttributes,
         '{type}'    => 'text',
         '{value}'   => $helpers->escaper()->escapeHtml((string) $element->getRenderValue()),
     ]);

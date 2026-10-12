@@ -50,7 +50,7 @@ return function(RenderCollection $render, Element $element, AbstractDecorator $d
             default => 'text'
         },
         '{value}' => $helpers->escaper()->escapeHtml((string) $element->getRenderValue()),
-        '{attributes}' => $inputAttributes,
+        '{attributes}|join' => $inputAttributes,
     ]);
 
     if (!$isSearch) {
@@ -58,7 +58,7 @@ return function(RenderCollection $render, Element $element, AbstractDecorator $d
     }
 
     $html .= $render->at('tag.button')([
-        '{attributes}' => [
+        '{attributes}|join' => [
             'type' => 'button',
             'class' => 'search-clear-button',
             'data-search-clear-button' => true,

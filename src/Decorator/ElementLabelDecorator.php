@@ -23,7 +23,7 @@ class ElementLabelDecorator extends AbstractDecorator
                 }
 
                 return $render->at('tag.label')([
-                    '{attributes}' => [
+                    '{attributes}|join' => [
                         'class'    => $class,
                         'for'      => $this->getOption('for') ?? $element->getId(),
                     ],

@@ -33,7 +33,7 @@ return function(RenderCollection $render, Element $element, AbstractDecorator $d
         $choiceAttributes = $element->applyValidationAccessibility($choiceAttributes);
 
         $html .= $render->at('form.html.form-element-checkbox')([
-            '{attributes}' => $choiceAttributes,
+            '{attributes}|join' => $choiceAttributes,
             '{type}'       => match (get_class($element)) {
                 CheckboxMultiElement::class       => 'checkbox',
                 RadioElement::class,

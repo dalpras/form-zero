@@ -17,6 +17,7 @@ use DalPraS\FormZero\ZeroForm;
 use DalPraS\SmartTemplate\Plugins\EscaperInterface;
 use DalPraS\SmartTemplate\Plugins\HelpersInterface;
 use DalPraS\SmartTemplate\TemplateEngine;
+use DalPraS\SmartTemplate\HtmlAttributes;
 use InvalidArgumentException;
 use LogicException;
 use PHPUnit\Framework\TestCase;
@@ -229,8 +230,7 @@ final class FormZeroHardeningTest extends TestCase
                 'form-element-checkbox' => '<input type="{type}" value="{value}" {checked} {attributes}>{content}',
             ]],
         ], true);
-        $engine->addCustomParamCallback('{attributes}', static fn($param): string =>
-            $param === null ? '' : $engine->attributes($param));
+        (new HtmlAttributes())->register($engine);
         return new FormFactory($engine, $this->uploadProvider(), Validation::createValidator());
     }
 

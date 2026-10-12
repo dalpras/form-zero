@@ -101,16 +101,30 @@ use DalPraS\FormZero\Preset\FormPreset;
 use DalPraS\SmartTemplate\TemplateEngine;
 
 $template = new TemplateEngine();
-
-FormPreset::register($template);
-
-$template->addCustomParamCallback(
-    '{attributes}',
-    static fn ($attributes): string => $attributes === null
-        ? ''
-        : $template->attributes($attributes)
-);
+FormPreset::register($template); // Registers HtmlPreset and its |join modifier.
 ```
+
+FormZero passes HTML attribute arrays as `'{attributes}|join'` so rendering
+and escaping happen together in one pass. No custom `{attributes}` callback
+or `TemplateEngine::attributes()` method is required.
+
+If your application has a custom escaper or needs to configure the escaped
+attribute names, override the default after registering the preset:
+
+```php
+use DalPraS\SmartTemplate\HtmlAttributes;
+
+$escaper = $helpers->escaper();
+(new HtmlAttributes(
+    escape: static fn(string $value): string => $escaper->escapeHtml($value),
+    escapedNames: ['id', 'title', 'name', 'alt', 'aria-label'],
+    omitEmptyNames: ['id', 'name'],
+))->register($template);
+```
+
+`{attributes}` remains the token in HTML template strings; the `|join`
+modifier belongs on the **argument array key**, not inside markup. For
+example: `['{attributes}|join' => ['class' => 'form-control']]`.
 
 `FormPreset::register()` registers the FormZero templates from:
 

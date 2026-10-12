@@ -14,6 +14,7 @@ use DalPraS\SmartTemplate\Plugins\EscaperInterface;
 use DalPraS\SmartTemplate\Plugins\HelpersInterface;
 use DalPraS\SmartTemplate\Plugins\TranslatorInterface;
 use DalPraS\SmartTemplate\TemplateEngine;
+use DalPraS\SmartTemplate\HtmlAttributes;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -142,6 +143,7 @@ final class SubFormFieldsetLegendTest extends TestCase
                     'legend' => '<legend {attributes}>{content}</legend>',
                 ],
             ], true);
+        (new HtmlAttributes())->register($engine);
 
         $factory = new FormFactory(
             $engine,

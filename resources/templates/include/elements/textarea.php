@@ -28,7 +28,7 @@ return function(RenderCollection $render, Element $element, AbstractDecorator $d
     $textareaAttributes = $element->applyValidationAccessibility($textareaAttributes);
 
     $html = $render->at('tag.textarea')([
-        '{attributes}' => $textareaAttributes,
+        '{attributes}|join' => $textareaAttributes,
         '{content}' => $helpers->escaper()->escapeHtml((string) $element->getRenderValue()),
     ]);
     return $html;

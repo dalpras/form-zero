@@ -22,14 +22,14 @@ class AccordionCardDecorator extends AbstractDecorator
             return $render->at('form.html.accordion-item')([
                 '{id}'  => $this->getOption('id'),
 
-                '{attributes}' => $this->getOption('draggable') ? [
+                '{attributes}|join' => $this->getOption('draggable') ? [
                     'data-dragger'   => "item",
                     'data-object-id' => $options['{objectId}'] ?? ''
                 ] : [],
 
                 '{content}' => $render->at('form.html.accordion-item-content')([
                     '{class}'      => ($options['{class}'] ?? '') . ($this->getOption('collapsed') ? '' : ' show'),
-                    '{attributes}' => array_replace($options['attributes'] ?? [], $this->getOption('draggable') ? ['data-dragger' => 'draggable'] : []),
+                    '{attributes}|join' => array_replace($options['attributes'] ?? [], $this->getOption('draggable') ? ['data-dragger' => 'draggable'] : []),
                     '{pid}'        => $this->getOption('pid'),
                     '{id}'         => $this->getOption('id'),
                     '{content}'    => $content,

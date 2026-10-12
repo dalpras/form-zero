@@ -8,7 +8,7 @@ return function($element, string $name) {
     $helpers = $this->getHelpers();    
 
     return $render->at('tag.label')([
-        '{attributes}' => [
+        '{attributes}|join' => [
             'class' => 'col-form-label ' . ($element->isRequired() ? 'required' : ''),
             'for'   => $element->getId(),
         ],

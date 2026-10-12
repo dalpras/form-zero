@@ -28,7 +28,7 @@ return function(RenderCollection $render, Element $element, AbstractDecorator $d
     $selectAttributes = $element->applyValidationAccessibility($selectAttributes);
 
     $html = $render->at('tag.select')([
-        '{attributes}' => $selectAttributes,
+        '{attributes}|join' => $selectAttributes,
         '{content}' => function() use ($element, $render, $helpers) {
             // force $value to array so we can compare multiple values to multiple
             // options; also ensure it's a string for comparison purposes.
@@ -40,7 +40,7 @@ return function(RenderCollection $render, Element $element, AbstractDecorator $d
                     : $helpers->translator()->trans($label);
 
                 $carry .= $render->at('tag.option')([
-                    '{attributes}' => array_merge($element->getChoiceAttributes($label), in_array((string) $value, $values) ? ['selected' => ''] : []),
+                    '{attributes}|join' => array_merge($element->getChoiceAttributes($label), in_array((string) $value, $values) ? ['selected' => ''] : []),
                     '{value}'      => $helpers->escaper()->escapeHtml((string) $value),
                     '{content}'       => $helpers->escaper()->escapeHtml($text),
                 ]);
