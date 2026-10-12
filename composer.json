@@ -5,7 +5,7 @@
     "type": "library",
     "require": {
         "php": ">=8.3",
-        "dalpras/smart-template": "^4.0",
+        "dalpras/smart-template": "^5.0",
         "symfony/http-foundation": "^7.3",
         "symfony/mime": "^7.4",
         "symfony/validator": "^7.4",
