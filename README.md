@@ -15,7 +15,7 @@ FormZero is used as a form library, not as an HTTP framework. Your controller/ap
 The package currently requires:
 
 - PHP `>= 8.3`
-- `dalpras/smart-template ^4.0`
+- `dalpras/smart-template ^5.0`
 - Symfony Validator `^7.4`
 - Symfony Translation `^7.4`
 - Symfony HttpFoundation `^7.3`
@@ -444,6 +444,32 @@ $this->add(new SelectElement(), 'country', [
 ```
 
 The submitted value is validated against the configured choices.
+
+`RadioElement` escapes **choice labels** as text by default. If the labels
+contain trusted HTML created by your application (for example, icons), enable
+`htmlChoiceLabels` on that specific radio group:
+
+```php
+$this->add(new RadioElement(), 'icon', [
+    'label' => 'Icon',
+    'htmlChoiceLabels' => true,
+    'multiChoices' => [
+        '<i class="fa-solid fa-book" aria-hidden="true"></i><span class="visually-hidden">Book</span>' => 'book',
+        '<i class="fa-solid fa-globe" aria-hidden="true"></i><span class="visually-hidden">Globe</span>' => 'globe',
+    ],
+]);
+```
+
+**Security:** this option disables HTML escaping for *all choice labels in
+that radio group*. Use it only for developer-controlled HTML; never include
+unsanitized user or database text. Values, input attributes and normal radio
+labels continue to be escaped. Do not rely on detecting `<` in a label to
+decide whether it is HTML. HTML choice labels bypass automatic translation, while the surrounding field
+label can still be translated. Translate/escape any dynamic text parts before
+composing the markup.
+A visible or screen-reader-only text name is needed when a choice consists of
+an icon alone. The radio choice `<label>` is linked to its unique input ID,
+so clicking the icon selects the option.
 
 Multi-value elements use array semantics and validate each submitted value.
 

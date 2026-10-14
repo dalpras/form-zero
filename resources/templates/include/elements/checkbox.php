@@ -5,6 +5,7 @@
 use DalPraS\FormZero\Decorator\AbstractDecorator;
 use DalPraS\FormZero\Element\CheckboxElement;
 use DalPraS\SmartTemplate\Collection\RenderCollection;
+use DalPraS\SmartTemplate\HtmlAttributes;
 
 return function(RenderCollection $render, CheckboxElement $element, AbstractDecorator $decorator) {
     $attributes = $element->getAttribs();
@@ -43,6 +44,9 @@ return function(RenderCollection $render, CheckboxElement $element, AbstractDeco
         '{type}'    => 'checkbox',
         '{value}'   => $helpers->escaper()->escapeHtml($checkedValue),
         '{content}' => '',
+        '{labelFor}' => $helpers->escaper()->escapeHtml(
+            HtmlAttributes::normalizeId((string) $checkboxAttributes['id'])
+        ),
         '{checked}' => $isChecked ? 'checked' : '',
         '{class}' => 'form-check-inline',
     ]);

@@ -201,6 +201,53 @@ final class FormZeroHardeningTest extends TestCase
         self::assertStringContainsString('&lt;img', $html);
     }
 
+    public function testRadioHtmlChoiceLabelsAreExplicitAndLabelsTargetUniqueInputs(): void
+    {
+        $factory = $this->renderFactory();
+        $radio = (new \DalPraS\FormZero\Element\RadioElement())
+            ->setFactory($factory)->setName('icon');
+        $radio->setRenderBelongsTo('links[42]');
+        $radio->setDisableTranslator(true);
+        $radio->initOptions(['htmlChoiceLabels' => true]);
+        self::assertTrue($radio->allowsHtmlChoiceLabels());
+        self::assertArrayNotHasKey('htmlChoiceLabels', $radio->getAttribs());
+        $radio->setMultiChoices([
+            '<i class="fa-solid fa-book"></i><span class="visually-hidden">Book</span>' => 'book',
+            '<i class="fa-solid fa-globe"></i><span class="visually-hidden">Globe</span>' => 'globe',
+        ]);
+
+        $template = require dirname(__DIR__, 2) . '/resources/templates/include/elements/radio.php';
+        $html = $template->call($factory->template(), $factory->template()->collection(), $radio, new ElementBaseDecorator());
+
+        self::assertStringContainsString('<i class="fa-solid fa-book"></i>', $html);
+        self::assertStringContainsString('<span class="visually-hidden">Book</span>', $html);
+        self::assertStringContainsString('id="links-42-icon"', $html);
+        self::assertStringContainsString('for="links-42-icon"', $html);
+        self::assertStringContainsString('id="links-42-icon-1"', $html);
+        self::assertStringContainsString('for="links-42-icon-1"', $html);
+        self::assertSame(1, substr_count($html, 'id="links-42-icon"'));
+        self::assertSame(1, substr_count($html, 'id="links-42-icon-1"'));
+        self::assertStringContainsString('value="book"', $html);
+    }
+
+    public function testCheckboxMultiChoicesRemainEscapedAndLabelsAreAssociated(): void
+    {
+        $factory = $this->renderFactory();
+        $checkbox = (new \DalPraS\FormZero\Element\CheckboxMultiElement())
+            ->setFactory($factory)->setName('types');
+        $checkbox->setDisableTranslator(true);
+        $checkbox->setMultiChoices(['<script>alert(1)</script>' => 'a', 'Safe' => 'b']);
+        $template = require dirname(__DIR__, 2) . '/resources/templates/include/elements/radio.php';
+        $html = $template->call($factory->template(), $factory->template()->collection(), $checkbox, new ElementBaseDecorator());
+
+        self::assertStringNotContainsString('<script>', $html);
+        self::assertStringContainsString('&lt;script&gt;', $html);
+        self::assertStringContainsString('id="types"', $html);
+        self::assertStringContainsString('for="types"', $html);
+        self::assertStringContainsString('id="types-1"', $html);
+        self::assertStringContainsString('for="types-1"', $html);
+    }
+
     private function form(): ZeroForm
     {
         return (new ReflectionClass(ZeroForm::class))->newInstanceWithoutConstructor();
@@ -227,7 +274,7 @@ final class FormZeroHardeningTest extends TestCase
         $engine = (new TemplateEngine())->setHelpers($helpers)->register('test', [
             'tag' => ['input' => '<input type="{type}" value="{value}" {attributes}>'],
             'form' => ['html' => [
-                'form-element-checkbox' => '<input type="{type}" value="{value}" {checked} {attributes}>{content}',
+                'form-element-checkbox' => '<input type="{type}" value="{value}" {checked} {attributes}><label for="{labelFor}">{content}</label>',
             ]],
         ], true);
         (new HtmlAttributes())->register($engine);

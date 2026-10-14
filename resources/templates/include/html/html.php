@@ -11,7 +11,7 @@ return [
     'form-element-checkbox' => <<<HTML
         <div class="form-check {class}">
             <input class="form-check-input" type="{type}" value="{value}" {checked} {attributes}/>
-            <label class="form-check-label">{content}</label>
+            <label class="form-check-label" for="{labelFor}">{content}</label>
         </div>
         HTML,
 

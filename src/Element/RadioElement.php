@@ -13,4 +13,20 @@ final class RadioElement extends Element implements MultiChoicesInterface, Choic
     use MultiChoicesTrait;
     use ChoicesAlignmentTrait;
 
+    /**
+     * Radio choice labels are escaped by default. Enable this only for
+     * trusted, application-generated markup (for example icon templates).
+     */
+    private bool $htmlChoiceLabels = false;
+
+    public function setHtmlChoiceLabels(bool $enabled): static
+    {
+        $this->htmlChoiceLabels = $enabled;
+        return $this;
+    }
+
+    public function allowsHtmlChoiceLabels(): bool
+    {
+        return $this->htmlChoiceLabels;
+    }
 }
