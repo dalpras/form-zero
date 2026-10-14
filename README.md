@@ -1581,3 +1581,183 @@ $multipart = $form->requiresMultipartEncoding();
 # License
 
 See `composer.json` for the package license and metadata.
+
+---
+
+# Optional AJAX fragments (PHP payloads + native ES module)
+
+FormZero's **core has no HTTP or JavaScript dependency**. For independently
+saved nested forms, the package provides two optional, framework-neutral pieces:
+
+- `DalPraS\FormZero\Ajax\FragmentResponse` builds response arrays; your
+  controller chooses HTTP status, authorization, data persistence and
+  `JsonResponse` (or equivalent).
+- `resources/js/FormZeroAjax.mjs` progressively enhances explicitly marked
+  forms and buttons. It uses `fetch`, `FormData`, `CustomEvent` and one delegated
+  listener per enhanced form; it requires no npm package or frontend framework.
+
+The script is a source module, not an automatically included browser asset.
+Import it in your application's JS bundle or serve it as an ES module:
+
+```js
+import FormZeroAjax from '<path-to-form-zero>/resources/js/FormZeroAjax.mjs';
+new FormZeroAjax().init(document.querySelector('#my-editor'));
+```
+
+## 1. Declarative create and save
+
+A parent HTML `<form>` carries a **dedicated fragment CSRF token**:
+
+```html
+<form id="my-editor" data-fz-token="SERVER_GENERATED_FRAGMENT_TOKEN">
+  <!-- Child forms from FormZero, normal whole-page submit still works -->
+  <a href="/fallback/add" data-fz-action="create"
+     data-fz-url="/api/items/create"
+     data-fz-target="#items"
+     data-fz-fragment-prefix="item-"
+     data-fz-success="Created">Add item</a>
+  <div id="items"></div>
+</form>
+```
+
+The server creates an item and returns a JSON object such as
+`{ "success":true, "id":17, "html":"<section id=\"item-17\">...</section>",
+"csrfToken":"NEXT_TOKEN" }`. The module checks that the expected
+`item-17` exists before appending. It never reloads the page or replaces
+existing unsaved inputs.
+
+To save a subform, render an action button *inside its own row*:
+
+```html
+<section id="item-17">
+  <input name="items[17][title]" value="Example">
+  <input name="items[17][children][6][title]" value="Unsaved child">
+  <button type="button" data-fz-action="save"
+          data-fz-url="/api/items/save?id=17"
+          data-fz-row="#item-17"
+          data-fz-scope="items[17]"
+          data-fz-fields="title,enabled,options"
+          data-fz-success="Saved">Save item</button>
+</section>
+```
+
+Only direct `items[17][title]`, `items[17][enabled]` and
+`items[17][options][]` controls are serialized. Nested children are **never**
+included even when the child fields have the same final name. Disabled and
+unchecked controls are omitted; multiselects contribute one value per
+selected option. **Normalize omitted checkbox/multiselect fields on the PHP
+side** (e.g. `$submitted['options'] ??= []`). Submitted file fields are
+included when present and selected. The standalone subform should be
+validated with `isValid()`, not with a permissive `isValidPartial()`.
+
+Supported trigger attributes:
+
+| Attribute | Purpose |
+| --- | --- |
+| `data-fz-action` | `create` or `save` |
+| `data-fz-url` | POST URL, HTML-escaped once in its attribute rendering context |
+| `data-fz-target` | **Create**: selector of the existing append container |
+| `data-fz-fragment-prefix` | Expected row ID prefix; result `id` must be a positive integer |
+| `data-fz-fragment-match` | Optional selector that the returned row **must** match (e.g. `[data-dragger=item]`) |
+| `data-fz-context-key` / `data-fz-context-value` | Optional create guard: response property (`sectionId` etc.) must match expected parent ID |
+| `data-fz-row` | **Save**: selector of the existing subform row enclosing the button |
+| `data-fz-scope` | **Save**: bracket notation field name prefix, e.g. `sections[7]` |
+| `data-fz-fields` | **Save**: comma-separated **explicit field whitelist** |
+| `data-fz-label-target` | **Save**: descendant selector whose `textContent` receives returned `label` (never HTML) |
+| `data-fz-replace="if-html"` | **Save**: replace that row only when server sends `html` (use **only** if all edits in the row can safely be discarded) |
+| `data-fz-success` | Text or application translation key for the status message |
+
+When generating `data-fz-url` from an application URL helper, pass the **raw** URL
+to the attribute serializer. For example, if `url()` defaults to an HTML-encoded
+query separator (`&amp;`), request `&` explicitly and let
+`{attributes}|join` escape `data-fz-url` once. Pre-escaped query strings
+will be double-encoded and multi-parameter URLs will fail.
+
+The create link's `href` is a non-JavaScript fallback. Save buttons use
+`type="button"` and do not trigger the global form submit. The `data-fz-*`
+selectors are resolved **from the parent form**, not by assuming the Add
+button is inside its target accordion. This also handles decorators that
+prepend buttons as siblings of the accordion.
+
+## 2. PHP controller response contract
+
+```php
+use DalPraS\FormZero\Ajax\FragmentResponse;
+
+// Validate authorization and the separate fragment CSRF token FIRST.
+// Persist only the intended entity, then render only its child form.
+return new JsonResponse(
+    FragmentResponse::created($newId, $childForm->render(), $nextToken, [
+        'sectionId' => $sectionId,
+    ]),
+    200,
+);
+
+// Successful scoped update. Preserve the current browser subform by default.
+return new JsonResponse(FragmentResponse::saved($nextToken, [
+    'id' => $id,
+    'label' => $newCaption,
+]));
+
+// Validation errors use HTTP 422 and carry a replacement token, if rotated.
+return new JsonResponse(
+    FragmentResponse::invalid($form->getMessages(true), $nextToken),
+    422,
+);
+```
+
+Responses must be JSON (`application/json`) with `success: true|false`.
+`csrfToken` is adopted on both successful and HTTP 422 responses. A 403 with
+an expired/invalid token should prompt a reload or fresh token flow; **do not
+make CSRF optional**. Never interpret the requested entity ID or field
+whitelist as authorization: verify entity ownership, ACL and allowed fields
+on the server, then validate a standalone form and persist only those fields.
+
+The helper returns **plain arrays**, keeping FormZero independent of
+Laminas/Symfony controllers. The application decides its status codes. It
+does not change `ZeroForm`, add a JS dependency to Composer or register AJAX
+behavior during ordinary form rendering.
+
+## 3. Events and editor integrations
+
+The library dispatches document-level `CustomEvent`s with a `detail` payload:
+
+- `formzero:before-submit`: `{form, trigger, root}`; synchronize rich editors
+  **before** `FormData` serialization.
+- `formzero:fragment-added`: `{form, trigger, root, result}`; initialize newly
+  inserted widgets and optionally focus the first field.
+- `formzero:fragment-replaced`: same payload when an explicit row replacement
+  is authorized.
+- `formzero:fragment-saved`: `{form, trigger, root, result, action}` after
+  success. UI status is reported through `role="status"`.
+- `formzero:fragment-error`: `{form, trigger, error}`; validation and network
+  errors are displayed via `role="alert"` and `aria-live`.
+
+The status CSS classes are configurable with `statusClasses`; by default the
+library uses `fz-status`, `fz-status--success` and `fz-status--error` without
+requiring Bootstrap. A Bootstrap app may pass
+`{statusClasses:{base:'ms-2 small', success:'text-success', error:'text-danger'}}`.
+
+For example:
+
+```js
+document.addEventListener('formzero:before-submit', ({detail}) => {
+    window.MyEditor?.sync(detail.root);
+});
+document.addEventListener('formzero:fragment-added', ({detail}) => {
+    initializeEditorWidgets(detail.root);
+});
+```
+
+All requests sharing one HTML form are **queued**, so concurrent clicks don't
+submit the same rotating CSRF token. The same action button cannot be sent
+twice while pending. Requests in different browser tabs may still race; for
+non-idempotent creates, applications can add idempotency keys if needed.
+
+Returned HTML is treated as **trusted server-rendered markup**. The controller
+must correctly escape user-provided values and must not return user-controlled
+raw scripts/HTML. The library intentionally does not sanitize application
+markup or contain any database rules.
+
+This optional module is tested from the application's Node test runner; the
+PHP `FragmentResponseTest` runs in the package's PHPUnit suite.
