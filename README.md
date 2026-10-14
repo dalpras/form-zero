@@ -1654,18 +1654,18 @@ Supported trigger attributes:
 
 | Attribute | Purpose |
 | --- | --- |
-| `data-fz-action` | `create`, `save`, or `delete` |
+| `data-fz-action` | `create`, `save`, `delete`, or `mutate` |
 | `data-fz-url` | POST URL, HTML-escaped once in its attribute rendering context |
 | `data-fz-target` | **Create**: selector of the existing append container |
 | `data-fz-fragment-prefix` | Expected row ID prefix; result `id` must be a positive integer |
 | `data-fz-fragment-match` | Optional selector that the returned row **must** match (e.g. `[data-dragger=item]`) |
 | `data-fz-context-key` / `data-fz-context-value` | Optional create guard: response property (`sectionId` etc.) must match expected parent ID |
-| `data-fz-row` | **Save/delete**: selector of the existing subform row enclosing the button |
-| `data-fz-confirm` | **Delete**: optional browser confirmation message |
+| `data-fz-row` | **Save/delete/mutate**: selector of the existing subform row enclosing the button |
+| `data-fz-confirm` | **Delete/mutate**: optional browser confirmation message |
 | `data-fz-scope` | **Save**: bracket notation field name prefix, e.g. `sections[7]` |
 | `data-fz-fields` | **Save**: comma-separated **explicit field whitelist** |
 | `data-fz-label-target` | **Save**: descendant selector whose `textContent` receives returned `label` (never HTML) |
-| `data-fz-replace="if-html"` | **Save**: replace that row only when server sends `html` (use **only** if all edits in the row can safely be discarded) |
+| `data-fz-replace="if-html"` | **Save/mutate**: replace that row only when server sends `html` (for `mutate`, dirty rows are rejected before sending) |
 | `data-fz-success` | Text or application translation key for the status message |
 
 When generating `data-fz-url` from an application URL helper, pass the **raw** URL
@@ -1740,6 +1740,9 @@ The library dispatches document-level `CustomEvent`s with a `detail` payload:
   successful scoped reorder.
 - `formzero:dirty`: `{row, trigger}` when an independent subform changes.
 - `formzero:conflict`: `{form, trigger, error}` when a response is HTTP 409.
+- `formzero:fragment-warning`: `{form, trigger, root, result}` if persistence
+  succeeded but the server reports a nonfatal follow-up warning (e.g. file cleanup).
+- `formzero:uploaded`: `{form, trigger, completed}` after a file-selection batch.
 - `formzero:fragment-error`: `{form, trigger, error}`; validation and network
   errors are displayed via `role="alert"` and `aria-live`.
 
@@ -1772,7 +1775,48 @@ markup or contain any database rules.
 This optional module is tested from the application's Node test runner; the
 PHP `FragmentResponseTest` runs in the package's PHPUnit suite.
 
-## 4. Revision-aware saves, deletion, reordering and unsaved changes
+## 4. Optional multipart file uploads
+
+A `SymfileElement` or `SymfileMultiElement` can opt in to AJAX uploading
+**without changing FormZero's core**. Add the attributes below to the
+rendered `<input type="file">`. On selection, `FormZeroAjax` sends one file
+per POST, using `FormData` field `file`, then appends the validated server
+fragment into `data-fz-target`. Without JavaScript the same input remains a
+normal multipart field for a full-page POST.
+
+```html
+<form data-fz-token="..." data-fz-revision="12" enctype="multipart/form-data">
+  <input type="file" multiple name="image[]"
+         data-fz-action="upload" data-fz-url="/api/media/upload?type=image"
+         data-fz-target="#images" data-fz-fragment-prefix="image-"
+         data-fz-fragment-match="[data-dragger=item]"
+         data-fz-context-key="type" data-fz-context-value="image"
+         data-fz-success="Uploaded">
+  <div id="images"></div>
+</form>
+```
+
+Each successful JSON response must contain `success`, a positive `id`, the
+matching `type`, server-rendered `html`, `csrfToken`, and (for revisioned
+editors) `editorRevision`. Selected batches are capped at 20 files, queued
+in order, and serialized with all other fragment actions on the same form.
+A failed later upload **does not undo earlier successful uploads**: the status
+shows how many succeeded and keeps their inserted rows. File inputs clear
+after the attempt, allowing an identical filename to be selected again.
+During the batch, navigation triggers the standard unsaved-changes warning.
+
+File type/MIME, size, ownership, CSRF, per-entity revision and storage rules
+MUST be checked by the application endpoint. The HTML `data-fz-*` attributes
+are configuration, not authorization. In particular, never put arbitrary
+filesystem paths or an HTML fragment supplied by the browser into the
+server's response. Normal server-side validation is always required.
+
+`formzero:committed` and `formzero:fragment-added` fire separately for every
+successfully uploaded file; `formzero:uploaded` fires after the full batch
+with `{form, trigger, completed}`. Physical file deletion is deliberately an
+application-side operation, not a FormZero feature.
+
+## 5. Revision-aware saves, deletion, reordering and unsaved changes
 
 Optionally set `data-fz-revision="1"` on the parent form. The module then
 includes `editor_revision` on each fragment POST and updates that attribute
@@ -1787,6 +1831,23 @@ Delete an existing row only after the server has committed the deletion:
         data-fz-url="/api/items/delete?id=17"
         data-fz-row="#item-17"
         data-fz-confirm="Delete this item?">Delete</button>
+```
+
+For an action that updates a record but must **not** submit fields or remove
+its row, use `data-fz-action="mutate"`. The server may return a refreshed
+`html` fragment; the row is replaced only when `data-fz-replace="if-html"`
+is present. A mutate request is rejected before transmission if the target
+row contains unsaved fields, so an updated fragment cannot silently discard
+those edits. Use a real POST route with CSRF and revision checks; this is
+useful for unlinking a physical file while preserving its CMS record:
+
+```html
+<button type="button" data-fz-action="mutate"
+        data-fz-row="#video-12"
+        data-fz-url="/api/media/unlink-file?id=12"
+        data-fz-confirm="Delete the uploaded file?"
+        data-fz-replace="if-html"
+        data-fz-fragment-prefix="video-">Remove file</button>
 ```
 
 For reordering, call the JavaScript API from your drag handler:

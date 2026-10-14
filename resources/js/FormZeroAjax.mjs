@@ -1,7 +1,7 @@
 /**
  * Optional progressive enhancement for FormZero fragments (native JS, no dependencies).
  *
- * Forms opt in with data-fz-token; triggers use data-fz-action="create|save|delete".
+ * Forms opt in with data-fz-token; triggers use data-fz-action="create|save|delete|mutate".
  * FormZero never persists entities or assumes a particular controller/framework.
  */
 export default class FormZeroAjax {
@@ -28,6 +28,7 @@ export default class FormZeroAjax {
         this.pending = new WeakSet();
         this.snapshots = new WeakMap();
         this.dirtyRows = new Set();
+        this.pendingUploads = 0;
     }
 
     /** A delegated listener also handles controls inserted after initialization. */
@@ -39,7 +40,7 @@ export default class FormZeroAjax {
             if (!trigger || !root.contains(trigger)) return;
             const form = trigger.closest('form[data-fz-token]');
             if (!form || (root !== form && !root.contains(form))) return;
-            if (!['create', 'save', 'delete'].includes(trigger.dataset.fzAction)) return;
+            if (!['create', 'save', 'delete', 'mutate'].includes(trigger.dataset.fzAction)) return;
             // An anchor retains its normal GET fallback with JS disabled.
             event.preventDefault();
             void this.execute(form, trigger);
@@ -51,10 +52,19 @@ export default class FormZeroAjax {
         };
         root.addEventListener('input', changed);
         root.addEventListener('change', changed);
+        // An opt-in file input progressively uploads on selection. Without
+        // JavaScript it remains a normal multipart field for the full POST.
+        root.addEventListener('change', (event) => {
+            const input = event.target;
+            if (!input?.matches?.('input[type="file"][data-fz-action="upload"][data-fz-url]')) return;
+            const form = input.closest('form[data-fz-token]');
+            if (!form || (root !== form && !root.contains(form))) return;
+            void this.upload(form, input);
+        });
         this.rememberAll(root);
         if (typeof window !== 'undefined') {
             window.addEventListener('beforeunload', (event) => {
-                if (![...this.dirtyRows].some((row) => row.isConnected !== false && root.contains?.(row))) return;
+                if (!this.pendingUploads && ![...this.dirtyRows].some((row) => row.isConnected !== false && root.contains?.(row))) return;
                 event.preventDefault();
                 event.returnValue = '';
             });
@@ -210,6 +220,66 @@ export default class FormZeroAjax {
         return job;
     }
 
+    /**
+     * One uploaded File per request: every commit rotates the fragment token
+     * and article revision before the next item is sent. The server owns
+     * validation and persistence; this code only manages transport and DOM.
+     */
+    async upload(form, input) {
+        if (this.pending.has(input)) return null;
+        const files = Array.from(input.files ?? []);
+        if (!files.length) return null;
+        if (files.length > 20) {
+            this.status(input, this.translate('Select no more than 20 files per upload'), true);
+            input.value = '';
+            return null;
+        }
+        const disabled = input.disabled;
+        this.pending.add(input);
+        this.pendingUploads++;
+        input.disabled = true;
+        try {
+            return await this.enqueue(form, async () => {
+                let completed = 0;
+                try {
+                    const target = form.querySelector(input.dataset.fzTarget || '#fz-no-target');
+                    if (!target) throw new Error(this.translate(this.invalidResponse));
+                    for (const file of files) {
+                        const data = new FormData();
+                        data.append('file', file, file.name);
+                        const result = await this.request(form, input.dataset.fzUrl, data);
+                        this.emit('committed', {form, trigger: input, result, action: 'upload'});
+                        this.checkContext(input, result);
+                        const root = this.fragment(result.html, this.fragmentId(input, result));
+                        this.validateFragment(input, root);
+                        target.append(root);
+                        this.rememberAll(root);
+                        this.remember(root);
+                        this.emit('fragment-added', {form, trigger: input, root, result});
+                        completed++;
+                        this.status(input, `${completed} / ${files.length}`, 'warning');
+                    }
+                    this.status(input, this.translate(input.dataset.fzSuccess || 'Uploaded'));
+                    this.emit('uploaded', {form, trigger: input, completed});
+                    return completed;
+                } catch (error) {
+                    const message = error.message || this.translate(this.requestError);
+                    this.status(input, completed ? `${completed} / ${files.length} - ${message}` : message, true);
+                    this.emit('fragment-error', {form, trigger: input, error});
+                    if (error.conflict) this.emit('conflict', {form, trigger: input, error});
+                    return null;
+                }
+            });
+        } finally {
+            // Clearing also allows selecting the same file again after a failed
+            // upload; any successfully inserted rows are intentionally retained.
+            input.value = '';
+            input.disabled = disabled;
+            this.pendingUploads--;
+            this.pending.delete(input);
+        }
+    }
+
     /** Generic ordered mutation; applications decide owner type and endpoint. */
     reorder(form, url, type, ownerId, ids) {
         if (!url || !/^[1-9]\d*$/.test(String(ownerId)) || !Array.isArray(ids) ||
@@ -288,7 +358,7 @@ export default class FormZeroAjax {
 
     async execute(form, trigger) {
         if (this.pending.has(trigger)) return;
-        if (trigger.dataset.fzAction === 'delete' && trigger.dataset.fzConfirm &&
+        if (['delete', 'mutate'].includes(trigger.dataset.fzAction) && trigger.dataset.fzConfirm &&
             typeof window !== 'undefined' && !window.confirm(trigger.dataset.fzConfirm)) return;
         this.pending.add(trigger);
         const originalTrigger = trigger;
@@ -307,10 +377,13 @@ export default class FormZeroAjax {
                         // Check the DOM before creating an entity on the server.
                         target = form.querySelector(trigger.dataset.fzTarget || '#fz-no-target');
                         if (!target) throw new Error(this.translate(this.invalidResponse));
-                    } else if (action === 'save' || action === 'delete') {
+                    } else if (action === 'save' || action === 'delete' || action === 'mutate') {
                         target = form.querySelector(trigger.dataset.fzRow || '#fz-no-row');
                         if (!target || !target.contains(trigger)) {
                             throw new Error(this.translate(this.invalidResponse));
+                        }
+                        if (action === 'mutate' && this.dirtyRows.has(target)) {
+                            throw new Error(this.translate(this.dirtyMessage));
                         }
                         if (action === 'save') {
                             this.emit('before-submit', {form, trigger, root: target});
@@ -372,6 +445,9 @@ export default class FormZeroAjax {
                         }
                     }
                     this.emit('fragment-saved', {form, trigger, root, result, action});
+                    if (typeof result.warning === 'string' && result.warning) {
+                        this.emit('fragment-warning', {form, trigger, root, result});
+                    }
                     if (trigger.dataset.fzSuccess && action !== 'delete') {
                         this.status(trigger, this.translate(trigger.dataset.fzSuccess));
                     }
