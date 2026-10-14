@@ -1,7 +1,7 @@
 /**
  * Optional progressive enhancement for FormZero fragments (native JS, no dependencies).
  *
- * Forms opt in with data-fz-token; triggers use data-fz-action="create|save".
+ * Forms opt in with data-fz-token; triggers use data-fz-action="create|save|delete".
  * FormZero never persists entities or assumes a particular controller/framework.
  */
 export default class FormZeroAjax {
@@ -9,21 +9,25 @@ export default class FormZeroAjax {
         translate = (message) => message,
         invalidResponse = 'Invalid server response',
         requestError = 'Request failed',
+        dirtyMessage = 'Unsaved changes',
         tokenField = 'fragment_token',
         fetchImpl = (...args) => fetch(...args),
         statusClasses = {
-            base: 'fz-status', success: 'fz-status--success', error: 'fz-status--error',
+            base: 'fz-status', success: 'fz-status--success', error: 'fz-status--error', warning: 'fz-status--warning',
         },
     } = {}) {
         this.translate = translate;
         this.invalidResponse = invalidResponse;
         this.requestError = requestError;
+        this.dirtyMessage = dirtyMessage;
         this.tokenField = tokenField;
         this.fetchImpl = fetchImpl;
         this.statusClasses = statusClasses;
         this.roots = new WeakSet();
         this.queues = new WeakMap();
         this.pending = new WeakSet();
+        this.snapshots = new WeakMap();
+        this.dirtyRows = new Set();
     }
 
     /** A delegated listener also handles controls inserted after initialization. */
@@ -35,11 +39,26 @@ export default class FormZeroAjax {
             if (!trigger || !root.contains(trigger)) return;
             const form = trigger.closest('form[data-fz-token]');
             if (!form || (root !== form && !root.contains(form))) return;
-            if (!['create', 'save'].includes(trigger.dataset.fzAction)) return;
+            if (!['create', 'save', 'delete'].includes(trigger.dataset.fzAction)) return;
             // An anchor retains its normal GET fallback with JS disabled.
             event.preventDefault();
             void this.execute(form, trigger);
         });
+        // Delegated tracking works for rows inserted by future AJAX requests.
+        const changed = (event) => {
+            const row = event.target?.closest?.('[data-dragger="item"]');
+            if (row && (root === row || root.contains?.(row))) this.refreshDirty(row);
+        };
+        root.addEventListener('input', changed);
+        root.addEventListener('change', changed);
+        this.rememberAll(root);
+        if (typeof window !== 'undefined') {
+            window.addEventListener('beforeunload', (event) => {
+                if (![...this.dirtyRows].some((row) => row.isConnected !== false && root.contains?.(row))) return;
+                event.preventDefault();
+                event.returnValue = '';
+            });
+        }
     }
 
     /**
@@ -75,6 +94,51 @@ export default class FormZeroAjax {
         return data;
     }
 
+    /** A consistent fingerprint of only the fields controlled by this row. */
+    fingerprint(row, trigger) {
+        try {
+            const fields = (trigger.dataset.fzFields || '').split(',');
+            return JSON.stringify([...FormZeroAjax.collect(row, trigger.dataset.fzScope, fields).entries()]);
+        } catch (_) {
+            return null;
+        }
+    }
+
+    saveTrigger(row) {
+        if (!row?.id) return null;
+        return [...(row.querySelectorAll?.('[data-fz-action="save"]') || [])]
+            .find((trigger) => trigger.dataset?.fzRow === `#${row.id}`) ?? null;
+    }
+
+    remember(row) {
+        const trigger = this.saveTrigger(row);
+        if (trigger) this.snapshots.set(row, this.fingerprint(row, trigger));
+        this.dirtyRows.delete(row);
+        row?.removeAttribute?.('data-fz-dirty');
+    }
+
+    rememberAll(root) {
+        for (const row of root.querySelectorAll?.('[data-dragger="item"]') ?? []) this.remember(row);
+    }
+
+    refreshDirty(row) {
+        const trigger = this.saveTrigger(row);
+        if (!trigger) return;
+        if (this.fingerprint(row, trigger) !== this.snapshots.get(row)) {
+            if (!this.dirtyRows.has(row)) {
+                this.status(trigger, this.translate(this.dirtyMessage), 'warning');
+            }
+            this.dirtyRows.add(row);
+            row.setAttribute?.('data-fz-dirty', 'true');
+            this.emit('dirty', {row, trigger});
+        } else {
+            this.dirtyRows.delete(row);
+            row.removeAttribute?.('data-fz-dirty');
+            const status = trigger.nextElementSibling;
+            if (status?.hasAttribute?.('data-fz-status')) status.textContent = '';
+        }
+    }
+
     errorMessage(result) {
         if (!result || typeof result !== 'object') return this.translate(this.invalidResponse);
         const errors = result.errors && typeof result.errors === 'object'
@@ -88,6 +152,12 @@ export default class FormZeroAjax {
         const token = form.dataset.fzToken;
         if (!token || !url) throw new Error(this.translate(this.invalidResponse));
         data.set(this.tokenField, token);
+        if (form.dataset.fzRevision !== undefined) {
+            if (!/^[1-9]\d*$/.test(form.dataset.fzRevision)) {
+                throw new Error(this.translate(this.invalidResponse));
+            }
+            data.set('editor_revision', form.dataset.fzRevision);
+        }
         let response;
         try {
             response = await this.fetchImpl(url, {
@@ -121,7 +191,13 @@ export default class FormZeroAjax {
             form.dataset.fzToken = result.csrfToken;
         }
         if (!response.ok || result.success !== true) {
-            throw new Error(this.errorMessage(result));
+            const error = new Error(this.errorMessage(result));
+            error.conflict = response.status === 409 || result.conflict === true;
+            error.status = response.status;
+            throw error;
+        }
+        if (typeof result.editorRevision === 'number' && Number.isSafeInteger(result.editorRevision)) {
+            form.dataset.fzRevision = String(result.editorRevision);
         }
         return result;
     }
@@ -132,6 +208,23 @@ export default class FormZeroAjax {
         const job = previous.catch(() => {}).then(task);
         this.queues.set(form, job.catch(() => {}));
         return job;
+    }
+
+    /** Generic ordered mutation; applications decide owner type and endpoint. */
+    reorder(form, url, type, ownerId, ids) {
+        if (!url || !/^[1-9]\d*$/.test(String(ownerId)) || !Array.isArray(ids) ||
+            ids.some((id) => !/^[1-9]\d*$/.test(String(id))) || new Set(ids).size !== ids.length) {
+            return Promise.reject(new Error(this.translate(this.invalidResponse)));
+        }
+        const data = new FormData();
+        data.set('type', type);
+        data.set('owner_id', String(ownerId));
+        ids.forEach((id) => data.append('ids[]', String(id)));
+        return this.enqueue(form, async () => {
+            const result = await this.request(form, url, data);
+            this.emit('reordered', {form, type, ownerId, ids, result});
+            return result;
+        });
     }
 
     fragment(html, expectedId) {
@@ -185,15 +278,18 @@ export default class FormZeroAjax {
         }
         element.className = [
             this.statusClasses.base,
-            error ? this.statusClasses.error : this.statusClasses.success,
+            error === true ? this.statusClasses.error :
+                error === 'warning' ? this.statusClasses.warning : this.statusClasses.success,
         ].filter(Boolean).join(' ');
         element.textContent = message;
-        element.setAttribute('role', error ? 'alert' : 'status');
-        element.setAttribute('aria-live', error ? 'assertive' : 'polite');
+        element.setAttribute('role', error === true ? 'alert' : 'status');
+        element.setAttribute('aria-live', error === true ? 'assertive' : 'polite');
     }
 
     async execute(form, trigger) {
         if (this.pending.has(trigger)) return;
+        if (trigger.dataset.fzAction === 'delete' && trigger.dataset.fzConfirm &&
+            typeof window !== 'undefined' && !window.confirm(trigger.dataset.fzConfirm)) return;
         this.pending.add(trigger);
         const originalTrigger = trigger;
         const wasDisabled = trigger.disabled === true;
@@ -211,25 +307,40 @@ export default class FormZeroAjax {
                         // Check the DOM before creating an entity on the server.
                         target = form.querySelector(trigger.dataset.fzTarget || '#fz-no-target');
                         if (!target) throw new Error(this.translate(this.invalidResponse));
-                    } else if (action === 'save') {
+                    } else if (action === 'save' || action === 'delete') {
                         target = form.querySelector(trigger.dataset.fzRow || '#fz-no-row');
                         if (!target || !target.contains(trigger)) {
                             throw new Error(this.translate(this.invalidResponse));
                         }
-                        this.emit('before-submit', {form, trigger, root: target});
-                        const fields = (trigger.dataset.fzFields || '').split(',');
-                        data = FormZeroAjax.collect(target, trigger.dataset.fzScope, fields);
+                        if (action === 'save') {
+                            this.emit('before-submit', {form, trigger, root: target});
+                            const fields = (trigger.dataset.fzFields || '').split(',');
+                            data = FormZeroAjax.collect(target, trigger.dataset.fzScope, fields);
+                        }
                     } else {
                         throw new Error(this.translate(this.invalidResponse));
                     }
+                    const snapshotSent = action === 'save' ? JSON.stringify([...data.entries()]) : null;
                     const result = await this.request(form, url, data);
+                    // Persistence has succeeded even if the following DOM
+                    // validation/insertion fails: applications must invalidate
+                    // any old whole-page snapshot immediately.
+                    this.emit('committed', {form, trigger, result, action});
                     this.checkContext(trigger, result);
                     let root = target;
                     if (action === 'create') {
                         root = this.fragment(result.html, this.fragmentId(trigger, result));
                         this.validateFragment(trigger, root);
                         target.append(root);
+                        this.rememberAll(root);
+                        this.remember(root);
                         this.emit('fragment-added', {form, trigger, root, result});
+                    } else if (action === 'delete') {
+                        this.dirtyRows.delete(target);
+                        // Descendants may have unsaved fields too.
+                        for (const row of target.querySelectorAll?.('[data-dragger="item"]') ?? []) this.dirtyRows.delete(row);
+                        target.remove();
+                        this.emit('fragment-removed', {form, trigger, root: target, result});
                     } else {
                         const captionSelector = trigger.dataset.fzLabelTarget;
                         if (captionSelector && typeof result.label === 'string') {
@@ -240,20 +351,35 @@ export default class FormZeroAjax {
                             root = this.fragment(result.html, this.fragmentId(trigger, result));
                             this.validateFragment(trigger, root);
                             target.replaceWith(root);
+                            this.dirtyRows.delete(target);
+                            this.rememberAll(root);
+                            this.remember(root);
                             this.emit('fragment-replaced', {form, trigger, root, result});
                             // The previous trigger was detached along with the row.
                             trigger = [...root.querySelectorAll('[data-fz-action="save"]')]
                                 .find((item) => item.dataset.fzUrl === url) ?? trigger;
                         }
                     }
+                    if (action === 'save' && root === target) {
+                        const current = this.fingerprint(target, trigger);
+                        if (current === snapshotSent) this.remember(target);
+                        else {
+                            // Compare against the values actually persisted,
+                            // not the pre-request baseline. A user who types
+                            // during the request must still see Unsaved.
+                            this.snapshots.set(target, snapshotSent);
+                            this.refreshDirty(target);
+                        }
+                    }
                     this.emit('fragment-saved', {form, trigger, root, result, action});
-                    if (trigger.dataset.fzSuccess) {
+                    if (trigger.dataset.fzSuccess && action !== 'delete') {
                         this.status(trigger, this.translate(trigger.dataset.fzSuccess));
                     }
                     return result;
                 } catch (error) {
                     this.status(trigger, error.message || this.translate(this.requestError), true);
                     this.emit('fragment-error', {form, trigger, error});
+                    if (error.conflict) this.emit('conflict', {form, trigger, error});
                     return null;
                 }
             });

@@ -1654,13 +1654,14 @@ Supported trigger attributes:
 
 | Attribute | Purpose |
 | --- | --- |
-| `data-fz-action` | `create` or `save` |
+| `data-fz-action` | `create`, `save`, or `delete` |
 | `data-fz-url` | POST URL, HTML-escaped once in its attribute rendering context |
 | `data-fz-target` | **Create**: selector of the existing append container |
 | `data-fz-fragment-prefix` | Expected row ID prefix; result `id` must be a positive integer |
 | `data-fz-fragment-match` | Optional selector that the returned row **must** match (e.g. `[data-dragger=item]`) |
 | `data-fz-context-key` / `data-fz-context-value` | Optional create guard: response property (`sectionId` etc.) must match expected parent ID |
-| `data-fz-row` | **Save**: selector of the existing subform row enclosing the button |
+| `data-fz-row` | **Save/delete**: selector of the existing subform row enclosing the button |
+| `data-fz-confirm` | **Delete**: optional browser confirmation message |
 | `data-fz-scope` | **Save**: bracket notation field name prefix, e.g. `sections[7]` |
 | `data-fz-fields` | **Save**: comma-separated **explicit field whitelist** |
 | `data-fz-label-target` | **Save**: descendant selector whose `textContent` receives returned `label` (never HTML) |
@@ -1728,14 +1729,23 @@ The library dispatches document-level `CustomEvent`s with a `detail` payload:
   inserted widgets and optionally focus the first field.
 - `formzero:fragment-replaced`: same payload when an explicit row replacement
   is authorized.
+- `formzero:committed`: `{form, trigger, result, action}` immediately upon a
+  successful server response, **before DOM rendering**. Use this to mark a
+  whole-page snapshot stale even if returned HTML cannot be inserted.
 - `formzero:fragment-saved`: `{form, trigger, root, result, action}` after
   success. UI status is reported through `role="status"`.
+- `formzero:fragment-removed`: `{form, trigger, root, result}` after a
+  successful delete and removal of that row.
+- `formzero:reordered`: `{form, type, ownerId, ids, result}` after a
+  successful scoped reorder.
+- `formzero:dirty`: `{row, trigger}` when an independent subform changes.
+- `formzero:conflict`: `{form, trigger, error}` when a response is HTTP 409.
 - `formzero:fragment-error`: `{form, trigger, error}`; validation and network
   errors are displayed via `role="alert"` and `aria-live`.
 
 The status CSS classes are configurable with `statusClasses`; by default the
-library uses `fz-status`, `fz-status--success` and `fz-status--error` without
-requiring Bootstrap. A Bootstrap app may pass
+library uses `fz-status`, `fz-status--success`, `fz-status--warning`
+and `fz-status--error` without requiring Bootstrap. A Bootstrap app may pass
 `{statusClasses:{base:'ms-2 small', success:'text-success', error:'text-danger'}}`.
 
 For example:
@@ -1761,3 +1771,50 @@ markup or contain any database rules.
 
 This optional module is tested from the application's Node test runner; the
 PHP `FragmentResponseTest` runs in the package's PHPUnit suite.
+
+## 4. Revision-aware saves, deletion, reordering and unsaved changes
+
+Optionally set `data-fz-revision="1"` on the parent form. The module then
+includes `editor_revision` on each fragment POST and updates that attribute
+only when a successful JSON response provides a numeric `editorRevision`.
+HTTP 409 emits `formzero:conflict`; the token returned in `csrfToken` is
+still adopted but the revision is **never** updated on a failed request.
+
+Delete an existing row only after the server has committed the deletion:
+
+```html
+<button type="button" data-fz-action="delete"
+        data-fz-url="/api/items/delete?id=17"
+        data-fz-row="#item-17"
+        data-fz-confirm="Delete this item?">Delete</button>
+```
+
+For reordering, call the JavaScript API from your drag handler:
+
+```js
+await ajax.reorder(form, '/api/items/reorder', 'item', 7, [21, 19, 23]);
+```
+
+The application must authenticate and validate ownership of every ID,
+validate the *complete* list of siblings on the server, and use a transaction
+and revision check. On failure, the drag handler should restore the previous
+DOM order. FormZero deliberately knows nothing about rank, parent entities,
+or persistence.
+
+`init()` tracks an independent fingerprint of each row with a matching
+`data-fz-action="save"` button. Only fields declared in `data-fz-fields`
+participate. It signals unsaved changes with `data-fz-dirty`, an accessible
+message alongside the save button, `formzero:dirty`, and a browser
+`beforeunload` warning. After a successful save, changes typed **during** the
+request remain dirty; a failed save never discards user input.
+
+`FormZeroAjax` options `dirtyMessage` and `statusClasses` let applications
+translate/customize messages without coupling the package to Bootstrap.
+This is deliberately an **explicit-save** API: no invisible autosave or
+unconditional background traffic is enabled by the library.
+
+Security rules still apply: the server must not trust a client-provided
+`editor_revision`, target selector, field whitelist, form scope, or row ID to
+prove access. Check authentication, CSRF, ownership, form validation and
+revision *server-side*. For double-escaped URL avoidance, use the raw URL as
+the value of `data-fz-url` (and any other HTML-escaped `data-fz-*` URL).
