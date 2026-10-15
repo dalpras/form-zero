@@ -10,8 +10,16 @@ export default class FormZeroAjax {
         invalidResponse = 'Invalid server response',
         requestError = 'Request failed',
         dirtyMessage = 'Unsaved changes',
+        savedMessage = 'Saved',
         tokenField = 'fragment_token',
         fetchImpl = (...args) => fetch(...args),
+        // Optional application-owned notifications (e.g. a Bootstrap toaster).
+        // Without it, FormZero keeps its backwards-compatible inline messages.
+        notify = null,
+        inlineDirty = true,
+        // Optional UI callback for independently saved components. FormZero does
+        // not prescribe any layout or visual framework for this feedback.
+        onRowStatus = null,
         statusClasses = {
             base: 'fz-status', success: 'fz-status--success', error: 'fz-status--error', warning: 'fz-status--warning',
         },
@@ -20,9 +28,14 @@ export default class FormZeroAjax {
         this.invalidResponse = invalidResponse;
         this.requestError = requestError;
         this.dirtyMessage = dirtyMessage;
+        this.savedMessage = savedMessage;
         this.tokenField = tokenField;
         this.fetchImpl = fetchImpl;
         this.statusClasses = statusClasses;
+        this.notify = typeof notify === 'function' ? notify : null;
+        this.inlineDirty = inlineDirty;
+        this.onRowStatus = typeof onRowStatus === 'function' ? onRowStatus : null;
+        this.originalSaveLabels = new WeakMap();
         this.roots = new WeakSet();
         this.queues = new WeakMap();
         this.pending = new WeakSet();
@@ -120,11 +133,49 @@ export default class FormZeroAjax {
             .find((trigger) => trigger.dataset?.fzRow === `#${row.id}`) ?? null;
     }
 
+    /** Row + Save-button state, without adding elements to the button toolbar. */
+    markDirty(row, trigger, dirty) {
+        if (dirty) row.setAttribute?.('data-fz-dirty', 'true');
+        else row.removeAttribute?.('data-fz-dirty');
+        if (this.inlineDirty || !trigger) return;
+        if (dirty) {
+            if (!this.originalSaveLabels.has(trigger)) {
+                this.originalSaveLabels.set(trigger, {
+                    aria: trigger.getAttribute?.('aria-label') ?? null,
+                    title: trigger.getAttribute?.('title') ?? null,
+                });
+            }
+            const original = this.originalSaveLabels.get(trigger);
+            const label = original.aria || original.title || trigger.textContent?.trim() || 'Save';
+            const warning = this.translate(this.dirtyMessage);
+            trigger.setAttribute?.('data-fz-dirty', 'true');
+            trigger.setAttribute?.('aria-label', `${label} - ${warning}`);
+            trigger.setAttribute?.('title', `${original.title || label} - ${warning}`);
+        } else {
+            trigger.removeAttribute?.('data-fz-dirty');
+            if (this.originalSaveLabels.has(trigger)) {
+                const original = this.originalSaveLabels.get(trigger);
+                for (const [name, value] of [['aria-label', original.aria], ['title', original.title]]) {
+                    if (value === null) trigger.removeAttribute?.(name);
+                    else trigger.setAttribute?.(name, value);
+                }
+                this.originalSaveLabels.delete(trigger);
+            }
+        }
+    }
+
+    rowStatus(row, trigger, state, message = '') {
+        if (!this.onRowStatus || !row || !trigger) return;
+        try { this.onRowStatus({row, trigger, state, message}); }
+        catch (_) { /* A presentation error must never prevent persistence. */ }
+    }
+
     remember(row) {
         const trigger = this.saveTrigger(row);
         if (trigger) this.snapshots.set(row, this.fingerprint(row, trigger));
         this.dirtyRows.delete(row);
-        row?.removeAttribute?.('data-fz-dirty');
+        this.markDirty(row, trigger, false);
+        this.rowStatus(row, trigger, 'idle');
     }
 
     rememberAll(root) {
@@ -135,15 +186,20 @@ export default class FormZeroAjax {
         const trigger = this.saveTrigger(row);
         if (!trigger) return;
         if (this.fingerprint(row, trigger) !== this.snapshots.get(row)) {
-            if (!this.dirtyRows.has(row)) {
+            const wasDirty = this.dirtyRows.has(row);
+            if (!wasDirty && this.inlineDirty && !this.onRowStatus) {
                 this.status(trigger, this.translate(this.dirtyMessage), 'warning');
             }
             this.dirtyRows.add(row);
-            row.setAttribute?.('data-fz-dirty', 'true');
+            this.markDirty(row, trigger, true);
+            // Reassert dirty after a failed save as soon as the user edits again.
+            // The presentation callback deduplicates unchanged statuses.
+            this.rowStatus(row, trigger, 'dirty', this.translate(this.dirtyMessage));
             this.emit('dirty', {row, trigger});
         } else {
-            this.dirtyRows.delete(row);
-            row.removeAttribute?.('data-fz-dirty');
+            const wasDirty = this.dirtyRows.delete(row);
+            this.markDirty(row, trigger, false);
+            if (wasDirty) this.rowStatus(row, trigger, 'idle');
             const status = trigger.nextElementSibling;
             if (status?.hasAttribute?.('data-fz-status')) status.textContent = '';
         }
@@ -257,7 +313,9 @@ export default class FormZeroAjax {
                         this.remember(root);
                         this.emit('fragment-added', {form, trigger: input, root, result});
                         completed++;
-                        this.status(input, `${completed} / ${files.length}`, 'warning');
+                        // Inline consumers keep the progress counter; toast
+                        // consumers see one final notification, not one per file.
+                        this.status(input, `${completed} / ${files.length}`, 'warning', {progress: true});
                     }
                     this.status(input, this.translate(input.dataset.fzSuccess || 'Uploaded'));
                     this.emit('uploaded', {form, trigger: input, completed});
@@ -339,7 +397,18 @@ export default class FormZeroAjax {
         document.dispatchEvent(new CustomEvent(`formzero:${name}`, {detail}));
     }
 
-    status(trigger, message, error = false) {
+    status(trigger, message, error = false, {progress = false} = {}) {
+        if (this.notify) {
+            // Remove a stale inline notice left by older code/deployments.
+            const old = trigger.nextElementSibling;
+            if (old?.hasAttribute?.('data-fz-status')) old.remove?.();
+            if (!progress && message) {
+                const type = error === true ? 'error' : error === 'warning' ? 'warning' : 'success';
+                try { this.notify({type, message, trigger}); }
+                catch (_) { /* UI feedback cannot turn a committed save into a failure. */ }
+            }
+            return;
+        }
         let element = trigger.nextElementSibling;
         if (!element?.hasAttribute('data-fz-status')) {
             element = document.createElement('span');
@@ -394,6 +463,7 @@ export default class FormZeroAjax {
                         throw new Error(this.translate(this.invalidResponse));
                     }
                     const snapshotSent = action === 'save' ? JSON.stringify([...data.entries()]) : null;
+                    if (action === 'save') this.rowStatus(target, trigger, 'saving');
                     const result = await this.request(form, url, data);
                     // Persistence has succeeded even if the following DOM
                     // validation/insertion fails: applications must invalidate
@@ -448,12 +518,33 @@ export default class FormZeroAjax {
                     if (typeof result.warning === 'string' && result.warning) {
                         this.emit('fragment-warning', {form, trigger, root, result});
                     }
-                    if (trigger.dataset.fzSuccess && action !== 'delete') {
+                    // A successful save must replace any previous dirty/error notice,
+                    // even if the caller did not configure data-fz-success. Do not
+                    // claim the row is fully saved if it changed during the request.
+                    if (action === 'save' && !this.dirtyRows.has(root)) {
+                        const message = this.translate(trigger.dataset.fzSuccess || this.savedMessage);
+                        if (this.onRowStatus) this.rowStatus(root, trigger, 'saved', message);
+                        else this.status(trigger, message);
+                    } else if (action === 'save' && this.onRowStatus) {
+                        this.rowStatus(root, trigger, 'dirty', this.translate(this.dirtyMessage));
+                    } else if (action === 'delete' && this.notify && !result.warning) {
+                        this.status(trigger, this.translate(trigger.dataset.fzSuccess || 'Deleted'));
+                    } else if (action !== 'save' && action !== 'delete' && trigger.dataset.fzSuccess) {
                         this.status(trigger, this.translate(trigger.dataset.fzSuccess));
                     }
                     return result;
                 } catch (error) {
-                    this.status(trigger, error.message || this.translate(this.requestError), true);
+                    const message = error.message || this.translate(this.requestError);
+                    const row = trigger.dataset.fzAction === 'save'
+                        ? form.querySelector(trigger.dataset.fzRow || '#fz-no-row') : null;
+                    if (row && this.onRowStatus) {
+                        this.rowStatus(row, trigger, 'error', message);
+                        // Errors warrant a global toast as well (the panel may be closed).
+                        // Never create a second inline notice beside Save.
+                        if (this.notify) this.status(trigger, message, true);
+                    } else {
+                        this.status(trigger, message, true);
+                    }
                     this.emit('fragment-error', {form, trigger, error});
                     if (error.conflict) this.emit('conflict', {form, trigger, error});
                     return null;

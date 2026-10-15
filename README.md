@@ -1666,13 +1666,19 @@ Supported trigger attributes:
 | `data-fz-fields` | **Save**: comma-separated **explicit field whitelist** |
 | `data-fz-label-target` | **Save**: descendant selector whose `textContent` receives returned `label` (never HTML) |
 | `data-fz-replace="if-html"` | **Save/mutate**: replace that row only when server sends `html` (for `mutate`, dirty rows are rejected before sending) |
-| `data-fz-success` | Text or application translation key for the status message |
+| `data-fz-success` | Optional text or application translation key for the status message; save actions fall back to configurable `savedMessage` (`Saved` by default) |
 
 When generating `data-fz-url` from an application URL helper, pass the **raw** URL
 to the attribute serializer. For example, if `url()` defaults to an HTML-encoded
 query separator (`&amp;`), request `&` explicitly and let
 `{attributes}|join` escape `data-fz-url` once. Pre-escaped query strings
 will be double-encoded and multi-parameter URLs will fail.
+
+On successful saves, FormZeroAjax replaces stale *unsaved* or error status with
+a success notice. To localize the fallback, configure `savedMessage` in
+`new FormZeroAjax({savedMessage: 'translation.key', translate})`. If the user
+changes a field while a save is in flight, the unsaved warning takes
+precedence; those newer edits still need saving.
 
 The create link's `href` is a non-JavaScript fallback. Save buttons use
 `type="button"` and do not trigger the global form submit. The `data-fz-*`
@@ -1879,3 +1885,67 @@ Security rules still apply: the server must not trust a client-provided
 prove access. Check authentication, CSRF, ownership, form validation and
 revision *server-side*. For double-escaped URL avoidance, use the raw URL as
 the value of `data-fz-url` (and any other HTML-escaped `data-fz-*` URL).
+
+### Notification and layout-stable dirty indicator
+
+`FormZeroAjax` can optionally delegate operation-level notifications to the host
+application instead of inserting text after a Save button. Its core stays
+independent of any toaster or CSS framework:
+
+```js
+const ajax = new FormZeroAjax({
+    translate: key => translator.trans(key),
+    notify: ({type, message}) => toastNotifier.show({type, message}),
+    inlineDirty: false,
+});
+```
+
+- The default behavior remains unchanged: inline status text and inline dirty
+  warnings, without requiring `ToastNotifier`.
+- In this opt-in mode, successful saves, creations, deletes and completed upload
+  batches produce one notification; errors are reported through the same callback.
+  Intermediate multi-file progress counters are suppressed in toast mode rather
+  than generating a flood of notifications.
+- Editing a field never creates a toast. `data-fz-dirty="true"` is placed on the
+  row and its Save button, and the button's accessible label gains the translated
+  `dirtyMessage`. Both are restored on successful save or reverting the edit.
+  Applications can style the state with a small CSS pseudo-element without
+  changing the toolbar layout. The `beforeunload` unsaved-change protection
+  still applies.
+- Saves with additional changes made while the request was pending retain the
+  dirty marker and do not incorrectly announce a fully saved form.
+- Save errors continue to be delivered as `formzero:fragment-error` events and
+  valid responses still rotate CSRF/revision tokens. The notification callback
+  must display text, not treat server-provided messages as trusted HTML.
+
+
+### Optional per-component status UI
+
+Applications may keep operation-level toasts while rendering independent saves
+locally, without modifying `ZeroForm` or depending on any CSS framework:
+
+```js
+const ajax = new FormZeroAjax({
+    notify: ({type, message}) => toaster.show({type, message}),
+    inlineDirty: false,
+    onRowStatus: ({row, trigger, state, message}) => {
+        // Render inside the application's own component, NOT as a sibling of Save.
+        // state: idle | dirty | saving | saved | error
+        componentFeedback.update(row, trigger, state, message);
+    },
+});
+```
+
+`onRowStatus` is optional. The callback is invoked when the initial row is
+snapshotted, when its permitted fields become dirty or clean, before a scoped
+save request, and after a successful or failed save. A successful component
+save no longer calls `notify` if this callback exists; failures reach the
+component and (when configured) the general notification callback. Create,
+delete, upload and other operation messages still use `notify`. For consumers
+without `onRowStatus`, the original inline/toast behavior is unchanged.
+
+The callback must not throw, mutate form fields, or cause persistence calls.
+FormZero catches presentation errors so a saved record cannot be reported as
+an unsuccessful HTTP operation solely because a notification failed. Keep
+local feedback text-only and reserve space in the component so visual changes
+do not shift the Save toolbar.
