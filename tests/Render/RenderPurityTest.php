@@ -16,6 +16,21 @@ use ReflectionClass;
 
 final class RenderPurityTest extends TestCase
 {
+    public function testDecoratorSeparatorDoesNotMutateOptions(): void
+    {
+        $decorator = new ElementsDecorator(['separator' => ' / ']);
+        $before = $decorator->getOptions();
+
+        self::assertSame(' / ', $decorator->getSeparator());
+        self::assertSame(' / ', $decorator->getSeparator());
+        self::assertSame($before, $decorator->getOptions());
+
+        $decorator->setOption('separator', ' + ');
+        self::assertSame(' + ', $decorator->getSeparator());
+        $decorator->removeOption('separator');
+        self::assertSame(PHP_EOL, $decorator->getSeparator());
+    }
+
     public function testRenderDoesNotChangeValuesMessagesOrLogicalBelongsTo(): void
     {
         [$root, $basedata, $metadata, $metaTitle] = $this->createNestedForm();

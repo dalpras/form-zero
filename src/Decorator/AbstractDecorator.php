@@ -3,7 +3,6 @@
 namespace DalPraS\FormZero\Decorator;
 
 use DalPraS\FormZero\ElementInterface;
-use DalPraS\FormZero\Exception\InvalidElementException;
 use DalPraS\FormZero\Element\Intefaces\MultiChoicesInterface;
 use DalPraS\FormZero\ZeroForm;
 use Exception;
@@ -75,13 +74,8 @@ abstract class AbstractDecorator
      */
     public function setElement(ElementInterface|ZeroForm $element):static
     {
-        switch (true) {
-            case $element instanceof ElementInterface:
-            case $element instanceof ZeroForm:
-                $this->element = $element;
-                return $this;
-        }
-        throw new InvalidElementException('Invalid element type passed to decorator');
+        $this->element = $element;
+        return $this;
     }
 
     public function getElement(): ElementInterface|MultiChoicesInterface|ZeroForm
@@ -91,12 +85,7 @@ abstract class AbstractDecorator
 
     public function getSeparator(): string
     {
-        $separator = $this->separator;
-        if (null !== ($separatorOpt = $this->getOption('separator'))) {
-            $separator = $this->separator = (string) $separatorOpt;
-            $this->removeOption('separator');
-        }
-        return $separator;
+        return (string) ($this->getOption('separator') ?? $this->separator);
     }
 
     public function render(string $content = ''): string
