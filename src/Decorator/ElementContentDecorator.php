@@ -17,19 +17,19 @@ class ElementContentDecorator extends AbstractDecorator
         $prefix = $this->getOption('prefix') ?? null;
         if ($prefix !== null) {
             $callback = new CallbackDecorator(['callback' => function(string $content, RenderCollection $render, Element $element, $namespace) use ($prefix) {
-                $prefix = ($prefix instanceof Closure) ? $prefix($render) : $prefix;
-                $html = '';
-                if ($prefix !== '') {
-                    $html .= $render->at('tag.div')([
+                $resolvedPrefix = ($prefix instanceof Closure) ? $prefix($render) : $prefix;
+                if ($resolvedPrefix === '' || $resolvedPrefix === null) {
+                    return (new ElementBaseDecorator())->setElement($element)->render($content);
+                }
+
+                return $render->at('tag.div')([
                         '{attributes}|join' => ['class' => 'input-group form-zero-control-group'],
                         '{content}'    => $render->at('tag.span')([
                             '{attributes}|join' => ['class' => 'input-group-text bg-transparent border-end-0'],
-                            '{content}' => $prefix
+                            '{content}' => $resolvedPrefix
                         ]) . 
                        (new ElementBaseDecorator(['attributes' => ['class' => 'border-start-0']]))->setElement($element)->render($content) 
                     ]);
-                }
-                return $html;
             }]);
             $content = $callback->setElement($element)->render($content);
         } else {

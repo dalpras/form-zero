@@ -18,16 +18,20 @@ class ElementWrapperDecorator extends AbstractDecorator
         $engine = $factory->template();
 
         return $engine->renderDefault(function(RenderCollection $render) use ($content, $element) {
-            $class = $this->getOption('class') ?? null;
+            $class = $this->getOption('class');
+            $configuredAttributes = $this->getOption('attributes') ?? [];
+            $attributes = $configuredAttributes instanceof Closure
+                ? $configuredAttributes($element)
+                : $configuredAttributes;
 
-            $attributes = $this->getOption('attributes') ?? [];
-            $fn = ($attributes instanceof Closure) 
-                ? $attributes 
-                : fn() => ['class' => $class];
-
+            // Keep the existing class-only contract, but do not discard
+            // explicitly configured wrapper attributes.
+            if ($class !== null && !array_key_exists('class', $attributes)) {
+                $attributes['class'] = $class;
+            }
 
             return $render->at('tag.div')([
-                '{attributes}|join' => $fn($element),
+                '{attributes}|join' => $attributes,
                 '{content}'    => $content
             ]);
         });
