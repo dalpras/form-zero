@@ -16,6 +16,8 @@ export default class FormZeroAjax {
         // Optional application-owned notifications (e.g. a Bootstrap toaster).
         // Without it, FormZero keeps its backwards-compatible inline messages.
         notify = null,
+        // Optional async confirmation for destructive actions (browser confirm by default).
+        confirm = null,
         inlineDirty = true,
         // Optional UI callback for independently saved components. FormZero does
         // not prescribe any layout or visual framework for this feedback.
@@ -33,12 +35,15 @@ export default class FormZeroAjax {
         this.fetchImpl = fetchImpl;
         this.statusClasses = statusClasses;
         this.notify = typeof notify === 'function' ? notify : null;
+        this.confirm = typeof confirm === 'function' ? confirm : (message) =>
+            typeof window !== 'undefined' && window.confirm?.(message) === true;
         this.inlineDirty = inlineDirty;
         this.onRowStatus = typeof onRowStatus === 'function' ? onRowStatus : null;
         this.originalSaveLabels = new WeakMap();
         this.roots = new WeakSet();
         this.queues = new WeakMap();
         this.pending = new WeakSet();
+        this.confirming = new WeakSet();
         this.snapshots = new WeakMap();
         this.dirtyRows = new Set();
         this.pendingUploads = 0;
@@ -211,7 +216,8 @@ export default class FormZeroAjax {
             ? Object.values(result.errors).flat(Infinity).filter((value) => typeof value === 'string')
             : [];
         return errors.length ? errors.join(' \u00b7 ')
-            : (typeof result.error === 'string' && result.error || this.translate(this.requestError));
+            : (typeof result.error === 'string' && result.error
+                ? this.translate(result.error) : this.translate(this.requestError));
     }
 
     async request(form, url, data = new FormData()) {
@@ -426,9 +432,17 @@ export default class FormZeroAjax {
     }
 
     async execute(form, trigger) {
+        if (this.pending.has(trigger) || this.confirming.has(trigger)) return;
+        if (['delete', 'mutate'].includes(trigger.dataset.fzAction) && trigger.dataset.fzConfirm) {
+            // Keep the same confirm dialog from opening twice during rapid clicks.
+            this.confirming.add(trigger);
+            let approved = false;
+            try { approved = await this.confirm(trigger.dataset.fzConfirm, trigger); }
+            catch (_) { approved = false; }
+            finally { this.confirming.delete(trigger); }
+            if (!approved) return;
+        }
         if (this.pending.has(trigger)) return;
-        if (['delete', 'mutate'].includes(trigger.dataset.fzAction) && trigger.dataset.fzConfirm &&
-            typeof window !== 'undefined' && !window.confirm(trigger.dataset.fzConfirm)) return;
         this.pending.add(trigger);
         const originalTrigger = trigger;
         const wasDisabled = trigger.disabled === true;

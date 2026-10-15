@@ -1944,6 +1944,32 @@ component and (when configured) the general notification callback. Create,
 delete, upload and other operation messages still use `notify`. For consumers
 without `onRowStatus`, the original inline/toast behavior is unchanged.
 
+### Optional confirmation callback and localized server errors
+
+For `data-fz-action="delete"` or `"mutate"` with `data-fz-confirm`, the
+application can supply an asynchronous confirmation function:
+
+```js
+const ajax = new FormZeroAjax({
+    translate: key => translator.trans(key),
+    confirm: (message, trigger) => confirmationDialog.ask(message, trigger),
+});
+```
+
+The promise must resolve to `true` to perform the request; cancellation
+never sends a POST. While confirmation is pending, repeated clicks on the
+same trigger are ignored. Without an application callback, native browser
+`confirm()` remains the default. The library never assumes Bootstrap or a
+particular modal service. The server must still validate CSRF, ownership,
+revision, and deletion constraints after the user confirms.
+
+When a JSON failure includes a single `error` string, FormZero passes it
+through the configured translator before displaying it. Applications can
+therefore return stable message keys, including for domain-specific 422
+failures, without embedding HTML or duplicating translations in controllers.
+Structured field-validation `errors` remain untouched because they may
+already contain translated per-field messages.
+
 The callback must not throw, mutate form fields, or cause persistence calls.
 FormZero catches presentation errors so a saved record cannot be reported as
 an unsuccessful HTTP operation solely because a notification failed. Keep
