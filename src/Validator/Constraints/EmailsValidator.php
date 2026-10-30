@@ -32,10 +32,8 @@ class EmailsValidator extends ConstraintValidator
         // Split by the configured separator and trim each part
         $parts = array_map('trim', explode($constraint->separator, $value));
 
-        // Inner Email constraint (you can tweak options: checkMX, checkHost, etc.)
-        $emailConstraint = new Email([
-            'mode' => Email::VALIDATION_MODE_STRICT, // strict-ish mode
-        ]);
+        // Validate every address using strict email syntax.
+        $emailConstraint = new Email(mode: Email::VALIDATION_MODE_STRICT);
 
         foreach ($parts as $email) {
             if ($email === '') {

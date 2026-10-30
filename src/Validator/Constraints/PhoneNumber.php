@@ -8,8 +8,8 @@ use Symfony\Component\Validator\Constraint;
  * Validates that a value is a valid phone number using libphonenumber.
  *
  * Usage:
- *   new PhoneNumber()                    // no default region
- *   new PhoneNumber(['country' => 'IT']) // use "IT" as default region
+ *   new PhoneNumber()             // no default region
+ *   new PhoneNumber(country: 'IT') // use "IT" as default region
  */
 class PhoneNumber extends Constraint
 {
@@ -27,9 +27,25 @@ class PhoneNumber extends Constraint
     public string $tooShortAfterIddMessage     = 'The number has less digits than any valid phone number.';
     public string $tooShortNsnMessage          = 'The prefix has less digits than any valid phone number.';
 
-    public function __construct(?array $options = null, ?array $groups = null, $payload = null)
-    {
-        parent::__construct($options ?? [], $groups, $payload);
+    public function __construct(
+        ?string $country = null,
+        ?string $countryMismatchMessage = null,
+        ?string $invalidCountryCodeMessage = null,
+        ?string $invalidMessage = null,
+        ?string $notANumberMessage = null,
+        ?string $tooShortAfterIddMessage = null,
+        ?string $tooShortNsnMessage = null,
+        ?array $groups = null,
+        mixed $payload = null,
+    ) {
+        parent::__construct(null, $groups, $payload);
+        $this->country = $country;
+        $this->countryMismatchMessage = $countryMismatchMessage ?? $this->countryMismatchMessage;
+        $this->invalidCountryCodeMessage = $invalidCountryCodeMessage ?? $this->invalidCountryCodeMessage;
+        $this->invalidMessage = $invalidMessage ?? $this->invalidMessage;
+        $this->notANumberMessage = $notANumberMessage ?? $this->notANumberMessage;
+        $this->tooShortAfterIddMessage = $tooShortAfterIddMessage ?? $this->tooShortAfterIddMessage;
+        $this->tooShortNsnMessage = $tooShortNsnMessage ?? $this->tooShortNsnMessage;
     }
 
     public function validatedBy(): string

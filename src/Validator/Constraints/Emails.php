@@ -6,15 +6,15 @@ use Symfony\Component\Validator\Constraint;
 
 /**
  * Validates a string that contains one or more email addresses
- * separated by a configurable separator (default: ";").
+ * separated by a configurable separator (default: "; ").
  *
- * Examples with default separator (";"):
+ * Examples with default separator ("; "):
  *   "a@foo.it; b@bar.com"
  *   "one@example.com"
  *
  * Usage:
- *   new Emails() // default separator ";"
- *   new Emails(['separator' => '; '])
+ *   new Emails() // default separator "; "
+ *   new Emails(separator: '; ')
  */
 class Emails extends Constraint
 {
@@ -29,13 +29,15 @@ class Emails extends Constraint
      */
     public string $separator = '; ';
 
-    /**
-     * Let Symfony map options array keys (e.g. ['separator' => '; '])
-     * directly to properties.
-     */
-    public function __construct(?array $options = null, ?array $groups = null, $payload = null)
-    {
-        parent::__construct($options ?? [], $groups, $payload);
+    public function __construct(
+        ?string $separator = null,
+        ?string $message = null,
+        ?array $groups = null,
+        mixed $payload = null,
+    ) {
+        parent::__construct(null, $groups, $payload);
+        $this->separator = $separator ?? $this->separator;
+        $this->message = $message ?? $this->message;
     }
 
     public function validatedBy(): string

@@ -29,10 +29,10 @@ final class SubmitElement extends Element
     public function isValid($value, $context = null): bool
     {
         if ($value !== null && $this->getIgnore() === false) {
-            $this->addConstraint(new Assert\IdenticalTo([
-                'value'   => $value,
-                'message' => 'Valore non valido.',
-            ]));
+            $this->addConstraint(new Assert\IdenticalTo(
+                value: $value,
+                message: 'Valore non valido.',
+            ));
         }
         return parent::isValid($value, $context);
     }

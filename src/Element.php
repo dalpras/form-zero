@@ -538,7 +538,7 @@ class Element implements ElementInterface
             $requiredMessage = $this->getRequiredMessage();
             array_unshift($constraints, $requiredMessage === null
                 ? new Assert\NotBlank()
-                : new Assert\NotBlank(['message' => $requiredMessage]));
+                : new Assert\NotBlank(message: $requiredMessage));
         }
 
         $result = true;
