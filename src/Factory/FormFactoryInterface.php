@@ -6,7 +6,6 @@ use DalPraS\FormZero\ElementInterface;
 use DalPraS\FormZero\ZeroForm;
 use DalPraS\FormZero\Upload\UploadedFileProviderInterface;
 use DalPraS\SmartTemplate\TemplateEngine;
-use Symfony\Component\Translation\Translator;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 interface FormFactoryInterface
@@ -14,8 +13,6 @@ interface FormFactoryInterface
     public function template(): TemplateEngine;
 
     public function getUploadedFileProvider(): UploadedFileProviderInterface;
-
-    public function translator(): ?Translator;
 
     public function createElement(ElementInterface|string $element, string $name, array $options): ElementInterface;
 
