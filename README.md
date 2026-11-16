@@ -1,6 +1,6 @@
 # FormZero
 
-FormZero is a PHP 8.3+ form library built around three ideas:
+FormZero is a PHP 8.4.1+ form library built around three ideas:
 
 1. **Forms are PHP objects.** Fields, validation, filtering, nested data, and rendering are configured in PHP.
 2. **Rendering is modular.** FormZero renders through decorators and [Smart Template](../smart-template) instead of coupling forms to Twig, Blade, or another full view framework.
@@ -14,13 +14,13 @@ FormZero is used as a form library, not as an HTTP framework. Your controller/ap
 
 The package currently requires:
 
-- PHP `>= 8.3`
+- PHP `>= 8.4.1` (required by Symfony 8.1)
 - `dalpras/smart-template ^5.0`
-- Symfony Validator `^7.4`
-- Symfony Translation `^7.4`
-- Symfony HttpFoundation `^7.3`
-- Symfony Mime `^7.4`
-- Symfony PSR HTTP Message Bridge `^7.4`
+- `giggsey/libphonenumber-for-php ^9.0` (phone filter and validator)
+- Symfony Validator `^8.1`
+- Symfony HttpFoundation `^8.1` (uploaded files and optional session adapter)
+
+Form labels and feedback are translated through SmartTemplate helpers; the FormZero factory does not need a separate translator. SmartTemplate declares its dependency on `symfony/translation-contracts`.
 
 The package intentionally uses Symfony validation and `UploadedFile` objects, but FormZero itself does not depend on Symfony's `Request` object.
 
@@ -59,8 +59,7 @@ Application/controller
         |
         +-- TemplateEngine
         +-- ValidatorInterface
-        +-- UploadedFileProviderInterface
-        `-- optional Translator
+        `-- UploadedFileProviderInterface
 ```
 
 The public entry point is normally `FormFactory`.
@@ -69,20 +68,18 @@ The public entry point is normally `FormFactory`.
 
 # 1. Configure FormFactory
 
-`FormFactory` requires three services and accepts an optional translator:
+`FormFactory` requires three services. Form translations use the SmartTemplate helpers:
 
 ```php
 use DalPraS\FormZero\Factory\FormFactory;
 use DalPraS\FormZero\Upload\UploadedFileProviderInterface;
 use DalPraS\SmartTemplate\TemplateEngine;
-use Symfony\Component\Translation\Translator;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 $formFactory = new FormFactory(
     template: $template,
     uploadedFileProvider: $uploadedFileProvider,
     validator: $validator,
-    translator: $translator, // optional; may be null
 );
 ```
 
@@ -1154,15 +1151,10 @@ This is an application policy switch. Use it only when another trusted mechanism
 
 # 17. Translation
 
-`FormFactory` accepts an optional Symfony `Translator`:
+FormZero uses the translator available from SmartTemplate helpers (not a separate factory dependency):
 
 ```php
-$formFactory = new FormFactory(
-    template: $template,
-    uploadedFileProvider: $uploads,
-    validator: $validator,
-    translator: $translator,
-);
+$translator = $template->getHelpers()->translator();
 ```
 
 Element translation can be disabled with:
@@ -1446,7 +1438,6 @@ new FormFactory(
     template: $template,
     uploadedFileProvider: $uploadedFileProvider,
     validator: $validator,
-    translator: $translator,
 );
 ```
 

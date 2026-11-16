@@ -44,7 +44,7 @@ trait MultiChoicesTrait
             if (!$this->isRequired() && !in_array('', $choices, true)) {
                 $choices[] = '';
             }
-            $constraints[] = new Assert\Choice(['choices' => $choices]);
+            $constraints[] = new Assert\Choice(choices: $choices);
         }
         return $constraints;
     }

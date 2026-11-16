@@ -10,7 +10,6 @@ use DalPraS\FormZero\FormLayout;
 use DalPraS\FormZero\Upload\UploadedFileProviderInterface;
 use DalPraS\FormZero\ZeroForm;
 use DalPraS\SmartTemplate\TemplateEngine;
-use Symfony\Component\Translation\Translator;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class FormFactory implements FormFactoryInterface
@@ -20,8 +19,7 @@ class FormFactory implements FormFactoryInterface
     public function __construct(
         private readonly TemplateEngine $template,
         private readonly UploadedFileProviderInterface $uploadedFileProvider,
-        private readonly ValidatorInterface $validator,
-        private readonly ?Translator $translator = null
+        private readonly ValidatorInterface $validator
     ) {
     }
 
@@ -33,11 +31,6 @@ class FormFactory implements FormFactoryInterface
     public function getValidator(): ValidatorInterface
     {
         return $this->validator;
-    }
-
-    public function translator(): ?Translator
-    {
-        return $this->translator;
     }
 
     public function createForm(string $class, mixed ...$args): ZeroForm
