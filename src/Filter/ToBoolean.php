@@ -20,7 +20,7 @@ final class ToBoolean implements FilterInterface
             return $value;
         }
 
-        $normalized = strtolower(trim($value));
+        $normalized = mb_strtolower(trim($value), 'UTF-8');
 
         return match ($normalized) {
             '1', 'true', 'yes', 'y', 'on', 'si', 'sì' => true,

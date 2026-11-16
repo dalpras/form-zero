@@ -518,6 +518,7 @@ StripTags
 StripNewlines
 StringToLower
 StringToUpper
+StringToTitle
 ToBoolean
 ToFloat
 ToInt

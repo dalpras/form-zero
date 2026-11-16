@@ -8,6 +8,10 @@ final class StringTrim implements FilterInterface
 {
     public function filter(mixed $value): mixed
     {
-        return is_string($value) ? trim($value) : $value;
+        if (!is_string($value)) {
+            return $value;
+        }
+
+        return mb_trim($value, null, 'UTF-8');
     }
 }

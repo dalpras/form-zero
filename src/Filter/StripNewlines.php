@@ -8,6 +8,10 @@ final class StripNewlines implements FilterInterface
 {
     public function filter(mixed $value): mixed
     {
-        return is_string($value) ? str_replace(["\r", "\n"], '', $value) : $value;
+        if (!is_string($value)) {
+            return $value;
+        }
+
+        return preg_replace('/\R/u', '', $value) ?? $value;
     }
 }

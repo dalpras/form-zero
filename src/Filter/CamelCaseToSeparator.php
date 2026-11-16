@@ -47,7 +47,7 @@ final class CamelCaseToSeparator implements FilterInterface
         }
 
         if ($this->lowercase) {
-            return function_exists('mb_strtolower') ? mb_strtolower($filtered) : strtolower($filtered);
+            return mb_strtolower($filtered, 'UTF-8');
         }
 
         return $filtered;

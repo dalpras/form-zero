@@ -12,9 +12,13 @@ final class CamelCaseToDash implements FilterInterface
             return $value;
         }
 
-        $value = preg_replace('/(?<!^)[A-Z]/', '-$0', $value) ?? $value;
-        $value = preg_replace('/[-_\s]+/', '-', $value) ?? $value;
+        $filtered = (new CamelCaseToSeparator([
+            'separator' => '-',
+            'lowercase' => true,
+        ]))->filter($value);
 
-        return strtolower(trim($value, '-'));
+        $normalized = preg_replace('/[-_\s]+/u', '-', $filtered) ?? $filtered;
+
+        return trim($normalized, '-');
     }
 }

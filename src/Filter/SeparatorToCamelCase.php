@@ -21,9 +21,14 @@ final class SeparatorToCamelCase implements FilterInterface
 
         $separator = $this->options['separator'] ?? ['-', '_'];
         $upperFirst = $this->options['upperFirst'] ?? false;
-        $normalized = str_replace($separator, ' ', strtolower($value));
-        $camel = str_replace(' ', '', ucwords($normalized));
+        $normalized = str_replace($separator, ' ', $value);
+        $camel = str_replace(' ', '', (new StringToTitle())->filter($normalized));
 
-        return $upperFirst ? $camel : lcfirst($camel);
+        return $upperFirst ? $camel : $this->lowerFirst($camel);
+    }
+
+    private function lowerFirst(string $value): string
+    {
+        return mb_lcfirst($value, 'UTF-8');
     }
 }
